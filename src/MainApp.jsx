@@ -896,6 +896,7 @@ function MainApp() {
   const [roleContext, setRoleContext] = useState(null)
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
   const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
+  const [setupPanelOpen, setSetupPanelOpen] = useState(false)
 
   // ---- Notification bell: poll unread count every 30s ----
   const [notifUnreadCount, setNotifUnreadCount] = useState(0)
@@ -1543,10 +1544,13 @@ function MainApp() {
         <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
         <BlastAlertChecker />
 
-        {/* Floating buttons */}
-        {activeView === 'parent' && <FloatingHelpButton />}
-        <SetupHelper onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
-        <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
+        {/* Floating buttons — vertical stack, bottom-right. Hidden when SetupHelper panel is open. */}
+        {activeView === 'parent' && !setupPanelOpen && <FloatingHelpButton />}
+        <SetupHelper
+          onNavigate={(pageId) => navigate(getPathForPage(pageId))}
+          onPanelToggle={setSetupPanelOpen}
+        />
+        {!setupPanelOpen && <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />}
       </div>
     </ParentTutorialProvider>
     </SeasonProvider>

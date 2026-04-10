@@ -43,8 +43,14 @@ const TIME_ESTIMATES = {
   first_game: '~10 min',
 }
 
-export default function SetupHelper({ onNavigate }) {
+export default function SetupHelper({ onNavigate, onPanelToggle }) {
   const [isOpen, setIsOpen] = useState(false)
+
+  // Notify parent when panel open/close state changes
+  const togglePanel = (open) => {
+    setIsOpen(open)
+    onPanelToggle?.(open)
+  }
   const journey = useJourney()
   const { profile } = useAuth()
   const { isDark } = useTheme()
@@ -67,9 +73,9 @@ export default function SetupHelper({ onNavigate }) {
     <>
       {/* Floating Button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed z-30 flex items-center justify-center group"
-        style={{ bottom: 24, right: 80, width: 52, height: 52 }}
+        onClick={() => togglePanel(true)}
+        className="fixed z-40 flex items-center justify-center group"
+        style={{ bottom: 96, right: 24, width: 52, height: 52 }}
         title={remaining.length > 0
           ? `${remaining.length} setup step${remaining.length === 1 ? '' : 's'} remaining — click to see your roadmap`
           : 'All set! Your club is ready.'}
@@ -98,7 +104,7 @@ export default function SetupHelper({ onNavigate }) {
           {/* Backdrop */}
           <div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-            onClick={() => setIsOpen(false)}
+            onClick={() => togglePanel(false)}
           />
           {/* Panel */}
           <div
@@ -114,7 +120,7 @@ export default function SetupHelper({ onNavigate }) {
                 <p className="text-slate-400 text-xs mt-0.5">{doneCount} of {totalSteps} complete</p>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => togglePanel(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition"
               >
                 <X className="w-4 h-4" />
@@ -161,7 +167,7 @@ export default function SetupHelper({ onNavigate }) {
                     {!isDone && route && (
                       <button
                         onClick={() => {
-                          setIsOpen(false)
+                          togglePanel(false)
                           onNavigate?.(STEP_ROUTES[step.id])
                         }}
                         className="text-xs font-bold text-sky-500 hover:text-sky-400 whitespace-nowrap flex items-center gap-1"
