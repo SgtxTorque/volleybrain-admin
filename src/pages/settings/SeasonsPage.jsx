@@ -71,12 +71,20 @@ function SeasonsPage({ showToast }) {
 
   function openNew() {
     setEditingSeason(null)
+    // Inherit fee defaults from org-level settings when creating a new season.
+    // Falls back to hardcoded defaults only when the org hasn't set them yet.
+    const orgSettings = organization?.settings || {}
     setForm({
       name: '', status: 'upcoming', start_date: '', end_date: '',
-      fee_registration: 150, fee_uniform: 35, fee_monthly: 50, fee_per_family: 0, months_in_season: 3,
+      fee_registration: orgSettings.default_registration_fee ?? 150,
+      fee_uniform: orgSettings.default_uniform_fee ?? 35,
+      fee_monthly: orgSettings.default_monthly_fee ?? 50,
+      fee_per_family: 0, months_in_season: 3,
       sibling_discount_type: 'none', sibling_discount_amount: 0, sibling_discount_apply_to: 'additional',
       sport_id: selectedProgram?.sport_id || null, registration_opens: '', registration_closes: '',
-      early_bird_deadline: '', early_bird_discount: 25, late_registration_deadline: '',
+      early_bird_deadline: '',
+      early_bird_discount: orgSettings.early_bird_discount ?? 25,
+      late_registration_deadline: '',
       late_registration_fee: 25, capacity: null, waitlist_enabled: true, waitlist_capacity: 20,
       description: '',
       registration_template_id: null,
