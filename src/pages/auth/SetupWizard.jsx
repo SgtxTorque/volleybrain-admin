@@ -151,6 +151,7 @@ export function SetupWizard({ onComplete, onBack }) {
   const [teamName, setTeamName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [selectedSport, setSelectedSport] = useState(null)
+  const [customProgramName, setCustomProgramName] = useState('')
   const [createdOrgId, setCreatedOrgId] = useState(null)
 
   // UI state
@@ -276,10 +277,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
   // Save sport selection from wizard step 3
   const handleSportContinue = async () => {
-    if (!selectedSport || !createdOrgId) {
-      goTo(STEPS.SUCCESS)
-      return
-    }
+    if (!selectedSport || !createdOrgId) return
     setSaving(true)
     setError(null)
     try {
@@ -299,23 +297,50 @@ export function SetupWizard({ onComplete, onBack }) {
         },
       }).eq('id', createdOrgId)
 
-      // Create a starter program for the selected sport
-      if (selectedSport !== 'other') {
+      // Create a starter program — ALWAYS, regardless of sport selection
+      if (selectedSport === 'other') {
+        // "Other" path — create program with custom name (default to "General")
+        const programName = customProgramName.trim() || 'General'
+        await supabase.from('programs').insert({
+          organization_id: createdOrgId,
+          sport_id: null,
+          name: programName,
+          is_active: true,
+          display_order: 0,
+        })
+      } else {
+        // Standard sport — look up sport record
         const { data: sportRecord } = await supabase
           .from('sports')
           .select('id, name')
           .ilike('name', selectedSport)
           .maybeSingle()
 
-        if (sportRecord) {
-          await supabase.from('programs').insert({
-            organization_id: createdOrgId,
-            sport_id: sportRecord.id,
-            name: sportRecord.name,
-            is_active: true,
-            display_order: 0,
-          })
-        }
+        // Create program even if sport record not found (fallback)
+        await supabase.from('programs').insert({
+          organization_id: createdOrgId,
+          sport_id: sportRecord?.id || null,
+          name: sportRecord?.name || selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1),
+          is_active: true,
+          display_order: 0,
+        })
+      }
+
+      // Safety net: verify at least one program exists for this org
+      const { count } = await supabase
+        .from('programs')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', createdOrgId)
+
+      if (!count || count === 0) {
+        // Last resort fallback — create a "General" program
+        await supabase.from('programs').insert({
+          organization_id: createdOrgId,
+          sport_id: null,
+          name: 'General',
+          is_active: true,
+          display_order: 0,
+        })
       }
 
       setSaving(false)
@@ -678,19 +703,27 @@ export function SetupWizard({ onComplete, onBack }) {
                 ))}
               </div>
 
+              {/* Custom name input when "Other" is selected */}
+              {selectedSport === 'other' && (
+                <div className="mb-4">
+                  <label className="block text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: BRAND.textMuted }}>Program Name</label>
+                  <input
+                    type="text"
+                    value={customProgramName}
+                    onChange={e => setCustomProgramName(e.target.value)}
+                    placeholder="e.g., Multi-Sport, General Athletics"
+                    className="w-full px-4 py-3 rounded-xl border-2 text-base font-medium outline-none transition-colors focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10"
+                    style={{ borderColor: '#E8ECF2', color: BRAND.textPrimary, background: '#FAFBFC' }}
+                  />
+                  <p className="text-xs mt-1.5" style={{ color: BRAND.textMuted }}>Leave blank to use "General"</p>
+                </div>
+              )}
+
               {error && <ErrorMessage message={error} />}
 
               <PrimaryButton onClick={handleSportContinue} disabled={!selectedSport} saving={saving}>
                 Continue
               </PrimaryButton>
-
-              <button
-                onClick={() => goTo(STEPS.SUCCESS)}
-                className="block mx-auto mt-4 text-sm font-medium transition-colors hover:underline"
-                style={{ color: BRAND.textMuted }}
-              >
-                Skip for now — I'll pick later
-              </button>
 
               {meta.time && <TimeLabel time={meta.time} />}
             </>
