@@ -99,7 +99,7 @@ export default function PlayerProfileInfoTab({
         {/* Left: Player Info */}
         <div className={`${altBg} rounded-[14px] px-4`}>
           <InfoRow isDark={isDark} label="Full Name" value={`${player.first_name} ${player.last_name}`} />
-          <InfoRow isDark={isDark} label="Date of Birth" value={player.date_of_birth ? new Date(player.date_of_birth + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null} />
+          <InfoRow isDark={isDark} label="Date of Birth" value={(player.date_of_birth || player.birth_date) ? new Date((player.date_of_birth || player.birth_date) + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null} />
           <InfoRow isDark={isDark} label="Gender" value={infoForm.gender ? infoForm.gender.charAt(0).toUpperCase() + infoForm.gender.slice(1).replace(/_/g, ' ') : null} />
           <InfoRow isDark={isDark} label="Grade" value={player.grade} />
           <InfoRow isDark={isDark} label="School" value={player.school} />
