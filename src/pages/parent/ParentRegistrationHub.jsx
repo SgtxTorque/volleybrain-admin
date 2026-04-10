@@ -21,7 +21,7 @@ const TABS = [
 ]
 
 function ParentRegistrationHub({ roleContext, showToast }) {
-  const { user, profile } = useAuth()
+  const { user, profile, organization } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
 
@@ -48,23 +48,24 @@ function ParentRegistrationHub({ roleContext, showToast }) {
   const [waiverSigs, setWaiverSigs] = useState({})
   const [waiverScrolled, setWaiverScrolled] = useState({})
 
-  useEffect(() => { loadData() }, [user, profile])
+  useEffect(() => { loadData() }, [user, organization?.id])
 
   async function loadData() {
-    if (!profile?.organization_id) return
+    const orgId = organization?.id
+    if (!orgId) { setLoading(false); return }
     setLoading(true)
     try {
       // Load open seasons
       const { data: seasonData } = await supabase
         .from('seasons')
         .select('*, sports (name, icon, positions)')
-        .eq('organization_id', profile.organization_id)
+        .eq('organization_id', orgId)
         .in('status', ['open', 'active'])
         .order('start_date', { ascending: true })
       setSeasons(seasonData || [])
 
       // Load parent's existing players (scoped to active org via all org seasons)
-      const { data: allOrgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', profile.organization_id)
+      const { data: allOrgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', orgId)
       const allOrgSeasonIds = allOrgSeasons?.map(s => s.id) || []
       let playerQuery = supabase
         .from('players')
@@ -76,28 +77,31 @@ function ParentRegistrationHub({ roleContext, showToast }) {
       setMyPlayers(playerData || [])
     } catch (err) {
       console.error('Load error:', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function loadWaivers(seasonId) {
+    const orgId = organization?.id
+    if (!orgId) return
     const { data } = await supabase
-      .from('waivers')
+      .from('waiver_templates')
       .select('*')
-      .eq('season_id', seasonId)
+      .eq('organization_id', orgId)
       .eq('is_active', true)
-      .order('created_at')
+      .order('sort_order', { ascending: true })
     setWaivers(data || [])
 
     // Check which waivers are already signed by this user
     if (data?.length) {
       const { data: sigs } = await supabase
         .from('waiver_signatures')
-        .select('waiver_id')
-        .eq('signed_by', user.id)
-        .in('waiver_id', data.map(w => w.id))
+        .select('waiver_template_id')
+        .eq('signed_by_user_id', profile?.id)
+        .in('waiver_template_id', data.map(w => w.id))
       const sigMap = {}
-      sigs?.forEach(s => { sigMap[s.waiver_id] = true })
+      sigs?.forEach(s => { sigMap[s.waiver_template_id] = true })
       setSignedWaivers(sigMap)
     }
   }
@@ -151,7 +155,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
       const { data: newPlayer, error: playerErr } = await supabase
         .from('players')
         .insert({
-          organization_id: profile.organization_id,
+          organization_id: organization?.id,
           season_id: seasonId,
           first_name: form.first_name,
           last_name: form.last_name,
@@ -180,10 +184,16 @@ function ParentRegistrationHub({ roleContext, showToast }) {
       const sigInserts = Object.entries(waiverSigs)
         .filter(([, name]) => name?.trim())
         .map(([waiverId, sigName]) => ({
-          waiver_id: waiverId,
+          waiver_template_id: waiverId,
           player_id: newPlayer.id,
-          signed_by: user.id,
-          signature_data: sigName,
+          organization_id: organization?.id,
+          season_id: seasonId,
+          signed_by_user_id: profile?.id,
+          signed_by_name: sigName.trim(),
+          signed_by_email: profile?.email || '',
+          signed_by_relation: 'Parent/Guardian',
+          signature_data: sigName.trim(),
+          status: 'signed',
           signed_at: new Date().toISOString(),
         }))
       if (sigInserts.length > 0) {
@@ -461,7 +471,7 @@ function WaiverBlock({ waiver, isDark, tc, alreadySigned, sigName, scrolled, onS
       <div className={`rounded-xl p-4 mb-3 ${isDark ? 'bg-emerald-900/20 border border-emerald-700/30' : 'bg-emerald-50 border border-emerald-200'}`}>
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-          <span className={`font-semibold text-sm ${tc.text}`}>{waiver.title}</span>
+          <span className={`font-semibold text-sm ${tc.text}`}>{waiver.name || waiver.title}</span>
           <span className="text-xs text-emerald-500 ml-auto">Already signed</span>
         </div>
       </div>
@@ -471,7 +481,7 @@ function WaiverBlock({ waiver, isDark, tc, alreadySigned, sigName, scrolled, onS
   return (
     <div className={`rounded-xl p-4 mb-3 ${isDark ? 'bg-white/[0.03]/60 border border-white/10' : 'bg-slate-50 border border-slate-200'}`}>
       <p className={`font-semibold text-sm mb-2 ${tc.text}`}>
-        {waiver.title} {waiver.is_required && <span className="text-red-500">*</span>}
+        {waiver.name || waiver.title} {waiver.is_required && <span className="text-red-500">*</span>}
       </p>
       <div className={`max-h-32 overflow-y-auto text-xs leading-relaxed mb-3 p-3 rounded-lg ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600 border border-slate-200'}`}
         onScroll={e => {
