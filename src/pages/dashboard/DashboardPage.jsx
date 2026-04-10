@@ -134,13 +134,13 @@ export function GettingStartedGuide({ onNavigate }) {
           {showResumeBanner && (
             <div className={`rounded-xl p-4 mb-4 flex items-center justify-between gap-3 ${isDark ? 'bg-[#4BB9EC]/10 border border-[#4BB9EC]/20' : 'bg-[#4BB9EC]/[0.08] border border-[#4BB9EC]/30'}`}>
               <div className="flex items-center gap-3 min-w-0">
-                <span className="text-2xl shrink-0">{'\uD83D\uDC3E'}</span>
+                <span className="text-2xl shrink-0">🐾</span>
                 <div className="min-w-0">
                   <p className="font-bold text-sm" style={{ color: 'var(--v2-text-primary)' }}>
                     Pick up where you left off
                   </p>
                   <p className="text-xs truncate" style={{ color: 'var(--v2-text-muted)' }}>
-                    Your club setup is waiting \u2014 a few more minutes and you're open for business.
+                    Your club setup is waiting — a few more minutes and you're open for business.
                   </p>
                 </div>
               </div>
@@ -148,7 +148,7 @@ export function GettingStartedGuide({ onNavigate }) {
                 onClick={() => navigate('/setup')}
                 className="bg-[#4BB9EC] text-white font-bold px-4 py-2 rounded-lg text-sm hover:brightness-110 transition shrink-0"
               >
-                Resume {'\u2192'}
+                Resume →
               </button>
             </div>
           )}
@@ -168,7 +168,7 @@ export function GettingStartedGuide({ onNavigate }) {
           <div data-coachmark="setup-cta" className={`rounded-2xl p-6 mb-6 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-[#4BB9EC]/10 flex items-center justify-center text-2xl shrink-0">
-                {'\uD83C\uDFE2'}
+                🏢
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className={`text-lg font-extrabold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
@@ -179,7 +179,7 @@ export function GettingStartedGuide({ onNavigate }) {
                 </p>
                 <button onClick={() => navigate('/setup')}
                   className="bg-[#10284C] hover:brightness-110 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
-                  Let's do it {'\u2192'}
+                  Let's do it →
                 </button>
                 <p className="text-xs mt-3" style={{ color: 'var(--v2-text-muted)' }}>
                   Don't have everything right now? No worries — come back anytime. We'll remember where you left off.
@@ -1589,7 +1589,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                         <p className="text-sm text-slate-400 mb-4">Add practices, games, and events to your schedule</p>
                         <button onClick={() => onNavigate?.('schedule')}
                           className="px-6 py-2.5 bg-lynx-navy-subtle text-white font-bold rounded-xl hover:brightness-110 transition">
-                          Go to Schedule {'\u2192'}
+                          Go to Schedule →
                         </button>
                       </div>
                     : <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />

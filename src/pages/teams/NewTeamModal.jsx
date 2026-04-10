@@ -140,7 +140,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
                   type="text"
                   value={form.name}
                   onChange={e => setForm({...form, name: e.target.value})}
-                  placeholder="e.g., Black Hornets Elite"
+                  placeholder="e.g., Varsity Elite"
                   className={`w-full rounded-lg px-4 py-3 ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                 />
               </div>

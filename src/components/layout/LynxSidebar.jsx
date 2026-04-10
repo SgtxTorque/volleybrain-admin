@@ -696,7 +696,7 @@ export default function LynxSidebar({
       </div>
 
       {/* ---- Nav Items with Section Headers ---- */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="lynx-sidebar-nav">
+      <nav data-coachmark="sidebar-nav" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="lynx-sidebar-nav">
         {navGroups.map((group, groupIndex) => {
           if (group.type === 'single') {
             const singleItem = { ...group, icon: group.icon || group.id }

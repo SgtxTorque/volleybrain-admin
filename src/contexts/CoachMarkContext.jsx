@@ -41,9 +41,9 @@ export const COACH_MARKS = {
       },
       {
         id: 'admin_dashboard_sidebar',
-        target: '[data-coachmark="sidebar-programs"]',
-        title: 'Your programs live here',
-        body: "As you add sports and seasons, they'll show up in this sidebar.",
+        target: '[data-coachmark="sidebar-nav"]',
+        title: 'Your sidebar lives here',
+        body: "As you add programs and seasons, they'll show up here. Locked sections unlock as you set things up.",
         position: 'right',
       },
     ],
@@ -106,6 +106,7 @@ export function CoachMarkProvider({ children }) {
   const [seenMarks, setSeenMarks] = useState(() => new Set())
   const [activeGroup, setActiveGroup] = useState(null)
   const [activeMarkIndex, setActiveMarkIndex] = useState(0)
+  const [capturedTotal, setCapturedTotal] = useState(0)
 
   // Load seen state when profile becomes available
   useEffect(() => {
@@ -171,6 +172,7 @@ export function CoachMarkProvider({ children }) {
     if (unseen.length === 0) return
     setActiveGroup(unseen)
     setActiveMarkIndex(0)
+    setCapturedTotal(unseen.length) // Capture once so counter reads 1/3 → 2/3 → 3/3
   }, [seenMarks])
 
   // Advance to next tooltip in the current group
@@ -179,13 +181,14 @@ export function CoachMarkProvider({ children }) {
     const current = activeGroup[activeMarkIndex]
     if (current?.id) saveSeen(current.id)
 
-    if (activeMarkIndex < activeGroup.length - 1) {
+    if (activeMarkIndex < capturedTotal - 1) {
       setActiveMarkIndex(activeMarkIndex + 1)
     } else {
       setActiveGroup(null)
       setActiveMarkIndex(0)
+      setCapturedTotal(0)
     }
-  }, [activeGroup, activeMarkIndex, saveSeen])
+  }, [activeGroup, activeMarkIndex, capturedTotal, saveSeen])
 
   // Dismiss the entire group (mark all as seen)
   const dismissAll = useCallback(() => {
@@ -193,6 +196,7 @@ export function CoachMarkProvider({ children }) {
     activeGroup.forEach(m => m?.id && saveSeen(m.id))
     setActiveGroup(null)
     setActiveMarkIndex(0)
+    setCapturedTotal(0)
   }, [activeGroup, saveSeen])
 
   // Skip the current mark without marking as seen — useful when target missing
@@ -201,16 +205,17 @@ export function CoachMarkProvider({ children }) {
     // Mark as seen so we don't retry forever
     const current = activeGroup[activeMarkIndex]
     if (current?.id) saveSeen(current.id)
-    if (activeMarkIndex < activeGroup.length - 1) {
+    if (activeMarkIndex < capturedTotal - 1) {
       setActiveMarkIndex(activeMarkIndex + 1)
     } else {
       setActiveGroup(null)
       setActiveMarkIndex(0)
+      setCapturedTotal(0)
     }
-  }, [activeGroup, activeMarkIndex, saveSeen])
+  }, [activeGroup, activeMarkIndex, capturedTotal, saveSeen])
 
   const currentMark = activeGroup?.[activeMarkIndex] || null
-  const totalInGroup = activeGroup?.length || 0
+  const totalInGroup = capturedTotal  // Use captured value, not recomputed length
   const currentIndex = activeMarkIndex
 
   return (

@@ -547,7 +547,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   }, [parentTutorial])
 
   function getRegistrationUrl(season) {
-    const orgSlug = season.organizations?.slug || 'black-hornets'
+    const orgSlug = season.organizations?.slug || 'my-club'
     const baseUrl = season.organizations?.settings?.registration_url || window.location.origin
     return `${baseUrl}/register/${orgSlug}/${season.id}`
   }

@@ -70,7 +70,9 @@ export default function SetupHelper({ onNavigate }) {
         onClick={() => setIsOpen(true)}
         className="fixed z-30 flex items-center justify-center group"
         style={{ bottom: 24, right: 80, width: 52, height: 52 }}
-        title="Setup Guide"
+        title={remaining.length > 0
+          ? `${remaining.length} setup step${remaining.length === 1 ? '' : 's'} remaining — click to see your roadmap`
+          : 'All set! Your club is ready.'}
       >
         <div className="relative">
           <div className="w-12 h-12 rounded-full bg-white shadow-lg border-2 border-sky-300 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
@@ -80,7 +82,10 @@ export default function SetupHelper({ onNavigate }) {
           <div className="absolute inset-0 rounded-full border-2 border-sky-400 animate-ping opacity-30" />
           {/* Badge count */}
           {remaining.length > 0 && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+            <div
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"
+              title={`${remaining.length} step${remaining.length === 1 ? '' : 's'} to go`}
+            >
               {remaining.length}
             </div>
           )}

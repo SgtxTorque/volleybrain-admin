@@ -626,7 +626,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
               <label className="block text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: BRAND.textMuted }}>Organization Name</label>
               <input type="text" value={orgName} onChange={e => setOrgName(e.target.value)} autoFocus
-                placeholder="e.g., Black Hornets Athletics"
+                placeholder="e.g., Metro Youth Athletics"
                 className="w-full px-4 py-3 rounded-xl border-2 text-base font-medium outline-none transition-colors mb-6 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10"
                 style={{ borderColor: '#E8ECF2', color: BRAND.textPrimary, background: '#FAFBFC' }}
               />

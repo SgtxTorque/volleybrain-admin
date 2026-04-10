@@ -173,7 +173,7 @@ export function CoachMarkOverlay() {
         >
           {/* Mascot + title row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontSize: '16px' }}>{'\uD83D\uDC3E'}</span>
+            <span style={{ fontSize: '16px' }}>🐾</span>
             <p style={{ fontSize: '14px', fontWeight: 700, margin: 0, lineHeight: 1.3 }}>
               {currentMark.title}
             </p>

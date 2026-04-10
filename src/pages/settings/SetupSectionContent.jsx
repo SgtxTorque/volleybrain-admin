@@ -284,7 +284,7 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Organization Name" field="name" placeholder="Black Hornets Volleyball Club" required />
+              <SectionInput {...fp} label="Organization Name" field="name" placeholder="e.g., Metro Youth Athletics" required />
               <SectionInput {...fp} label="Short Name / Abbreviation" field="shortName" placeholder="BHVC" helpText="Used on jerseys and reports" />
             </div>
             <SectionInput {...fp} label="Tagline / Slogan" field="tagline" placeholder="Building Champions On & Off the Court" />
@@ -363,8 +363,8 @@ function SetupSectionContent({
               <SectionInput {...fp} label="Title" field="contactTitle" placeholder="League Director" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Primary Email" field="email" type="email" placeholder="info@blackhornets.com" required />
-              <SectionInput {...fp} label="Secondary Email" field="secondaryEmail" type="email" placeholder="backup@blackhornets.com" />
+              <SectionInput {...fp} label="Primary Email" field="email" type="email" placeholder="info@yourclub.com" required />
+              <SectionInput {...fp} label="Secondary Email" field="secondaryEmail" type="email" placeholder="backup@yourclub.com" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SectionInput {...fp} label="Primary Phone" field="phone" type="tel" placeholder="(555) 123-4567" required />
@@ -373,7 +373,7 @@ function SetupSectionContent({
             <SectionInput {...fp} label="Street Address" field="address" placeholder="123 Main Street" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="col-span-2">
-                <SectionInput {...fp} label="City" field="city" placeholder="Dallas" required />
+                <SectionInput {...fp} label="City" field="city" placeholder="Your City" required />
               </div>
               <SectionSelect {...fp}
                 label="State"
@@ -409,10 +409,10 @@ function SetupSectionContent({
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.blackhornets.com" />
-              <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/blackhornetsVB" />
-              <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@blackhornetsVB" helpText="Just the handle, no URL needed" />
-              <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@blackhornetsVB" />
+              <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.yourclub.com" />
+              <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/yourclub" />
+              <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@yourclub" helpText="Just the handle, no URL needed" />
+              <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@yourclub" />
             </div>
             <div className={`p-3 rounded-xl ${tc.cardBgAlt}`}>
               <p className={`text-sm font-medium ${tc.text} mb-1`}>📎 Your Registration Link</p>
@@ -544,7 +544,10 @@ function SetupSectionContent({
                 <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2`}>
                   Age Divisions
                 </label>
-                <div className="flex gap-2">
+                <p className={`text-[11px] ${tc.textMuted} mb-2`}>
+                  Select the age groups your club offers, or add your own.
+                </p>
+                <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateField('ageSystem', 'grade')}
                     className={`flex-1 px-3 py-2 rounded-lg border-2 text-center transition-all text-sm ${
@@ -566,6 +569,38 @@ function SetupSectionContent({
                     🎂 Age-Based
                   </button>
                 </div>
+                {/* Quick-pick division chips */}
+                {(() => {
+                  const presets = localData.ageSystem === 'grade'
+                    ? ['K-2nd', '3rd-5th', '6th-8th', '9th-12th']
+                    : ['8U', '10U', '12U', '14U', '16U', '18U']
+                  const current = localData.ageDivisions || []
+                  return (
+                    <div className="flex flex-wrap gap-1.5">
+                      {presets.map(div => {
+                        const isActive = current.includes(div)
+                        return (
+                          <button
+                            key={div}
+                            onClick={() => {
+                              const updated = isActive
+                                ? current.filter(d => d !== div)
+                                : [...current, div]
+                              updateField('ageDivisions', updated)
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${
+                              isActive
+                                ? 'bg-[#4BB9EC] text-white border-[#4BB9EC]'
+                                : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
+                            }`}
+                          >
+                            {isActive && '✓ '}{div}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
                 {localData.ageSystem === 'age' && (
                   <div className="mt-2">
                     <label className={`block text-xs ${tc.textMuted} mb-1`}>Age cutoff (MM-DD)</label>
@@ -593,13 +628,13 @@ function SetupSectionContent({
                         <button
                           key={level.id}
                           onClick={() => toggleArrayItem('skillLevels', level.id)}
-                          className={`px-3 py-1.5 rounded-full border-2 text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-full border-2 text-xs font-semibold transition-all ${
                             isEnabled
-                              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                              : `${tc.border} ${tc.textMuted}`
+                              ? 'bg-[#4BB9EC] text-white border-[#4BB9EC] shadow-sm'
+                              : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
                           }`}
                         >
-                          {level.name}
+                          {isEnabled && '✓ '}{level.name}
                         </button>
                       )
                     })}
@@ -616,13 +651,13 @@ function SetupSectionContent({
                         <button
                           key={gender.id}
                           onClick={() => toggleArrayItem('genderOptions', gender.id)}
-                          className={`px-4 py-1.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                          className={`px-4 py-1.5 rounded-lg border-2 text-sm font-semibold transition-all ${
                             isEnabled
-                              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                              : `${tc.border} ${tc.textMuted}`
+                              ? 'bg-[#4BB9EC] text-white border-[#4BB9EC] shadow-sm'
+                              : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
                           }`}
                         >
-                          {gender.name}
+                          {isEnabled && '✓ '}{gender.name}
                         </button>
                       )
                     })}
@@ -637,7 +672,7 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Legal Entity Name" field="legalName" placeholder="Black Hornets Volleyball LLC" helpText="If different from org name" />
+              <SectionInput {...fp} label="Legal Entity Name" field="legalName" placeholder="Your Club LLC" helpText="If different from org name" />
               <SectionSelect {...fp}
                 label="Entity Type"
                 field="entityType"
