@@ -174,7 +174,10 @@ function AttendancePage({ showToast }) {
       if (existingRsvp) {
         await supabase.from('event_rsvps').update({ status, updated_at: new Date().toISOString() }).eq('id', existingRsvp.id)
       } else {
-        await supabase.from('event_rsvps').insert({ event_id: event.id, player_id: playerId, status, responded_by: user?.id })
+        await supabase.from('event_rsvps').upsert(
+          { event_id: event.id, player_id: playerId, status, responded_by: user?.id },
+          { onConflict: 'event_id,player_id' }
+        )
       }
       showToast('RSVP updated', 'success')
       toggleEventExpand(event) // re-opens to reload

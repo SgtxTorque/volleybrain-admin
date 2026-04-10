@@ -82,7 +82,13 @@ function ReportsPage({ showToast }) {
   useEffect(() => { if (globalSeason?.id && !selectedSeasonId && !isAllSeasons(globalSeason)) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
   useEffect(() => { if (globalSport?.id && selectedSportId === 'all') setSelectedSportId(globalSport.id) }, [globalSport?.id])
   useEffect(() => { if (selectedSeasonId) loadTeams() }, [selectedSeasonId])
-  useEffect(() => { if (selectedSeasonId) loadReportData() }, [selectedSeasonId, selectedSportId, activeReport, filters])
+  useEffect(() => {
+    const seasonToLoad = selectedSeasonId || seasons?.[0]?.id
+    if (seasonToLoad) {
+      if (!selectedSeasonId) setSelectedSeasonId(seasonToLoad)
+      loadReportData()
+    }
+  }, [selectedSeasonId, selectedSportId, activeReport, filters, seasons])
   useEffect(() => {
     const cols = getAvailableColumns(activeReport)
     const dv = {}, order = []
