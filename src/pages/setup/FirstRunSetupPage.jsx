@@ -536,10 +536,10 @@ export default function FirstRunSetupPage({ showToast }) {
 
           <button
             onClick={handleSkip}
-            className="text-xs font-medium hover:underline transition"
-            style={{ color: 'var(--v2-text-muted)' }}
+            className="text-sm font-semibold hover:underline transition px-4 py-2 rounded-lg hover:bg-white/5"
+            style={{ color: 'var(--v2-text-secondary)' }}
           >
-            Skip for now — I'll fill this in later
+            Skip for now →
           </button>
         </div>
       </div>
