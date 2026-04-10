@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { exportToCSV } from '../../lib/csv-export'
 import { awardXP } from '../../lib/xp-award-service'
 import { XP_BY_SOURCE } from '../../lib/engagement-constants'
+import { formatPhone } from '../../lib/formatters'
 import {
   Users, User, Mail, Phone, Edit, Trash2, X, Check, Star, UserCog,
   Camera, Shield, FileText, Calendar, ChevronDown, ChevronRight,
@@ -257,7 +258,7 @@ export function CoachesPage({ showToast }) {
       { label: 'First Name', accessor: c => c.first_name },
       { label: 'Last Name', accessor: c => c.last_name },
       { label: 'Email', accessor: c => c.email },
-      { label: 'Phone', accessor: c => c.phone },
+      { label: 'Phone', accessor: c => formatPhone(c.phone) },
       { label: 'Status', accessor: c => c.status },
       { label: 'Role', accessor: c => c.assignments?.map(a => `${a.teams?.name} (${a.role})`).join(', ') || 'Unassigned' },
       { label: 'BG Check', accessor: c => c.background_check_status },
@@ -537,7 +538,7 @@ function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStat
           )}
           {coach.phone && (
             <a href={`tel:${coach.phone}`} className="hover:text-lynx-sky flex items-center gap-1.5 transition">
-              <Phone className="w-3.5 h-3.5 shrink-0" /> {coach.phone}
+              <Phone className="w-3.5 h-3.5 shrink-0" /> {formatPhone(coach.phone)}
             </a>
           )}
         </div>
@@ -696,7 +697,7 @@ export function CoachDetailModal({ coach, onClose, onEdit, tc, showToast, orgNam
 
           <div className="mt-4 space-y-2 text-sm">
             {coach.email && <DRow label="Email" value={coach.email} link={`mailto:${coach.email}`} tc={tc} />}
-            {coach.phone && <DRow label="Phone" value={coach.phone} link={`tel:${coach.phone}`} tc={tc} />}
+            {coach.phone && <DRow label="Phone" value={formatPhone(coach.phone)} link={`tel:${coach.phone}`} tc={tc} />}
             {coach.address && <DRow label="Address" value={coach.address} tc={tc} />}
             {coach.date_of_birth && <DRow label="DOB" value={new Date(coach.date_of_birth + 'T00:00:00').toLocaleDateString()} tc={tc} />}
           </div>
@@ -782,7 +783,7 @@ export function CoachDetailModal({ coach, onClose, onEdit, tc, showToast, orgNam
               <SHead label="Emergency Contact" tc={tc} />
               <div className="text-sm space-y-1">
                 <DRow label="Name" value={coach.emergency_contact_name} tc={tc} />
-                {coach.emergency_contact_phone && <DRow label="Phone" value={coach.emergency_contact_phone} link={`tel:${coach.emergency_contact_phone}`} tc={tc} />}
+                {coach.emergency_contact_phone && <DRow label="Phone" value={formatPhone(coach.emergency_contact_phone)} link={`tel:${coach.emergency_contact_phone}`} tc={tc} />}
                 {coach.emergency_contact_relation && <DRow label="Relation" value={coach.emergency_contact_relation} tc={tc} />}
               </div>
             </>

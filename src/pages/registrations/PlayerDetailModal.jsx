@@ -8,6 +8,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { Edit } from 'lucide-react'
+import { formatPhone } from '../../lib/formatters'
 
 // ============================================
 // HELPER: calculateAge
@@ -365,7 +366,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                   <div className="grid grid-cols-2 gap-2.5">
                     <InfoRow label="Name" value={player.parent_name} />
                     <InfoRow label="Email" value={player.parent_email} />
-                    <InfoRow label="Phone" value={player.parent_phone} />
+                    <InfoRow label="Phone" value={formatPhone(player.parent_phone)} />
                     <InfoRow label="Address" value={fullAddress || null} />
                   </div>
                   {merged.parent2_name && (
@@ -374,7 +375,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                       <div className="grid grid-cols-2 gap-2.5">
                         <InfoRow label="Name" value={merged.parent2_name} />
                         <InfoRow label="Email" value={merged.parent2_email} />
-                        <InfoRow label="Phone" value={merged.parent2_phone} />
+                        <InfoRow label="Phone" value={formatPhone(merged.parent2_phone)} />
                       </div>
                     </div>
                   )}
@@ -384,7 +385,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                   <SectionTitle>Emergency Contact</SectionTitle>
                   <div className="grid grid-cols-3 gap-2.5">
                     <InfoRow label="Name" value={merged.emergency_name} />
-                    <InfoRow label="Phone" value={merged.emergency_phone} />
+                    <InfoRow label="Phone" value={formatPhone(merged.emergency_phone)} />
                     <InfoRow label="Relation" value={merged.emergency_relation} />
                   </div>
                 </div>

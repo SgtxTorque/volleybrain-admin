@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
+import { formatPhone } from '../../lib/formatters'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { generateFeesForPlayer } from '../../lib/fee-calculator'
@@ -36,7 +37,7 @@ const csvColumns = [
   { label: 'Gender', accessor: r => r.gender },
   { label: 'Parent Name', accessor: r => r.parent_name },
   { label: 'Parent Email', accessor: r => r.parent_email },
-  { label: 'Parent Phone', accessor: r => r.parent_phone },
+  { label: 'Parent Phone', accessor: r => formatPhone(r.parent_phone) },
   { label: 'Status', accessor: r => r.registrations?.[0]?.status },
   { label: 'Liability Waiver', accessor: r => r.waiver_liability ? 'Yes' : 'No' },
   { label: 'Photo Waiver', accessor: r => r.waiver_photo ? 'Yes' : 'No' },

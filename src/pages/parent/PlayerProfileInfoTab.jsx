@@ -5,6 +5,7 @@
 
 import { InfoRow, EditBtn, SaveCancelBtns, FormField } from './PlayerProfileUI'
 import { SPORT_POSITIONS } from './PlayerProfileConstants'
+import { formatPhone } from '../../lib/formatters'
 
 export default function PlayerProfileInfoTab({
   player, infoForm, setInfoForm, editingInfo, setEditingInfo,
@@ -124,7 +125,7 @@ export default function PlayerProfileInfoTab({
             <div className={`${altBg} rounded-[14px] px-4`}>
               <InfoRow isDark={isDark} label="Name" value={infoForm.parent_name} />
               <InfoRow isDark={isDark} label="Email" value={infoForm.parent_email} />
-              <InfoRow isDark={isDark} label="Phone" value={infoForm.parent_phone} />
+              <InfoRow isDark={isDark} label="Phone" value={formatPhone(infoForm.parent_phone)} />
             </div>
           </div>
 
@@ -134,7 +135,7 @@ export default function PlayerProfileInfoTab({
               <div className={`${altBg} rounded-[14px] px-4`}>
                 <InfoRow isDark={isDark} label="Name" value={infoForm.parent2_name} />
                 <InfoRow isDark={isDark} label="Email" value={infoForm.parent2_email} />
-                <InfoRow isDark={isDark} label="Phone" value={infoForm.parent2_phone} />
+                <InfoRow isDark={isDark} label="Phone" value={formatPhone(infoForm.parent2_phone)} />
               </div>
             </div>
           )}
@@ -160,7 +161,7 @@ export default function PlayerProfileInfoTab({
         ) : (
           <div className={`${altBg} rounded-[14px] px-4`}>
             <InfoRow isDark={isDark} label="Name" value={player.emergency_contact_name || player.emergency_name} />
-            <InfoRow isDark={isDark} label="Phone" value={player.emergency_contact_phone || player.emergency_phone} />
+            <InfoRow isDark={isDark} label="Phone" value={formatPhone(player.emergency_contact_phone || player.emergency_phone)} />
             <InfoRow isDark={isDark} label="Relationship" value={player.emergency_contact_relation || player.emergency_relation} />
           </div>
         )}

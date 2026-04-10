@@ -4,6 +4,7 @@ import {
 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 import { generateInviteCode } from '../../lib/invite-utils'
+import { formatPhone } from '../../lib/formatters'
 
 const bgCheckLabels = {
   not_started: { label: 'Not Started', icon: '⏳', color: 'text-slate-400', bg: 'bg-slate-500/20' },
@@ -210,7 +211,7 @@ export default function PersonDetailPanel({ person, isDark, onClose, onEdit, onA
           )}
           {person.phone && (
             <a href={`tel:${person.phone}`} className={`flex items-center gap-2 text-xs transition ${isDark ? 'text-slate-400 hover:text-[#4BB9EC]' : 'text-slate-500 hover:text-sky-600'}`}>
-              <Phone className="w-3.5 h-3.5 shrink-0" /> {person.phone}
+              <Phone className="w-3.5 h-3.5 shrink-0" /> {formatPhone(person.phone)}
             </a>
           )}
           {!person.email && !person.phone && (

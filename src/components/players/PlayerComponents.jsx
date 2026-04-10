@@ -7,6 +7,7 @@ import {
   Mail, Phone, MapPin, Home, AlertTriangle, Shirt, Star, Award,
   TrendingUp, FileText, ChevronRight, RefreshCw, Save, Camera
 } from '../../constants/icons'
+import { formatPhone } from '../../lib/formatters'
 
 // ============================================
 // CONSTANTS
@@ -1222,7 +1223,7 @@ export function PlayerCardExpanded({
                     <div className="space-y-2">
                       <ContactRow icon="user" label="Name" value={p.parent_name} />
                       <ContactRow icon="mail" label="Email" value={p.parent_email} link={`mailto:${p.parent_email}`} />
-                      <ContactRow icon="phone" label="Phone" value={p.parent_phone} link={`tel:${p.parent_phone}`} />
+                      <ContactRow icon="phone" label="Phone" value={formatPhone(p.parent_phone)} link={`tel:${p.parent_phone}`} />
                     </div>
                   </div>
 
@@ -1233,7 +1234,7 @@ export function PlayerCardExpanded({
                       <div className="space-y-2">
                         <ContactRow icon="user" label="Name" value={p.parent_2_name} />
                         <ContactRow icon="mail" label="Email" value={p.parent_2_email} link={`mailto:${p.parent_2_email}`} />
-                        <ContactRow icon="phone" label="Phone" value={p.parent_2_phone} link={`tel:${p.parent_2_phone}`} />
+                        <ContactRow icon="phone" label="Phone" value={formatPhone(p.parent_2_phone)} link={`tel:${p.parent_2_phone}`} />
                       </div>
                     </div>
                   )}
@@ -1243,7 +1244,7 @@ export function PlayerCardExpanded({
                     <h4 className="text-sm font-semibold text-red-400 uppercase mb-3">🚨 Emergency Contact</h4>
                     <div className="space-y-2">
                       <ContactRow icon="user" label="Name" value={p.emergency_contact_name || p.emergency_name} />
-                      <ContactRow icon="phone" label="Phone" value={p.emergency_contact_phone || p.emergency_phone} link={`tel:${p.emergency_contact_phone || p.emergency_phone}`} />
+                      <ContactRow icon="phone" label="Phone" value={formatPhone(p.emergency_contact_phone || p.emergency_phone)} link={`tel:${p.emergency_contact_phone || p.emergency_phone}`} />
                       <ContactRow icon="users" label="Relation" value={p.emergency_contact_relation || p.emergency_relation} />
                     </div>
                   </div>

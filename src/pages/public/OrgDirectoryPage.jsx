@@ -7,6 +7,7 @@ import {
   Filter
 } from '../../constants/icons'
 import { VolleyballIcon } from '../../constants/icons'
+import { formatPhone } from '../../lib/formatters'
 
 // ═══════════════════════════════════════════════════════════
 // ORG DIRECTORY PAGE — Public Organization Discovery
@@ -319,7 +320,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
                 {s.phone && (
                   <div className="flex items-center gap-3">
                     <Phone className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-                    <a href={`tel:${s.phone}`} className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{s.phone}</a>
+                    <a href={`tel:${s.phone}`} className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{formatPhone(s.phone)}</a>
                   </div>
                 )}
                 {s.website && (
