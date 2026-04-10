@@ -753,6 +753,17 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           const parentEmail = sharedInfo.parent1_email.trim().toLowerCase()
           const existingProfile = await checkExistingAccount(parentEmail)
 
+          // If parent already has an account, sync emergency contact to their profile
+          if (existingProfile?.id && (sharedInfo.emergency_name || sharedInfo.emergency_phone)) {
+            try {
+              await supabase.from('profiles').update({
+                emergency_contact_name: sharedInfo.emergency_name || null,
+                emergency_contact_phone: sharedInfo.emergency_phone || null,
+                emergency_contact_relation: sharedInfo.emergency_relation || null,
+              }).eq('id', existingProfile.id)
+            } catch { /* non-critical — data is already on player records */ }
+          }
+
           if (!existingProfile && organization?.id) {
             const invite = await createInvitation({
               organizationId: organization.id,

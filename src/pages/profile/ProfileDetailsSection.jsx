@@ -31,13 +31,37 @@ export function EmergencyContactSection({ profile, isDark, tc, showToast, onProf
 
   useEffect(() => {
     if (profile) {
-      setForm({
-        emergency_contact_name: profile.emergency_contact_name || '',
-        emergency_contact_phone: profile.emergency_contact_phone || '',
-        emergency_contact_relation: profile.emergency_contact_relation || '',
-      })
+      const hasProfileData = profile.emergency_contact_name || profile.emergency_contact_phone
+      if (hasProfileData) {
+        setForm({
+          emergency_contact_name: profile.emergency_contact_name || '',
+          emergency_contact_phone: profile.emergency_contact_phone || '',
+          emergency_contact_relation: profile.emergency_contact_relation || '',
+        })
+      } else {
+        // Fallback: try to load from parent's children player records
+        loadFallbackFromPlayers()
+      }
     }
   }, [profile])
+
+  async function loadFallbackFromPlayers() {
+    try {
+      const { data: children } = await supabase
+        .from('players')
+        .select('emergency_contact_name, emergency_contact_phone')
+        .eq('parent_account_id', profile.id)
+        .not('emergency_contact_name', 'is', null)
+        .limit(1)
+      if (children?.length) {
+        setForm(f => ({
+          ...f,
+          emergency_contact_name: f.emergency_contact_name || children[0].emergency_contact_name || '',
+          emergency_contact_phone: f.emergency_contact_phone || children[0].emergency_contact_phone || '',
+        }))
+      }
+    } catch { /* silently fail — non-critical fallback */ }
+  }
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
 
