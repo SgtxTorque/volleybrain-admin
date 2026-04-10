@@ -1432,6 +1432,19 @@ export function RegistrationCartPage() {
           }
           createdPlayerIds.push(player.id)
 
+          // Check for existing registration before inserting
+          const { data: existingReg } = await supabase
+            .from('registrations')
+            .select('id')
+            .eq('player_id', player.id)
+            .eq('season_id', sp.season.id)
+            .maybeSingle()
+
+          if (existingReg) {
+            console.warn('Duplicate registration skipped for', child.first_name, 'in', sp.program.name)
+            continue
+          }
+
           const signatureDate = new Date().toISOString()
           const { data: registration, error: regError } = await supabase
             .from('registrations')
@@ -1458,7 +1471,13 @@ export function RegistrationCartPage() {
             })
             .select().single()
 
-          if (regError) throw regError
+          if (regError) {
+            if (regError.code === '23505') {
+              console.warn('Duplicate registration skipped:', regError)
+              continue
+            }
+            throw regError
+          }
           createdRegistrationIds.push(registration.id)
 
           // Confirmation email with optional magic link (fire and forget)

@@ -719,6 +719,20 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         }
         createdPlayerIds.push(player.id)
 
+        // Check for existing registration before inserting
+        const { data: existingReg } = await supabase
+          .from('registrations')
+          .select('id')
+          .eq('player_id', player.id)
+          .eq('season_id', season?.id || seasonId)
+          .maybeSingle()
+
+        if (existingReg) {
+          console.warn('Duplicate registration detected for player:', child.first_name)
+          setError(`${child.first_name} is already registered for this season.`)
+          continue
+        }
+
         const { data: registration, error: regError } = await supabase
           .from('registrations')
           .insert({
@@ -736,8 +750,13 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           .select().single()
 
         if (regError) {
-          console.error('Registration insert error:', regError)
-          if (regError.code !== '23505') throw new Error(`Failed to create registration for ${child.first_name}`)
+          if (regError.code === '23505') {
+            // Registration already exists — inform user instead of silently swallowing
+            console.warn('Duplicate registration detected for player:', child.first_name)
+            setError(`${child.first_name} is already registered for this season.`)
+          } else {
+            throw new Error(`Failed to create registration for ${child.first_name}`)
+          }
         } else if (registration) {
           createdRegistrationIds.push(registration.id)
         }
