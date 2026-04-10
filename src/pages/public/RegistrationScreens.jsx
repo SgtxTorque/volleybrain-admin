@@ -1,7 +1,9 @@
 // Registration screen-level components: Fee preview, Waivers, Success, Loading, Error
 // Extracted from RegistrationFormSteps for the 500-line file limit
 
+import { useState, useEffect } from 'react'
 import { Edit, ChevronDown, ChevronUp, CheckCircle2, AlertCircle } from '../../constants/icons'
+import { supabase } from '../../lib/supabase'
 
 const CARD_CLASSES = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
 const INPUT_CLASSES = 'w-full px-4 py-3 rounded-xl border border-[#E8ECF2] text-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 transition-colors'
@@ -224,6 +226,15 @@ function FeePreviewCard({ season, feePerChild, childrenCount, totalFee, hasDisco
 function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [] }) {
   const count = childrenCount + (currentChildName ? 1 : 0)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
+  const [hasSession, setHasSession] = useState(false)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setHasSession(!!session)
+    }
+    checkSession()
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-6">
@@ -251,20 +262,37 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
           </div>
         )}
 
-        {/* Section A: Create Your Account CTA */}
+        {/* Section A: Create Your Account CTA (or Go to Dashboard if logged in) */}
         <div className="mt-8 pt-6 border-t border-slate-200">
           <h2 className="text-r-lg font-bold text-slate-900">What's next?</h2>
-          <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">
-            Create a Lynx account to track your registration status, manage payments, and stay connected with your team.
-          </p>
-          <a
-            href="/"
-            className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
-            style={{ fontFamily: 'var(--v2-font)' }}
-          >
-            Create Account
-          </a>
-          <p className="text-r-xs text-slate-400 mt-2">Use the same email you registered with</p>
+          {hasSession ? (
+            <>
+              <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">
+                You're already logged in. Head to your dashboard to track registration status and manage your team.
+              </p>
+              <a
+                href="/"
+                className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
+                style={{ fontFamily: 'var(--v2-font)' }}
+              >
+                Go to Dashboard
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">
+                Create a Lynx account to track your registration status, manage payments, and stay connected with your team.
+              </p>
+              <a
+                href="/"
+                className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
+                style={{ fontFamily: 'var(--v2-font)' }}
+              >
+                Create Account
+              </a>
+              <p className="text-r-xs text-slate-400 mt-2">Use the same email you registered with</p>
+            </>
+          )}
         </div>
 
         {/* Section B: Download the App */}
