@@ -410,7 +410,9 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
           ))}
           {teamRows.length === 0 && (
             <div className={`p-8 text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <div className="text-3xl mb-2">📅</div>
               <p className="text-sm font-semibold">No events this week</p>
+              <p className="text-xs mt-1 opacity-70">Try navigating to another week to find scheduled events.</p>
             </div>
           )}
         </div>
@@ -454,7 +456,9 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
     <div className="space-y-4">
       {dayEvents.length === 0 ? (
         <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+          <div className="text-3xl mb-2">📅</div>
           <p className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events scheduled for this day</p>
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>Select a different day or check the month view for upcoming events.</p>
         </div>
       ) : (
         <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>

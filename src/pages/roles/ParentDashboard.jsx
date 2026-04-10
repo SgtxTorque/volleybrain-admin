@@ -928,7 +928,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               <button
                 onClick={() => {
                   const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
-                  if (child?.teamId) onNavigate?.(`teamwall-${child.teamId}`)
+                  if (child?.teamId) {
+                    onNavigate?.(`teamwall-${child.teamId}`)
+                  } else {
+                    showToast?.(`Team Hub will be available once ${child?.firstName || 'your child'} is assigned to a team.`, 'info')
+                  }
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

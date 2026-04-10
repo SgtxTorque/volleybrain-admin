@@ -427,6 +427,13 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                 <p className={`text-sm font-semibold ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
                   {filterType === 'unread' ? 'All caught up!' : 'No conversations yet'}
                 </p>
+                {filterType !== 'unread' && (
+                  <p className={`text-xs mt-2 max-w-[220px] mx-auto ${isDark ? 'text-white/20' : 'text-slate-400'}`}>
+                    {activeView === 'parent'
+                      ? 'Chat channels will be available once your players are assigned to a team.'
+                      : 'Create a channel or join an existing conversation to get started.'}
+                  </p>
+                )}
               </div>
             ) : (
               filteredChannels.map((channel, i) => (

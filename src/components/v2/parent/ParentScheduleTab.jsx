@@ -103,10 +103,15 @@ export default function ParentScheduleTab({
 
       {events.length === 0 && (
         <div style={{
-          padding: '32px 24px', textAlign: 'center',
-          fontSize: 13, color: 'var(--v2-text-muted)',
+          padding: '40px 24px', textAlign: 'center',
         }}>
-          No upcoming events
+          <div style={{ fontSize: 32, marginBottom: 8 }}>📅</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--v2-text-primary)', marginBottom: 4 }}>
+            No events scheduled yet
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--v2-text-muted)', maxWidth: 280, margin: '0 auto' }}>
+            Once your coach posts practices and games, they'll appear here.
+          </div>
         </div>
       )}
     </div>
