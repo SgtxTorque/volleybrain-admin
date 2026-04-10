@@ -5,7 +5,10 @@
 //   title = string (default "Team Pulse")
 // =============================================================================
 
-export default function EngagementTeamPulseCard({ active = 0, drifting = 0, inactive = 0, title = 'Team Pulse' }) {
+export default function EngagementTeamPulseCard({ active = 0, drifting = 0, inactive = 0, title = 'Team Pulse', labels = {} }) {
+  const activeLabel = labels.active || 'Active'
+  const driftingLabel = labels.drifting || 'Drifting'
+  const inactiveLabel = labels.inactive || 'Inactive'
   const total = active + drifting + inactive || 1
   const activePct = (active / total) * 100
   const driftingPct = (drifting / total) * 100
@@ -27,15 +30,15 @@ export default function EngagementTeamPulseCard({ active = 0, drifting = 0, inac
       <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: 8 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#1D9E75' }}>{active}</div>
-          <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Active</div>
+          <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>{activeLabel}</div>
         </div>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#EF9F27' }}>{drifting}</div>
-          <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Drifting</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: driftingLabel === 'Drifting' ? '#EF9F27' : '#3B82F6' }}>{drifting}</div>
+          <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>{driftingLabel}</div>
         </div>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#E24B4A' }}>{inactive}</div>
-          <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Inactive</div>
+          <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>{inactiveLabel}</div>
         </div>
       </div>
 
@@ -45,7 +48,7 @@ export default function EngagementTeamPulseCard({ active = 0, drifting = 0, inac
           <div style={{ width: `${activePct}%`, background: '#1D9E75', transition: 'width 0.5s ease' }} />
         )}
         {driftingPct > 0 && (
-          <div style={{ width: `${driftingPct}%`, background: '#EF9F27', transition: 'width 0.5s ease' }} />
+          <div style={{ width: `${driftingPct}%`, background: driftingLabel === 'Drifting' ? '#EF9F27' : '#3B82F6', transition: 'width 0.5s ease' }} />
         )}
         {inactivePct > 0 && (
           <div style={{ width: `${inactivePct}%`, background: '#E24B4A', transition: 'width 0.5s ease' }} />

@@ -214,14 +214,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       } else { setVolunteerSignups(0) }
     } catch { setVolunteerSignups(0) }
 
-    // E7. Kids' pulse (based on registration status — matches player card badge logic)
+    // E7. Kids' pulse — On Team / New (awaiting placement) / Inactive
     try {
       if (registrationData.length > 0) {
         let active = 0, drifting = 0, inactive = 0
         for (const child of registrationData) {
           const status = child.registrationStatus || child.status || 'active'
           if (['active', 'rostered', 'assigned'].includes(status)) active++
-          else if (['pending', 'approved'].includes(status)) drifting++
+          else if (['pending', 'approved'].includes(status)) drifting++ // "New" — awaiting team placement
           else inactive++
         }
         setParentPulseData({ active, drifting, inactive })
@@ -849,6 +849,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 drifting={parentPulseData.drifting}
                 inactive={parentPulseData.inactive}
                 title="My Kids"
+                labels={{ active: 'On Team', drifting: 'New', inactive: 'Inactive' }}
               />
             </div>
             </div>
