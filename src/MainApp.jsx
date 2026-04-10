@@ -1089,6 +1089,16 @@ function MainApp() {
     'practice-plans': 'Practice Plans',
   }
 
+  // Resolve dynamic page IDs (with UUIDs) to human-readable labels
+  function resolvePageLabel(pageId) {
+    if (PAGE_LABELS[pageId]) return PAGE_LABELS[pageId]
+    if (pageId.startsWith('player-profile-')) return 'Player Profile'
+    if (pageId.startsWith('player-')) return 'Player'
+    if (pageId.startsWith('teamwall-')) return 'Team Wall'
+    if (pageId.startsWith('chat-')) return 'Chat'
+    return pageId
+  }
+
   // ── Contextual nav maps per role ──
   const COACH_CONTEXTUAL_NAV = {
     dashboard:          ['schedule', 'attendance', 'gameprep'],
@@ -1503,9 +1513,9 @@ function MainApp() {
               organization={organization}
               roleLabel={`Lynx ${activeView === 'team_manager' ? 'Team Manager' : activeView.charAt(0).toUpperCase() + activeView.slice(1)}`}
               navLinks={[
-                { label: PAGE_LABELS[page] || page, pageId: page, isActive: true, onClick: () => {} },
+                { label: resolvePageLabel(page), pageId: page, isActive: true, onClick: () => {} },
                 ...(getContextualNav()[page] || []).map(linkId => ({
-                  label: PAGE_LABELS[linkId] || linkId,
+                  label: resolvePageLabel(linkId),
                   pageId: linkId,
                   isActive: false,
                   onClick: () => navigate(getPathForPage(linkId)),
