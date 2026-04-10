@@ -184,7 +184,7 @@ function ChildrenListCard({ children, onEdit, onRemove }) {
               <p className="text-r-xs text-slate-500">
                 {child.grade && `Grade ${child.grade}`}
                 {child.grade && child.birth_date && ' \u00B7 '}
-                {child.birth_date && new Date(child.birth_date).toLocaleDateString()}
+                {child.birth_date && new Date(child.birth_date + 'T00:00:00').toLocaleDateString()}
               </p>
             </div>
             <div className="flex gap-1.5">

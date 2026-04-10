@@ -67,7 +67,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     setLoading(true)
     let query = supabase
       .from('teams')
-      .select('*, team_players(*, players(id, first_name, last_name, jersey_number, position, photo_url, grade, status, uniform_size_jersey)), season:seasons(id, name, sport:sports(id, name, icon))')
+      .select('*, team_players(*, players(id, first_name, last_name, jersey_number, position, photo_url, grade, status, uniform_size_jersey)), season:seasons(id, name, sport:sports(id, name, icon), program:programs(id, name, sport:sports(id, name, icon)))')
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
     } else if (selectedSport?.id) {

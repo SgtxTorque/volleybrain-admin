@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { EmailService } from '../../lib/email-service'
 import { createInvitation, checkExistingAccount } from '../../lib/invite-utils'
-import { AlertCircle } from '../../constants/icons'
+import { AlertCircle, Info } from '../../constants/icons'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import {
@@ -50,8 +50,65 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [registrationIds, setRegistrationIds] = useState([])
   const [capacityInfo, setCapacityInfo] = useState(null)
 
+  // Draft restore state
+  const [showDraftRestore, setShowDraftRestore] = useState(false)
+  const [savedDraft, setSavedDraft] = useState(null)
+
   // Preview mode — blocks real submissions
   const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true'
+
+  // ─── Auto-save draft key ────────────────────────────────────────────────
+  const DRAFT_KEY = `lynx-registration-draft-${seasonId || 'unknown'}`
+
+  // ─── Auto-save form state to localStorage ──────────────────────────────
+  useEffect(() => {
+    if (children.length === 0 && !currentChild?.first_name) return
+    const draft = {
+      children,
+      currentChild,
+      sharedInfo,
+      customAnswers,
+      savedAt: new Date().toISOString()
+    }
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+    } catch (e) { /* localStorage full or unavailable */ }
+  }, [children, currentChild, sharedInfo, customAnswers])
+
+  // ─── Restore draft on page load ────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (raw) {
+        const draft = JSON.parse(raw)
+        const savedAt = new Date(draft.savedAt)
+        const daysSince = (Date.now() - savedAt.getTime()) / (1000 * 60 * 60 * 24)
+        if (daysSince < 7) {
+          setSavedDraft(draft)
+          setShowDraftRestore(true)
+        } else {
+          localStorage.removeItem(DRAFT_KEY)
+        }
+      }
+    } catch (e) {
+      localStorage.removeItem(DRAFT_KEY)
+    }
+  }, [])
+
+  function restoreDraft() {
+    if (savedDraft) {
+      setChildren(savedDraft.children || [])
+      setCurrentChild(savedDraft.currentChild || {})
+      setSharedInfo(savedDraft.sharedInfo || {})
+      setCustomAnswers(savedDraft.customAnswers || {})
+    }
+    setShowDraftRestore(false)
+  }
+
+  function discardDraft() {
+    localStorage.removeItem(DRAFT_KEY)
+    setShowDraftRestore(false)
+  }
 
   // ─── Funnel tracking (fire-and-forget) ─────────────────────────────────
   function getSessionId() {
@@ -446,6 +503,11 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     setSubmitting(true)
     setError(null)
 
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Registration is taking longer than expected. Please check your connection and try again.')), 30000)
+    )
+
+    const submitRegistration = async () => {
     const createdPlayerIds = []
     const createdRegistrationIds = []
 
@@ -730,6 +792,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         }
       }
 
+      localStorage.removeItem(DRAFT_KEY)
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)
@@ -748,7 +811,15 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       }
       setError(err.message || 'Registration failed. Please try again.')
     }
-    setSubmitting(false)
+    }
+
+    try {
+      await Promise.race([submitRegistration(), timeout])
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   // ─── Early-return screens ──────────────────────────────────────────────
@@ -914,6 +985,34 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           return null
         })()}
 
+        {/* Draft restore prompt */}
+        {showDraftRestore && (
+          <div className="mb-6 p-4 rounded-[14px] bg-sky-50 border border-sky-200 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Info className="w-5 h-5 text-sky-600 shrink-0" />
+              <p className="text-sm text-sky-800">
+                You have an unfinished registration. Would you like to continue where you left off?
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={restoreDraft}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600"
+              >
+                Restore
+              </button>
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:text-sky-800"
+              >
+                Start fresh
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Inline error */}
         {error && (
           <div className="mb-6 p-4 rounded-[14px] bg-red-50 border border-red-200 flex items-start gap-3">
@@ -942,7 +1041,10 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           {/* Add another child */}
           <AddChildButton
             visible={children.length > 0 && !showAddChildForm && editingChildIndex === null}
-            onClick={() => setShowAddChildForm(true)}
+            onClick={() => {
+              setCurrentChild({ last_name: children[0]?.last_name || '' })
+              setShowAddChildForm(true)
+            }}
           />
 
           {/* Shared info: parent, emergency, medical */}

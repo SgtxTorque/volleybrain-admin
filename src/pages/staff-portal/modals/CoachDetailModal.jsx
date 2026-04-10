@@ -104,7 +104,7 @@ export default function CoachDetailModal({ coach, onClose, onEdit, showToast, or
             {coach.email && <DRow label="Email" value={coach.email} link={`mailto:${coach.email}`} tc={tc} />}
             {coach.phone && <DRow label="Phone" value={coach.phone} link={`tel:${coach.phone}`} tc={tc} />}
             {coach.address && <DRow label="Address" value={coach.address} tc={tc} />}
-            {coach.date_of_birth && <DRow label="DOB" value={new Date(coach.date_of_birth).toLocaleDateString()} tc={tc} />}
+            {coach.date_of_birth && <DRow label="DOB" value={new Date(coach.date_of_birth + 'T00:00:00').toLocaleDateString()} tc={tc} />}
           </div>
 
           {/* Invite Code Section */}

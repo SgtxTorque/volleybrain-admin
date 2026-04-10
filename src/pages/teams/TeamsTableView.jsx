@@ -189,7 +189,7 @@ export default function TeamsTableView({
 
                       {/* Sport label */}
                       <td className="px-5 py-3">
-                        <SportPill sportName={team.season?.sport?.name} sportColor={team.season?.sport?.color_primary} />
+                        <SportPill sportName={team.season?.sport?.name || team.season?.program?.sport?.name} />
                       </td>
 
                       {/* Roster fill bar */}

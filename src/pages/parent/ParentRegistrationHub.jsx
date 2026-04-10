@@ -526,7 +526,7 @@ function SummaryCard({ season, form, waivers, waiverSigs, signedWaivers, isDark,
             valueColor={signedCount === totalWaivers ? 'text-emerald-500' : 'text-amber-500'} />
         )}
         {form.date_of_birth && (
-          <SummaryRow label="DOB" value={new Date(form.date_of_birth).toLocaleDateString()} tc={tc} />
+          <SummaryRow label="DOB" value={new Date(form.date_of_birth + 'T00:00:00').toLocaleDateString()} tc={tc} />
         )}
         {form.position && <SummaryRow label="Position" value={form.position} tc={tc} />}
       </div>
