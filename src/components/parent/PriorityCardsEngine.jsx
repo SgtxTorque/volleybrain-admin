@@ -80,13 +80,13 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
       if (organizationId) {
         try {
           const { data: waivers, error: waiversErr } = await supabase
-            .from('waivers')
+            .from('waiver_templates')
             .select('id, name, is_required')
             .eq('organization_id', organizationId)
             .eq('is_active', true)
 
           if (waiversErr) {
-            console.warn('PriorityCards: waivers query failed (table/column may not exist):', waiversErr.message)
+            console.warn('PriorityCards: waiver_templates query failed:', waiversErr.message)
           } else if (waivers?.length) {
             const waiverIds = waivers.map(w => w.id)
 
@@ -94,8 +94,8 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
             try {
               const { data: sigs, error: sigsErr } = await supabase
                 .from('waiver_signatures')
-                .select('waiver_id, player_id')
-                .in('waiver_id', waiverIds)
+                .select('waiver_template_id, player_id')
+                .in('waiver_template_id', waiverIds)
                 .in('player_id', playerIds)
 
               if (sigsErr) {
@@ -108,7 +108,7 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
             }
 
             const signedSet = new Set(
-              signatures.map(s => `${s.waiver_id}:${s.player_id}`)
+              signatures.map(s => `${s.waiver_template_id}:${s.player_id}`)
             )
 
             for (const waiver of waivers) {

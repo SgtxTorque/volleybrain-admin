@@ -342,7 +342,7 @@ function WaiversTab({ roleContext, showToast }) {
         const { data: sigs } = await supabase
           .from('waiver_signatures')
           .select('*')
-          .in('waiver_id', waiverData.map(w => w.id))
+          .in('waiver_template_id', waiverData.map(w => w.id))
           .in('player_id', playerIds)
 
         setSignatures(sigs || [])
@@ -354,7 +354,7 @@ function WaiversTab({ roleContext, showToast }) {
   }
 
   function isSigned(waiverId, playerId) {
-    return signatures.some(s => s.waiver_id === waiverId && s.player_id === playerId)
+    return signatures.some(s => (s.waiver_template_id || s.waiver_id) === waiverId && s.player_id === playerId)
   }
 
   async function handleSign(waiverId, playerId) {
@@ -365,10 +365,15 @@ function WaiversTab({ roleContext, showToast }) {
 
     try {
       const { error } = await supabase.from('waiver_signatures').insert({
-        waiver_id: waiverId,
+        waiver_template_id: waiverId,
         player_id: playerId,
-        signed_by: user?.id,
-        signature_name: signatureName.trim(),
+        organization_id: orgId,
+        signed_by_user_id: profile?.id,
+        signed_by_name: signatureName.trim(),
+        signed_by_email: profile?.email || '',
+        signed_by_relation: 'Parent/Guardian',
+        signature_data: signatureName.trim(),
+        status: 'signed',
         signed_at: new Date().toISOString(),
       })
 
@@ -402,10 +407,10 @@ function WaiversTab({ roleContext, showToast }) {
           <div key={waiver.id} className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{waiver.title}</h3>
+                <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{waiver.name || waiver.title}</h3>
                 {waiver.description && <p className="text-r-sm text-slate-400 mt-1">{waiver.description}</p>}
               </div>
-              {waiver.required && (
+              {(waiver.is_required || waiver.required) && (
                 <span className="text-r-xs font-bold px-2 py-1 rounded-full bg-red-500/15 text-red-500">Required</span>
               )}
             </div>
