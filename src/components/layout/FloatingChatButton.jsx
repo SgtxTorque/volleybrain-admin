@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MessageCircle } from '../../constants/icons'
+import { MessagesSquare } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
@@ -103,17 +103,22 @@ export default function FloatingChatButton({ onNavigate }) {
   if (!hasChannels) return null
 
   return (
-    <button
-      onClick={() => onNavigate?.('chats')}
-      className="fixed bottom-6 right-24 z-40 w-14 h-14 rounded-full bg-lynx-sky text-white shadow-lg hover:brightness-110 transition-all hover:scale-105 flex items-center justify-center"
-      title="Open Chat"
-    >
-      <MessageCircle className="w-6 h-6" />
-      {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </button>
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-1">
+      <button
+        onClick={() => onNavigate?.('chats')}
+        className="relative w-14 h-14 rounded-full bg-lynx-sky text-white shadow-lg hover:brightness-110 transition-all hover:scale-105 flex items-center justify-center"
+        title="Open Team Messages"
+      >
+        <MessagesSquare className="w-6 h-6" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+      </button>
+      <span className="text-[10px] font-medium text-lynx-navy opacity-70 whitespace-nowrap select-none">
+        Team Chat
+      </span>
+    </div>
   )
 }
