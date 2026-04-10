@@ -286,7 +286,7 @@ export default function FirstRunSetupPage({ showToast }) {
       return true
     } catch (err) {
       console.error('Save error:', err)
-      showToast?.('Couldn\u2019t save \u2014 try again', 'error')
+      showToast?.("Couldn't save — try again", 'error')
       return false
     } finally {
       setSaving(false)
@@ -311,7 +311,7 @@ export default function FirstRunSetupPage({ showToast }) {
     }
     // Mark as complete and celebrate
     setCompletedSteps(prev => new Set([...prev, stepKey]))
-    showToast?.(`${SETUP_STEPS[currentStep].title} \u2014 done! \uD83C\uDF89`, 'success')
+    showToast?.(`${SETUP_STEPS[currentStep].title} — done! 🎉`, 'success')
     advance()
   }
 
@@ -400,7 +400,7 @@ export default function FirstRunSetupPage({ showToast }) {
               onClick={() => navigate('/settings/seasons')}
               className="bg-[#10284C] text-white font-bold px-8 py-3 rounded-xl hover:brightness-110 transition"
             >
-              Create First Season {'\u2192'}
+              Create First Season →
             </button>
             <button
               onClick={() => navigate('/dashboard')}
@@ -412,7 +412,7 @@ export default function FirstRunSetupPage({ showToast }) {
           </div>
 
           <p className="text-xs mt-6" style={{ color: 'var(--v2-text-muted)' }}>
-            You can always edit these settings later in Settings \u2192 Organization.
+            You can always edit these settings later in Settings → Organization.
           </p>
         </div>
       </div>
@@ -430,13 +430,13 @@ export default function FirstRunSetupPage({ showToast }) {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">{'\uD83D\uDC3E'}</span>
+            <span className="text-2xl">🐾</span>
             <h1 className="text-xl font-extrabold" style={{ color: 'var(--v2-text-primary)' }}>
               Setting up {organization?.name || 'your club'}
             </h1>
           </div>
           <p className="text-sm" style={{ color: 'var(--v2-text-muted)' }}>
-            Step {currentStep + 1} of {SETUP_STEPS.length} \u2014 {step.title}
+            Step {currentStep + 1} of {SETUP_STEPS.length} — {step.title}
           </p>
           {/* Progress bar */}
           <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.08)' : '#E8ECF2' }}>
@@ -467,7 +467,7 @@ export default function FirstRunSetupPage({ showToast }) {
                       color: isDone || isCurrent ? '#FFFFFF' : 'var(--v2-text-muted)',
                     }}
                   >
-                    {isDone ? '\u2713' : i + 1}
+                    {isDone ? '✓' : i + 1}
                   </span>
                   {s.title}
                 </button>
@@ -523,7 +523,7 @@ export default function FirstRunSetupPage({ showToast }) {
             className="flex items-center gap-1.5 text-sm font-semibold transition disabled:opacity-30"
             style={{ color: 'var(--v2-text-muted)' }}
           >
-            {'\u2190'} Back
+            ← Back
           </button>
 
           <button
@@ -531,7 +531,7 @@ export default function FirstRunSetupPage({ showToast }) {
             disabled={saving}
             className="bg-[#10284C] text-white font-bold px-6 py-3 rounded-xl hover:brightness-110 transition disabled:opacity-50 order-first sm:order-none"
           >
-            {saving ? 'Saving...' : isLastStep ? 'Finish Setup \uD83C\uDF89' : 'Save & Continue \u2192'}
+            {saving ? 'Saving...' : isLastStep ? 'Finish Setup 🎉' : 'Save & Continue →'}
           </button>
 
           <button
@@ -539,7 +539,7 @@ export default function FirstRunSetupPage({ showToast }) {
             className="text-xs font-medium hover:underline transition"
             style={{ color: 'var(--v2-text-muted)' }}
           >
-            Skip for now \u2014 I'll fill this in later
+            Skip for now — I'll fill this in later
           </button>
         </div>
       </div>
