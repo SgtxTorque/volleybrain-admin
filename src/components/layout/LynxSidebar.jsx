@@ -18,7 +18,8 @@ import {
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
   CheckSquare, CalendarCheck, User, LogOut, MapPin,
-  Search, Heart, Mail, PlayCircle, ListOrdered, Lock
+  Search, Heart, Mail, PlayCircle, ListOrdered, Lock,
+  AlertTriangle
 } from 'lucide-react'
 
 // =============================================================================
@@ -284,7 +285,10 @@ function ProgramsSidebarSection({ isPlayer, onNavigate }) {
     }
   }, [selectedSeason?.program_id])
 
-  if (!programs || programs.length === 0) return null
+  const orphanedSeasons = (allSeasons || []).filter(s => !s.program_id)
+
+  // Show section if there are programs OR orphaned seasons to surface
+  if ((!programs || programs.length === 0) && orphanedSeasons.length === 0) return null
 
   const toggleProgram = (programId) => {
     setExpandedPrograms(prev => {
@@ -409,6 +413,53 @@ function ProgramsSidebarSection({ isPlayer, onNavigate }) {
           </div>
         )
       })}
+
+      {/* Unlinked Seasons — orphaned seasons not assigned to any program */}
+      {orphanedSeasons.length > 0 && (
+        <div style={{ marginTop: 4 }}>
+          <div style={{
+            padding: '6px 12px 4px',
+            fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+            color: '#D97706',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            <AlertTriangle style={{ width: 11, height: 11 }} />
+            Unlinked Seasons
+          </div>
+          {orphanedSeasons.map(season => {
+            const isActiveSeason = selectedSeason?.id === season.id
+            return (
+              <button
+                key={season.id}
+                onClick={() => {
+                  selectSeason(season)
+                  navigate('/settings/seasons')
+                }}
+                className="v2-sidebar-btn"
+                data-player={isPlayer || undefined}
+                title="This season isn't linked to a program. Edit it to assign a program."
+                style={{
+                  width: '100%', justifyContent: 'flex-start', paddingLeft: 16, gap: 8,
+                  height: 30,
+                  ...(isActiveSeason ? {
+                    background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+                    color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+                    fontWeight: 700,
+                  } : {}),
+                }}
+              >
+                <AlertTriangle style={{ width: 11, height: 11, flexShrink: 0, color: '#D97706' }} />
+                <span style={{
+                  fontSize: 11.5, fontWeight: isActiveSeason ? 700 : 500,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {season.name}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
