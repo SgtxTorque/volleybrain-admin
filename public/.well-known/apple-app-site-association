@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "<APPLE_TEAM_ID>.com.lynxapp.mobile",
+        "paths": [
+          "/invite/*",
+          "/join/*",
+          "/register/*"
+        ]
+      }
+    ]
+  }
+}
