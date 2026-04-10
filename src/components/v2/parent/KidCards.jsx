@@ -51,11 +51,11 @@ export default function KidCards({
 
   const statusBadge = (status) => {
     const map = {
-      active: { label: 'Active', bg: '#DCFCE7', color: '#166534' },
-      rostered: { label: 'Active', bg: '#DCFCE7', color: '#166534' },
-      pending: { label: 'Pending', bg: '#FEF3C7', color: '#92400E' },
-      approved: { label: 'Approved', bg: '#DBEAFE', color: '#1E40AF' },
-      waitlisted: { label: 'Waitlisted', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED' },
+      active: { label: 'Active', bg: '#DCFCE7', color: '#166534', hint: '' },
+      rostered: { label: 'Active', bg: '#DCFCE7', color: '#166534', hint: '' },
+      pending: { label: 'Awaiting Placement', bg: '#DBEAFE', color: '#1E40AF', hint: 'Your child will be assigned to a team soon.' },
+      approved: { label: 'Approved', bg: '#DBEAFE', color: '#1E40AF', hint: '' },
+      waitlisted: { label: 'Waitlisted', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED', hint: 'On the waitlist — you\'ll be notified if a spot opens.' },
     }
     const s = map[status] || map.active
     return s
@@ -146,7 +146,7 @@ export default function KidCards({
               }}
             >
               {/* Status pill — top right */}
-              <div style={{ position: 'absolute', top: 12, right: 12 }}>
+              <div style={{ position: 'absolute', top: 12, right: 12, textAlign: 'right', maxWidth: 160 }}>
                 <span style={{
                   fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 5,
                   background: sBadge.bg, color: sBadge.color, textTransform: 'uppercase',
@@ -154,6 +154,11 @@ export default function KidCards({
                 }}>
                   {sBadge.label}
                 </span>
+                {sBadge.hint && (
+                  <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', marginTop: 3, lineHeight: 1.3 }}>
+                    {sBadge.hint}
+                  </p>
+                )}
               </div>
 
               {/* Top — avatar + name */}
