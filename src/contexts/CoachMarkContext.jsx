@@ -41,9 +41,9 @@ export const COACH_MARKS = {
       },
       {
         id: 'admin_dashboard_sidebar',
-        target: '[data-coachmark="sidebar-programs"]',
-        title: 'Your programs live here',
-        body: "As you add sports and seasons, they'll show up in this sidebar.",
+        target: '[data-coachmark="sidebar-nav"]',
+        title: 'Your sidebar lives here',
+        body: "As you add programs and seasons, they'll show up here. Locked sections unlock as you set things up.",
         position: 'right',
       },
     ],
