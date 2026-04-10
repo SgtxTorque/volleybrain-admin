@@ -14,6 +14,7 @@ import { supabase } from '../../lib/supabase'
 import { OrphanPlayerBanner } from '../parent/ClaimAccountPage'
 import { usePriorityItems } from '../../components/parent/PriorityCardsEngine'
 import { ActionItemsSidebar, QuickRsvpModal } from '../../components/parent/ActionItemsSidebar'
+import { ParentJourneyBar } from '../../components/parent/ParentOnboarding'
 import {
   EventDetailModal, PaymentOptionsModal, AddChildModal,
   ReRegisterModal, AlertDetailModal,
@@ -750,6 +751,13 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 onClick={() => setShowActionSidebar(true)}
               />
             )}
+
+            {/* Parent Onboarding Journey Bar — shows progress for new parents */}
+            <ParentJourneyBar
+              onNavigate={onNavigate}
+              onTeamHub={() => activeTeam && navigateToTeamWall?.(activeTeam.id)}
+              activeTeam={activeTeam}
+            />
 
             {/* INNER FLEX: Content + Engagement Column side by side */}
             <div className="lynx-parent-layout" style={{ display: 'flex', gap: 16 }}>
