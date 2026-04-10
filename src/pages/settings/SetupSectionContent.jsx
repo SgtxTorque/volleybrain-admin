@@ -628,13 +628,13 @@ function SetupSectionContent({
                         <button
                           key={level.id}
                           onClick={() => toggleArrayItem('skillLevels', level.id)}
-                          className={`px-3 py-1.5 rounded-full border-2 text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-full border-2 text-xs font-semibold transition-all ${
                             isEnabled
-                              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                              : `${tc.border} ${tc.textMuted}`
+                              ? 'bg-[#4BB9EC] text-white border-[#4BB9EC] shadow-sm'
+                              : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
                           }`}
                         >
-                          {level.name}
+                          {isEnabled && '✓ '}{level.name}
                         </button>
                       )
                     })}
@@ -651,13 +651,13 @@ function SetupSectionContent({
                         <button
                           key={gender.id}
                           onClick={() => toggleArrayItem('genderOptions', gender.id)}
-                          className={`px-4 py-1.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                          className={`px-4 py-1.5 rounded-lg border-2 text-sm font-semibold transition-all ${
                             isEnabled
-                              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                              : `${tc.border} ${tc.textMuted}`
+                              ? 'bg-[#4BB9EC] text-white border-[#4BB9EC] shadow-sm'
+                              : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
                           }`}
                         >
-                          {gender.name}
+                          {isEnabled && '✓ '}{gender.name}
                         </button>
                       )
                     })}
