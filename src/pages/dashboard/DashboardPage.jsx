@@ -1770,17 +1770,29 @@ function RegLinkModal({ organization, selectedSeason, isDark, onClose }) {
       >
         {/* Header */}
         <div className={`px-5 py-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} flex items-center justify-between`}>
-          <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>Registration Link</h2>
+          <div>
+            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>Registration Link</h2>
+            <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {selectedSeason?.name || 'All Seasons'} — {organization?.name || 'Your Organization'}
+            </p>
+          </div>
           <button onClick={onClose} className={`p-1.5 rounded-lg transition ${isDark ? 'hover:bg-white/[0.06] text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         <div className="px-5 py-5 space-y-5">
+          {/* Season warning when no specific season selected */}
+          {!selectedSeason && (
+            <div className={`p-3 rounded-lg text-sm ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
+              This link will show a season picker. To share a link for a specific season, select a season from the filter first.
+            </div>
+          )}
+
           {/* Copy Link Section */}
           <div>
             <label className={`text-xs font-bold uppercase tracking-wider mb-2 block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Copy Link
+              {selectedSeason ? `Link for: ${selectedSeason.name}` : 'Copy Link'}
             </label>
             <div className="flex gap-2">
               <div className={`flex-1 rounded-lg px-3 py-2 text-sm font-mono truncate ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-sky-400' : 'bg-slate-50 border border-slate-200 text-[#10284C]'}`}>
