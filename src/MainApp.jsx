@@ -672,6 +672,28 @@ function PlayerProfileRoute({ roleContext, showToast, activeView }) {
 }
 
 // ============================================
+// COMING SOON — shown for locked feature routes
+// ============================================
+function ComingSoon({ featureName }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h2 className="text-xl font-bold text-slate-800 mb-2">
+        {featureName || 'Feature'} Coming Soon
+      </h2>
+      <p className="text-slate-500 max-w-md">
+        We're polishing the core experience first. This feature will be available soon.
+      </p>
+    </div>
+  );
+}
+
+// ============================================
 // ROUTED CONTENT — renders the correct page based on URL
 // ============================================
 function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView, getAvailableViews, setActiveView, onRefreshRoles }) {
@@ -733,10 +755,10 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/schedule/availability" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
 
       {/* Practice Planning */}
-      <Route path="/drills" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><DrillLibraryPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/practice-plans" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><PracticePlansPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/practice-plans/:planId" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><PracticePlanBuilder showToast={showToast} /></RouteGuard>} />
-      <Route path="/reflection-templates" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><ReflectionTemplatesPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/drills" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('drillLibrary') ? <DrillLibraryPage showToast={showToast} /> : <ComingSoon featureName="Drill Library" />}</RouteGuard>} />
+      <Route path="/practice-plans" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('drillLibrary') ? <PracticePlansPage showToast={showToast} /> : <ComingSoon featureName="Practice Plans" />}</RouteGuard>} />
+      <Route path="/practice-plans/:planId" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('drillLibrary') ? <PracticePlanBuilder showToast={showToast} /> : <ComingSoon featureName="Practice Plans" />}</RouteGuard>} />
+      <Route path="/reflection-templates" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('coachReflection') ? <ReflectionTemplatesPage showToast={showToast} /> : <ComingSoon featureName="Reflections" />}</RouteGuard>} />
 
       <Route path="/attendance" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><AttendancePage showToast={showToast} /></RouteGuard>} />
       <Route path="/payments" element={
@@ -744,10 +766,10 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
           ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
           : <RouteGuard allow={['admin', 'team_manager']} activeView={activeView}><PaymentsPage showToast={showToast} /></RouteGuard>
       } />
-      <Route path="/gameprep" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><GamePrepPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/lineups" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><LineupsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
-      <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
+      <Route path="/gameprep" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('gamePrep') ? <GamePrepPage showToast={showToast} /> : <ComingSoon featureName="Game Day Prep" />}</RouteGuard>} />
+      <Route path="/lineups" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('gamePrep') ? <LineupsPage showToast={showToast} /> : <ComingSoon featureName="Lineups" />}</RouteGuard>} />
+      <Route path="/standings" element={isFeatureEnabled('standings') ? <TeamStandingsPage showToast={showToast} /> : <ComingSoon featureName="Standings" />} />
+      <Route path="/leaderboards" element={isFeatureEnabled('leaderboards') ? <SeasonLeaderboardsPage showToast={showToast} /> : <ComingSoon featureName="Leaderboards" />} />
       <Route path="/chats/:channelId" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager', 'parent']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
@@ -755,24 +777,28 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/email" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><EmailPage showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/reports/funnel" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationFunnelPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/archives" element={<SeasonArchivePage showToast={showToast} />} />
+      <Route path="/archives" element={isFeatureEnabled('archives') ? <SeasonArchivePage showToast={showToast} /> : <ComingSoon featureName="Season Archives" />} />
       <Route path="/directory" element={<OrgDirectoryPage isEmbedded />} />
       <Route path="/achievements" element={
-        <AchievementsCatalogPage
-          playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
-          showToast={showToast}
-          playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : (roleContext?.children?.[0]?.first_name ? `${roleContext.children[0].first_name}'s` : 'Player')}
-          isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
-          activeView={activeView}
-        />
+        isFeatureEnabled('achievements') ? (
+          <AchievementsCatalogPage
+            playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
+            showToast={showToast}
+            playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : (roleContext?.children?.[0]?.first_name ? `${roleContext.children[0].first_name}'s` : 'Player')}
+            isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
+            activeView={activeView}
+          />
+        ) : <ComingSoon featureName="Achievements" />
       } />
 
       {/* Stats */}
       <Route path="/stats" element={
-        <PlayerStatsPage
-          playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
-          showToast={showToast}
-        />
+        isFeatureEnabled('playerStats') ? (
+          <PlayerStatsPage
+            playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
+            showToast={showToast}
+          />
+        ) : <ComingSoon featureName="Player Stats" />
       } />
       <Route path="/stats/:playerId" element={
         <RouteGuard allow={['admin', 'coach', 'parent']} activeView={activeView}>
@@ -795,8 +821,8 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/settings/payment-setup" element={<RouteGuard allow={['admin']} activeView={activeView}><PaymentSetupPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/organization" element={<RouteGuard allow={['admin']} activeView={activeView}><OrganizationPage showToast={showToast} /></RouteGuard>} />
       <Route path="/setup" element={<RouteGuard allow={['admin']} activeView={activeView}><FirstRunSetupPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/data-export" element={<RouteGuard allow={['admin']} activeView={activeView}><DataExportPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/subscription" element={<RouteGuard allow={['admin']} activeView={activeView}><SubscriptionPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/settings/data-export" element={<RouteGuard allow={['admin']} activeView={activeView}>{isFeatureEnabled('dataExport') ? <DataExportPage showToast={showToast} /> : <ComingSoon featureName="Data Export" />}</RouteGuard>} />
+      <Route path="/settings/subscription" element={<RouteGuard allow={['admin']} activeView={activeView}>{isFeatureEnabled('subscription') ? <SubscriptionPage showToast={showToast} /> : <ComingSoon featureName="Subscription" />}</RouteGuard>} />
       <Route path="/settings/venues" element={<RouteGuard allow={['admin']} activeView={activeView}><VenueManagerPage showToast={showToast} /></RouteGuard>} />
 
       {/* Profile */}
