@@ -180,7 +180,7 @@ export default function ProgramPage({ showToast }) {
   const [showTeamModal, setShowTeamModal] = useState(false)
   const [seasonForm, setSeasonForm] = useState({
     name: '', sport_id: null, status: 'draft', start_date: '', end_date: '',
-    registration_open: false, max_players: null, description: '',
+    registration_open: false, capacity: null, description: '',
     fee_registration: 0, fee_uniform: 0, fee_monthly: 0, months_in_season: 1,
     program_id: null,
   })
@@ -487,7 +487,7 @@ export default function ProgramPage({ showToast }) {
     setSeasonForm({
       name: '', sport_id: program?.sport_id || null, status: 'draft',
       start_date: '', end_date: '', registration_open: false,
-      max_players: null, description: '',
+      capacity: null, description: '',
       fee_registration: 0, fee_uniform: 0, fee_monthly: 0, months_in_season: 1,
       program_id: program?.id || null,
     })
@@ -504,7 +504,7 @@ export default function ProgramPage({ showToast }) {
       start_date: seasonForm.start_date || null,
       end_date: seasonForm.end_date || null,
       registration_open: seasonForm.registration_open || false,
-      max_players: seasonForm.max_players || null,
+      capacity: seasonForm.capacity || null,
       description: seasonForm.description?.trim() || null,
       organization_id: organization.id,
       program_id: program?.id || null,
