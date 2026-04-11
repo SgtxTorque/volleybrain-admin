@@ -536,11 +536,97 @@ export default function ProgramPage({ showToast }) {
   }
 
   async function handleTeamCreate(teamData) {
-    // The NewTeamModal handles its own insert — just refresh after
-    setShowTeamModal(false)
-    showToast?.('Team created!', 'success')
-    refreshSeasons?.()
-    setTimeout(() => loadProgramData(), 500)
+    // Determine the season to create the team in
+    const seasonId = selectedProgramSeason?.id || programSeasons?.[0]?.id
+    if (!seasonId) {
+      showToast?.('No season selected. Create a season first.', 'error')
+      return
+    }
+
+    try {
+      const clean = (v) => (v === '' || v === undefined) ? null : v
+
+      const { data: newTeam, error } = await supabase
+        .from('teams')
+        .insert({
+          season_id: seasonId,
+          name: teamData.name,
+          abbreviation: clean(teamData.abbreviation),
+          color: teamData.color || '#4BB9EC',
+          logo_url: clean(teamData.logo_url),
+          age_group: clean(teamData.age_group),
+          age_group_type: clean(teamData.age_group_type),
+          team_type: clean(teamData.team_type),
+          skill_level: clean(teamData.skill_level),
+          gender: clean(teamData.gender),
+          max_roster_size: teamData.max_roster_size,
+          min_roster_size: teamData.min_roster_size,
+          roster_open: teamData.roster_open,
+          description: clean(teamData.description),
+          internal_notes: clean(teamData.internal_notes),
+        })
+        .select()
+        .single()
+
+      if (error) {
+        showToast?.('Error creating team: ' + error.message, 'error')
+        return
+      }
+
+      const createdItems = ['team']
+
+      // Create team chat channel (matching TeamsPage pattern)
+      if (teamData.create_team_chat) {
+        try {
+          const { data: chatData, error: chatErr } = await supabase.from('chat_channels').insert({
+            season_id: seasonId,
+            team_id: newTeam.id,
+            name: `${teamData.name} - Team Chat`,
+            description: 'Chat for parents and coaches',
+            channel_type: 'team_chat',
+            created_by: user?.id,
+          }).select().single()
+          if (!chatErr && chatData && user?.id) {
+            createdItems.push('team chat')
+            await supabase.from('channel_members').insert({
+              channel_id: chatData.id, user_id: user.id,
+              member_role: 'admin', display_name: 'Admin',
+              can_post: true, can_moderate: true,
+            })
+          }
+        } catch (_) { /* non-critical */ }
+      }
+
+      if (teamData.create_player_chat) {
+        try {
+          const { data: pChatData, error: pChatErr } = await supabase.from('chat_channels').insert({
+            season_id: seasonId,
+            team_id: newTeam.id,
+            name: `${teamData.name} - Player Chat`,
+            description: 'Chat for players and coaches',
+            channel_type: 'player_chat',
+            created_by: user?.id,
+          }).select().single()
+          if (!pChatErr && pChatData && user?.id) {
+            createdItems.push('player chat')
+            await supabase.from('channel_members').insert({
+              channel_id: pChatData.id, user_id: user.id,
+              member_role: 'admin', display_name: 'Admin',
+              can_post: true, can_moderate: true,
+            })
+          }
+        } catch (_) { /* non-critical */ }
+      }
+
+      setShowTeamModal(false)
+      showToast?.(`Created: ${createdItems.join(', ')}!`, 'success')
+      refreshSeasons?.()
+      refreshPrograms?.()
+      setTimeout(() => loadProgramData(), 500)
+    } catch (err) {
+      console.error('Team creation failed:', err)
+      showToast?.(`Failed to create team: ${err.message}`, 'error')
+    }
   }
 
   // --- Season selection in carousel ---
