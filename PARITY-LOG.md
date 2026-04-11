@@ -20,3 +20,7 @@ Track web-only changes that may need mobile counterparts.
 - WEB: Team creation from ProgramPage now performs real Supabase INSERT → Mobile season-setup-wizard already fixed in separate spec
 - WEB: Added PASSWORD_RECOVERY handler + /reset-password page → Mobile has its own auth flow, no action needed
 - WEB: SuccessScreen CTA now links to /invite/parent/:code → Mobile registration has different post-registration flow, no action needed
+- WEB: Added /join/coach/:orgId route with email lookup → redirects to CoachInviteAcceptPage → Mobile has its own coach invite flow, no action needed
+- WEB: Coach invite email no longer sends if coaches insert fails → Mobile coach invite may have same issue, should verify
+- WEB: SetupWizard invite code now checks coaches table → Mobile onboarding wizard should add same check if it has an invite code step
+- WEB: Google/Apple OAuth buttons hidden via feature flags → Mobile has its own auth UI, no action needed
