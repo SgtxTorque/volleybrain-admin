@@ -14,3 +14,9 @@ Track web-only changes that may need mobile counterparts.
 - WEB: Duplicate registration pre-check added to RegistrationCartPage and PublicRegistrationPage → Mobile registration flows should also check for existing registrations before insert
 - WEB: RSVP changed from insert to upsert on AttendancePage → Mobile RSVP flows should verify they use upsert pattern
 - WEB: Reports "All Seasons" mode now loads data → No mobile action needed (mobile has different reports architecture)
+
+### April 11, 2026
+- WEB: Coach role detection now uses user_roles as fallback when coaches table query fails → Mobile should verify coach detection uses equivalent fallback
+- WEB: Team creation from ProgramPage now performs real Supabase INSERT → Mobile season-setup-wizard already fixed in separate spec
+- WEB: Added PASSWORD_RECOVERY handler + /reset-password page → Mobile has its own auth flow, no action needed
+- WEB: SuccessScreen CTA now links to /invite/parent/:code → Mobile registration has different post-registration flow, no action needed
