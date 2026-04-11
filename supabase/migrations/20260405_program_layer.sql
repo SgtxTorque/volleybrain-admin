@@ -1,6 +1,7 @@
 -- ============================================
 -- PROGRAM LAYER — PHASE 1.1: Database Migration
 -- Run this in Supabase Dashboard > SQL Editor
+-- Idempotent: safe to re-run (all statements use IF NOT EXISTS guards)
 -- ============================================
 
 -- 1. Create programs table
@@ -29,48 +30,64 @@ CREATE INDEX IF NOT EXISTS idx_seasons_program_id ON seasons(program_id);
 -- 4. RLS on programs table
 ALTER TABLE programs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view programs in their organization"
-  ON programs FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM user_roles WHERE user_id = auth.uid() AND is_active = true
-    )
-    OR
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
-  );
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view programs in their organization' AND tablename = 'programs') THEN
+    CREATE POLICY "Users can view programs in their organization"
+      ON programs FOR SELECT
+      USING (
+        organization_id IN (
+          SELECT organization_id FROM user_roles WHERE user_id = auth.uid() AND is_active = true
+        )
+        OR
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
+      );
+  END IF;
+END $$;
 
-CREATE POLICY "Admins can create programs"
-  ON programs FOR INSERT
-  WITH CHECK (
-    organization_id IN (
-      SELECT organization_id FROM user_roles
-      WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
-    )
-    OR
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
-  );
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can create programs' AND tablename = 'programs') THEN
+    CREATE POLICY "Admins can create programs"
+      ON programs FOR INSERT
+      WITH CHECK (
+        organization_id IN (
+          SELECT organization_id FROM user_roles
+          WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
+        )
+        OR
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
+      );
+  END IF;
+END $$;
 
-CREATE POLICY "Admins can update programs"
-  ON programs FOR UPDATE
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM user_roles
-      WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
-    )
-    OR
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
-  );
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can update programs' AND tablename = 'programs') THEN
+    CREATE POLICY "Admins can update programs"
+      ON programs FOR UPDATE
+      USING (
+        organization_id IN (
+          SELECT organization_id FROM user_roles
+          WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
+        )
+        OR
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
+      );
+  END IF;
+END $$;
 
-CREATE POLICY "Admins can delete programs"
-  ON programs FOR DELETE
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM user_roles
-      WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
-    )
-    OR
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
-  );
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can delete programs' AND tablename = 'programs') THEN
+    CREATE POLICY "Admins can delete programs"
+      ON programs FOR DELETE
+      USING (
+        organization_id IN (
+          SELECT organization_id FROM user_roles
+          WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
+        )
+        OR
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
+      );
+  END IF;
+END $$;
 
 -- 5. Backfill: Create one program per unique sport_id in existing seasons
 INSERT INTO programs (organization_id, sport_id, name, icon, display_order, created_at)
@@ -102,9 +119,9 @@ WHERE s.organization_id = p.organization_id
 INSERT INTO programs (organization_id, sport_id, name, icon, display_order, created_at)
 SELECT DISTINCT
   s.organization_id,
-  NULL,
+  NULL::uuid,
   'General',
-  '📋',
+  NULL,
   999,
   now()
 FROM seasons s
