@@ -10,6 +10,7 @@ import { OrgBrandingProvider, useOrgBranding } from './contexts/OrgBrandingConte
 import { supabase } from './lib/supabase'
 import { useAppNavigate, useCurrentPageId, useDocumentTitle } from './hooks/useAppNavigate'
 import { getPathForPage } from './lib/routes'
+import { isFeatureEnabled } from './config/feature-flags'
 
 // Icons
 import { 
@@ -1177,14 +1178,14 @@ function MainApp() {
     { id: 'teams-rosters', label: 'Teams & Rosters', type: 'group', icon: 'shield', items: [
       { id: 'teams', label: 'Team Management', icon: 'shield' },
       { id: 'coaches', label: 'Staff Portal', icon: 'users' },
-      { id: 'jerseys', label: 'Jersey Management', icon: 'shirt', hasBadge: true },
+      { id: 'jerseys', label: 'Jersey Management', icon: 'shirt', hasBadge: true, featureFlag: 'jerseys' },
     ]},
 
     // --- REGISTRATION ---
     { id: 'registration', label: 'Registration', type: 'group', icon: 'clipboard', items: [
       { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
       { id: 'templates', label: 'Registration Forms', icon: 'file-text' },
-      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
+      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up', featureFlag: 'registrationFunnel' },
     ]},
 
     // --- PAYMENTS ---
@@ -1197,23 +1198,23 @@ function MainApp() {
     { id: 'scheduling', label: 'Schedule & Events', type: 'group', icon: 'calendar', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
-      { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
+      { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check', featureFlag: 'coachAvailability' },
     ]},
 
     // --- PRACTICE ---
     { id: 'practice', label: 'Practice', type: 'group', icon: 'clipboard-list', items: [
-      { id: 'drills', label: 'Drill Library', icon: 'play-circle' },
-      { id: 'practice-plans', label: 'Practice Plans', icon: 'list-ordered' },
-      { id: 'reflection-templates', label: 'Reflections', icon: 'clipboard-list' },
+      { id: 'drills', label: 'Drill Library', icon: 'play-circle', featureFlag: 'drillLibrary' },
+      { id: 'practice-plans', label: 'Practice Plans', icon: 'list-ordered', featureFlag: 'drillLibrary' },
+      { id: 'reflection-templates', label: 'Reflections', icon: 'clipboard-list', featureFlag: 'coachReflection' },
     ]},
 
     // --- COMPETE ---
     { id: 'game', label: 'Compete', type: 'group', icon: 'gameprep', items: [
-      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
-      { id: 'lineups', label: 'Lineups', icon: 'layout-grid' },
-      { id: 'standings', label: 'Standings', icon: 'star' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
+      { id: 'gameprep', label: 'Game Prep', icon: 'target', featureFlag: 'gamePrep' },
+      { id: 'lineups', label: 'Lineups', icon: 'layout-grid', featureFlag: 'gamePrep' },
+      { id: 'standings', label: 'Standings', icon: 'star', featureFlag: 'standings' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart', featureFlag: 'leaderboards' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements', featureFlag: 'achievements' },
     ]},
 
     // --- COMMUNICATION ---
@@ -1227,7 +1228,7 @@ function MainApp() {
     // --- REPORTS ---
     { id: 'insights', label: 'Reports', type: 'group', icon: 'reports', items: [
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
-      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy', featureFlag: 'archives' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
 
@@ -1238,8 +1239,8 @@ function MainApp() {
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
       { id: 'venues', label: 'Venues', icon: 'map-pin' },
       { id: 'organization', label: 'Organization', icon: 'building' },
-      { id: 'data-export', label: 'Data Export', icon: 'download' },
-      { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
+      { id: 'data-export', label: 'Data Export', icon: 'download', featureFlag: 'dataExport' },
+      { id: 'subscription', label: 'Subscription', icon: 'credit-card', featureFlag: 'subscription' },
     ]},
   ]
 
@@ -1259,24 +1260,24 @@ function MainApp() {
       { id: 'attendance', label: 'Attendance', icon: 'check-square' },
     ]},
     { id: 'practice', label: 'Practice', type: 'group', icon: 'clipboard-list', items: [
-      { id: 'drills', label: 'Drill Library', icon: 'play-circle' },
-      { id: 'practice-plans', label: 'Practice Plans', icon: 'list-ordered' },
-      { id: 'reflection-templates', label: 'Reflections', icon: 'clipboard-list' },
+      { id: 'drills', label: 'Drill Library', icon: 'play-circle', featureFlag: 'drillLibrary' },
+      { id: 'practice-plans', label: 'Practice Plans', icon: 'list-ordered', featureFlag: 'drillLibrary' },
+      { id: 'reflection-templates', label: 'Reflections', icon: 'clipboard-list', featureFlag: 'coachReflection' },
     ]},
     { id: 'gameday', label: 'Compete', type: 'group', icon: 'gameprep', items: [
-      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
-      { id: 'lineups', label: 'Lineups', icon: 'layout-grid' },
-      { id: 'standings', label: 'Standings', icon: 'star' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
+      { id: 'gameprep', label: 'Game Prep', icon: 'target', featureFlag: 'gamePrep' },
+      { id: 'lineups', label: 'Lineups', icon: 'layout-grid', featureFlag: 'gamePrep' },
+      { id: 'standings', label: 'Standings', icon: 'star', featureFlag: 'standings' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart', featureFlag: 'leaderboards' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements', featureFlag: 'achievements' },
     ]},
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Team Chat', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
     ]},
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
-      { id: 'coach-availability', label: 'My Availability', icon: 'calendar' },
-      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'coach-availability', label: 'My Availability', icon: 'calendar', featureFlag: 'coachAvailability' },
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy', featureFlag: 'archives' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
   ]
@@ -1302,12 +1303,12 @@ function MainApp() {
     { id: 'social', label: 'Social', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chat', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
-      { id: 'team-hub', label: 'Team Hub', icon: 'users' },
-      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
+      { id: 'team-hub', label: 'Team Hub', icon: 'users', featureFlag: 'teamWall' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements', featureFlag: 'achievements' },
     ]},
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
       { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
-      { id: 'season-archives', label: 'Archives', icon: 'trophy' },
+      { id: 'season-archives', label: 'Archives', icon: 'trophy', featureFlag: 'archives' },
       { id: 'org-directory', label: 'Directory', icon: 'building' },
     ]},
   ]
@@ -1316,7 +1317,7 @@ function MainApp() {
     { id: 'dashboard', label: 'Dashboard', type: 'single', icon: 'dashboard' },
     { id: 'myteams', label: 'My Team', type: 'group', icon: 'teams', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
-      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements', featureFlag: 'achievements' },
       ...(roleContext?.playerInfo?.team_players?.map(tp => ({
         id: `teamwall-${tp.team_id}`,
         label: tp.teams?.name,
@@ -1325,9 +1326,9 @@ function MainApp() {
       })) || [])
     ]},
     { id: 'competition', label: 'Stats & Competition', type: 'group', icon: 'stats', items: [
-      { id: 'stats', label: 'My Stats', icon: 'bar-chart' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'star' },
-      { id: 'standings', label: 'Standings', icon: 'trophy' },
+      { id: 'stats', label: 'My Stats', icon: 'bar-chart', featureFlag: 'playerStats' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'star', featureFlag: 'leaderboards' },
+      { id: 'standings', label: 'Standings', icon: 'trophy', featureFlag: 'standings' },
     ]},
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
       { id: 'my-stuff', label: 'Profile & Stats', icon: 'user' },
@@ -1350,9 +1351,9 @@ function MainApp() {
       { id: 'attendance', label: 'Attendance', icon: 'check-square' },
     ]},
     { id: 'gameday', label: 'Compete', type: 'group', icon: 'gameprep', items: [
-      { id: 'standings', label: 'Standings', icon: 'star' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
+      { id: 'standings', label: 'Standings', icon: 'star', featureFlag: 'standings' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart', featureFlag: 'leaderboards' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements', featureFlag: 'achievements' },
     ]},
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Team Chat', icon: 'message' },
@@ -1362,7 +1363,7 @@ function MainApp() {
       { id: 'payments', label: 'Payments', icon: 'dollar' },
     ]},
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
-      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy', featureFlag: 'archives' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
   ]
@@ -1378,7 +1379,20 @@ function MainApp() {
     }
   }
 
-  const currentNavGroups = getNavGroups()
+  // Filter nav items by feature flags — items with a featureFlag property
+  // are hidden from nav when the flag is off. Empty groups are also removed.
+  const currentNavGroups = getNavGroups().map(group => {
+    if (group.type === 'single') return group
+    if (!group.items) return group
+    const filteredItems = group.items.filter(item => {
+      if (item.featureFlag) return isFeatureEnabled(item.featureFlag)
+      return true
+    })
+    return { ...group, items: filteredItems }
+  }).filter(group => {
+    if (group.type === 'group' && group.items && group.items.length === 0) return false
+    return true
+  })
 
   // Shared navigation handler — same logic for sidebar and top nav
   function handleNavigation(itemId, item) {
