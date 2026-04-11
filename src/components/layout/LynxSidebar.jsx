@@ -601,7 +601,7 @@ export default function LynxSidebar({
       }}>
         <Menu style={{ width: 22, height: 22 }} />
       </button>
-      <span style={{ fontWeight: 800, fontSize: 14, color: isPlayer ? '#FFFFFF' : 'var(--v2-navy)', letterSpacing: '-0.01em' }}>
+      <span className="truncate max-w-[200px]" style={{ fontWeight: 800, fontSize: 14, color: isPlayer ? '#FFFFFF' : 'var(--v2-navy)', letterSpacing: '-0.01em' }}>
         {orgName || 'Lynx'}
       </span>
       {onOpenNotifications && (
@@ -846,19 +846,21 @@ export default function LynxSidebar({
           background: isPlayer ? 'rgba(255,255,255,0.08)' : 'var(--v2-border-subtle)',
         }} />
 
-        {/* Platform Mode */}
+        {/* Platform Mode — hidden on mobile/tablet, visible on desktop only */}
         {isPlatformAdmin && (
-          <button
-            onClick={() => onEnterPlatformMode?.()}
-            className="v2-sidebar-btn"
-            style={{
-              width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10,
-              color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-amber)',
-            }}
-          >
-            <Shield style={{ width: 18, height: 18, flexShrink: 0 }} />
-            <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>Platform Mode</span>
-          </button>
+          <div className="hidden lg:block">
+            <button
+              onClick={() => onEnterPlatformMode?.()}
+              className="v2-sidebar-btn"
+              style={{
+                width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10,
+                color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-amber)',
+              }}
+            >
+              <Shield style={{ width: 18, height: 18, flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>Platform Mode</span>
+            </button>
+          </div>
         )}
 
         {/* Settings */}
