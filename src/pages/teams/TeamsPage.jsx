@@ -287,9 +287,12 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     if (reg) {
       await supabase.from('registrations').update({
         status: 'rostered',
+        rostered_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }).eq('id', reg.id)
     }
+    // Sync players.status to match registrations.status
+    await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
     await autoAddMemberToTeamChannels(teamId, playerId)
     showToast('Player added to team and rostered', 'success')
     journey?.completeStep('register_players')
