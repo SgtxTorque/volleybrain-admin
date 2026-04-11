@@ -51,7 +51,7 @@ DO $$ BEGIN
       WITH CHECK (
         organization_id IN (
           SELECT organization_id FROM user_roles
-          WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
+          WHERE user_id = auth.uid() AND role = 'league_admin' AND is_active = true
         )
         OR
         EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
@@ -66,7 +66,7 @@ DO $$ BEGIN
       USING (
         organization_id IN (
           SELECT organization_id FROM user_roles
-          WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
+          WHERE user_id = auth.uid() AND role = 'league_admin' AND is_active = true
         )
         OR
         EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)
@@ -81,7 +81,7 @@ DO $$ BEGIN
       USING (
         organization_id IN (
           SELECT organization_id FROM user_roles
-          WHERE user_id = auth.uid() AND role = 'admin' AND is_active = true
+          WHERE user_id = auth.uid() AND role = 'league_admin' AND is_active = true
         )
         OR
         EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_platform_admin = true)

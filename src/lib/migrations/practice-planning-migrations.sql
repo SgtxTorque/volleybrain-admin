@@ -241,7 +241,7 @@ CREATE POLICY IF NOT EXISTS "drills_insert_coach_admin" ON drills FOR INSERT WIT
   AND (
     public.is_platform_admin()
     OR EXISTS (SELECT 1 FROM team_coaches WHERE user_id = auth.uid() AND team_id IS NOT DISTINCT FROM drills.team_id)
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drills.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drills.org_id)
   )
 );
 CREATE POLICY IF NOT EXISTS "drills_update_coach_admin" ON drills FOR UPDATE USING (
@@ -249,7 +249,7 @@ CREATE POLICY IF NOT EXISTS "drills_update_coach_admin" ON drills FOR UPDATE USI
   AND (
     created_by = auth.uid()
     OR public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drills.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drills.org_id)
   )
 );
 CREATE POLICY IF NOT EXISTS "drills_delete_coach_admin" ON drills FOR DELETE USING (
@@ -257,7 +257,7 @@ CREATE POLICY IF NOT EXISTS "drills_delete_coach_admin" ON drills FOR DELETE USI
   AND (
     created_by = auth.uid()
     OR public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drills.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drills.org_id)
   )
 );
 
@@ -274,7 +274,7 @@ CREATE POLICY IF NOT EXISTS "drill_categories_insert_admin" ON drill_categories 
   org_id = (SELECT current_organization_id FROM profiles WHERE id = auth.uid())
   AND (
     public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drill_categories.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drill_categories.org_id)
   )
 );
 CREATE POLICY IF NOT EXISTS "drill_categories_update_admin" ON drill_categories FOR UPDATE USING (
@@ -282,7 +282,7 @@ CREATE POLICY IF NOT EXISTS "drill_categories_update_admin" ON drill_categories 
   AND org_id = (SELECT current_organization_id FROM profiles WHERE id = auth.uid())
   AND (
     public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drill_categories.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drill_categories.org_id)
   )
 );
 
@@ -298,7 +298,7 @@ CREATE POLICY IF NOT EXISTS "practice_plans_update_coach_admin" ON practice_plan
   AND (
     created_by = auth.uid()
     OR public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = practice_plans.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = practice_plans.org_id)
   )
 );
 CREATE POLICY IF NOT EXISTS "practice_plans_delete_coach_admin" ON practice_plans FOR DELETE USING (
@@ -306,7 +306,7 @@ CREATE POLICY IF NOT EXISTS "practice_plans_delete_coach_admin" ON practice_plan
   AND (
     created_by = auth.uid()
     OR public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = practice_plans.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = practice_plans.org_id)
   )
 );
 
@@ -377,7 +377,7 @@ CREATE POLICY IF NOT EXISTS "dev_assign_insert_coach_admin" ON player_developmen
   AND (
     public.is_platform_admin()
     OR EXISTS (SELECT 1 FROM team_coaches WHERE user_id = auth.uid())
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = player_development_assignments.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = player_development_assignments.org_id)
   )
 );
 CREATE POLICY IF NOT EXISTS "dev_assign_update_coach_or_player" ON player_development_assignments FOR UPDATE USING (
@@ -386,7 +386,7 @@ CREATE POLICY IF NOT EXISTS "dev_assign_update_coach_or_player" ON player_develo
     assigned_by = auth.uid()
     OR reviewed_by = auth.uid()
     OR public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = player_development_assignments.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = player_development_assignments.org_id)
     -- Players can update their own rows (player_notes, player_rating, current_completions, status)
     OR EXISTS (SELECT 1 FROM players WHERE players.id = player_development_assignments.player_id AND players.profile_id = auth.uid())
   )
@@ -404,7 +404,7 @@ CREATE POLICY IF NOT EXISTS "reflection_templates_update_coach_admin" ON reflect
   AND (
     created_by = auth.uid()
     OR public.is_platform_admin()
-    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = reflection_templates.org_id)
+    OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = reflection_templates.org_id)
   )
 );
 

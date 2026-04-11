@@ -99,7 +99,7 @@ export default function GiveShoutoutModal({ visible, teamId, onClose, onSuccess,
   }, [recipients, search])
 
   const userRoles = profile?.user_roles || []
-  const isAdmin = userRoles.some(r => r.role === 'admin')
+  const isAdmin = userRoles.some(r => r.role === 'league_admin')
   const isCoach = userRoles.some(r => r.role === 'coach')
   const isParent = userRoles.some(r => r.role === 'parent')
   const giverRole = isAdmin ? 'admin' : isCoach ? 'coach' : isParent ? 'parent' : 'player'

@@ -60,7 +60,7 @@ export default function GiveShoutoutCard({ selectedTeam }) {
     setSending(true)
     try {
       const userRoles = profile?.user_roles || []
-      const isAdmin = userRoles.some(r => r.role === 'admin')
+      const isAdmin = userRoles.some(r => r.role === 'league_admin')
       const isCoach = userRoles.some(r => r.role === 'coach')
       const giverRole = isAdmin ? 'admin' : isCoach ? 'coach' : 'parent'
 
