@@ -10,6 +10,7 @@ import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { EmailService, isEmailEnabled } from '../../lib/email-service'
 import { exportToCSV } from '../../lib/csv-export'
 import { awardXP } from '../../lib/xp-award-service'
 import { XP_BY_SOURCE } from '../../lib/engagement-constants'
@@ -294,6 +295,29 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     // Sync players.status to match registrations.status
     await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
     await autoAddMemberToTeamChannels(teamId, playerId)
+
+    // Send team assignment email to parent (non-blocking)
+    try {
+      if (isEmailEnabled(organization, 'team_assignment')) {
+        const { data: playerData } = await supabase
+          .from('players')
+          .select('id, first_name, last_name, parent_email, parent_name')
+          .eq('id', playerId)
+          .single()
+        if (playerData?.parent_email) {
+          const team = teams.find(t => t.id === teamId)
+          await EmailService.sendTeamAssignment(
+            playerData,
+            { name: team?.name || 'Team', coach_name: null, practice_schedule: null },
+            selectedSeason || { name: '' },
+            organization
+          )
+        }
+      }
+    } catch (emailErr) {
+      console.warn('Team assignment email failed (non-blocking):', emailErr)
+    }
+
     showToast('Player added to team and rostered', 'success')
     journey?.completeStep('register_players')
     journey?.completeStep('add_roster')
