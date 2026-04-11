@@ -236,7 +236,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
 
       if (roleRecords) {
         for (const r of roleRecords) {
-          if (r.role !== 'admin') continue
+          if (r.role !== 'league_admin') continue
           // Get seasons for this org
           const { data: orgSeasons } = await supabase
             .from('seasons')

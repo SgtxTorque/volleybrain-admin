@@ -100,12 +100,12 @@ CREATE POLICY "drills_insert_coach_admin" ON drills FOR INSERT WITH CHECK (
 CREATE POLICY "drills_update_coach_admin" ON drills FOR UPDATE USING (
   created_by = auth.uid()
   OR public.is_platform_admin()
-  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drills.org_id)
+  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drills.org_id)
 );
 CREATE POLICY "drills_delete_coach_admin" ON drills FOR DELETE USING (
   created_by = auth.uid()
   OR public.is_platform_admin()
-  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drills.org_id)
+  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drills.org_id)
 );
 
 -- ---- DRILL_FAVORITES ----
@@ -120,11 +120,11 @@ CREATE POLICY "drill_categories_select_all" ON drill_categories FOR SELECT USING
 );
 CREATE POLICY "drill_categories_insert_admin" ON drill_categories FOR INSERT WITH CHECK (
   public.is_platform_admin()
-  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drill_categories.org_id)
+  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drill_categories.org_id)
 );
 CREATE POLICY "drill_categories_update_admin" ON drill_categories FOR UPDATE USING (
   public.is_platform_admin()
-  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = drill_categories.org_id)
+  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = drill_categories.org_id)
 );
 
 -- ---- PRACTICE_PLANS ----
@@ -137,12 +137,12 @@ CREATE POLICY "practice_plans_insert_coach_admin" ON practice_plans FOR INSERT W
 CREATE POLICY "practice_plans_update_coach_admin" ON practice_plans FOR UPDATE USING (
   created_by = auth.uid()
   OR public.is_platform_admin()
-  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = practice_plans.org_id)
+  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = practice_plans.org_id)
 );
 CREATE POLICY "practice_plans_delete_coach_admin" ON practice_plans FOR DELETE USING (
   created_by = auth.uid()
   OR public.is_platform_admin()
-  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin' AND organization_id = practice_plans.org_id)
+  OR EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'league_admin' AND organization_id = practice_plans.org_id)
 );
 
 -- ---- PRACTICE_PLAN_FAVORITES ----
