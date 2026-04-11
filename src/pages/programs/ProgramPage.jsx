@@ -485,7 +485,7 @@ export default function ProgramPage({ showToast }) {
   // --- Season Modal Helpers ---
   function openSeasonModal() {
     setSeasonForm({
-      name: '', sport_id: program?.sport_id || null, status: 'draft',
+      name: '', sport_id: program?.sport_id || null, status: 'upcoming',
       start_date: '', end_date: '', registration_open: false,
       capacity: null, description: '',
       fee_registration: 0, fee_uniform: 0, fee_monthly: 0, months_in_season: 1,
@@ -506,7 +506,7 @@ export default function ProgramPage({ showToast }) {
     const cleaned = {
       name: seasonForm.name?.trim(),
       sport_id: seasonForm.sport_id || program?.sport_id || null,
-      status: seasonForm.status || 'draft',
+      status: seasonForm.status || 'upcoming',
       start_date: seasonForm.start_date || null,
       end_date: seasonForm.end_date || null,
       registration_open: seasonForm.registration_open || false,
