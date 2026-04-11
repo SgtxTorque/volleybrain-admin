@@ -140,7 +140,8 @@ export function RegistrationsPage({ showToast }) {
           if (result.success && !result.skipped) {
             showToast(`Approved! Generated ${result.feesCreated} fees ($${result.totalAmount.toFixed(2)})`, 'success')
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
-              EmailService.sendApprovalNotification(playerData, selectedSeason, organization, result.fees || [])
+              const feeSummary = [{ amount: result.totalAmount || 0, description: `Season fees (${result.feesCreated} items)` }]
+              EmailService.sendApprovalNotification(playerData, selectedSeason, organization, feeSummary)
                 .then(r => r.success && console.log('Approval notification email queued'))
                 .catch(e => console.error('Email queue error:', e))
             }
@@ -227,7 +228,7 @@ export function RegistrationsPage({ showToast }) {
           if (result.success && !result.skipped) {
             feesGenerated += result.feesCreated
             totalFeeAmount += result.totalAmount
-            fees = result.fees || []
+            fees = [{ amount: result.totalAmount || 0, description: `Season fees (${result.feesCreated} items)` }]
           }
         }
         if (isEmailEnabled(organization, 'registration_approved') && player.parent_email) {
