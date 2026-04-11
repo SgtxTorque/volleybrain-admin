@@ -45,13 +45,14 @@ export function ProgramsPage({ showToast }) {
   }
 
   async function handleSave(form, editing) {
+    const maxOrder = programs.reduce((max, p) => Math.max(max, p.display_order || 0), 0)
     const cleaned = {
       name: form.name.trim(),
       sport_id: form.sport_id || null,
       icon: form.icon || null,
       description: form.description?.trim() || null,
       is_active: form.is_active,
-      display_order: form.display_order || 0,
+      display_order: editing ? (editing.display_order || 0) : maxOrder + 1,
     }
 
     if (editing) {
@@ -101,6 +102,33 @@ export function ProgramsPage({ showToast }) {
     loadPrograms()
     refreshPrograms()
   }
+
+  async function handleReorder(programId, direction) {
+    const currentIndex = programs.findIndex(p => p.id === programId)
+    const swapIndex = currentIndex + direction
+
+    if (swapIndex < 0 || swapIndex >= programs.length) return
+
+    const current = programs[currentIndex]
+    const swap = programs[swapIndex]
+
+    const results = await Promise.all([
+      supabase.from('programs').update({ display_order: swap.display_order }).eq('id', current.id),
+      supabase.from('programs').update({ display_order: current.display_order }).eq('id', swap.id),
+    ])
+
+    if (results.some(r => r.error)) {
+      showToast('Failed to reorder programs', 'error')
+    } else {
+      showToast('Programs reordered', 'success')
+      loadPrograms()
+      refreshPrograms()
+    }
+  }
+
+  const usedSportIds = new Set(
+    programs.filter(p => p.sport_id).map(p => p.sport_id)
+  )
 
   const activeCount = programs.filter(p => p.is_active).length
 
@@ -156,7 +184,7 @@ export function ProgramsPage({ showToast }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {programs.map(program => {
+          {programs.map((program, index) => {
             const seasonCount = program.seasons?.[0]?.count || 0
             return (
               <div
@@ -167,6 +195,29 @@ export function ProgramsPage({ showToast }) {
                 style={{ borderLeft: `4px solid ${program.sport?.color_primary || '#4BB9EC'}` }}
               >
                 <div className="flex items-center gap-4">
+                  {/* Reorder buttons */}
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => handleReorder(program.id, -1)}
+                      disabled={index === 0}
+                      className={`p-1 rounded transition-colors ${index === 0 ? 'text-slate-300 cursor-not-allowed' : isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/10' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+                      title="Move up"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="18 15 12 9 6 15"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleReorder(program.id, 1)}
+                      disabled={index === programs.length - 1}
+                      className={`p-1 rounded transition-colors ${index === programs.length - 1 ? 'text-slate-300 cursor-not-allowed' : isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/10' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+                      title="Move down"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  </div>
                   <span className="text-2xl">{program.icon || program.sport?.icon || '📋'}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -216,6 +267,7 @@ export function ProgramsPage({ showToast }) {
         tc={tc}
         isDark={isDark}
         onSave={handleSave}
+        usedSportIds={usedSportIds}
       />
     </PageShell>
   )
