@@ -431,7 +431,24 @@ export function SetupWizard({ onComplete, onBack }) {
           .eq('status', 'pending')
           .maybeSingle()
 
-        if (!accountInvite) throw new Error('Invalid or expired invite code. Double-check with your admin.')
+        if (!accountInvite) {
+          // Check coaches table — invite codes are lowercase hex
+          const { data: coachInvite } = await supabase
+            .from('coaches')
+            .select('id, invite_code, invite_status')
+            .eq('invite_code', inviteCode.toLowerCase())
+            .eq('invite_status', 'invited')
+            .maybeSingle()
+
+          if (coachInvite) {
+            // Redirect to the proper CoachInviteAcceptPage
+            window.location.href = `/invite/coach/${coachInvite.invite_code}`
+            setSaving(false)
+            return
+          }
+
+          throw new Error('Invalid or expired invite code. Double-check with your admin.')
+        }
 
         await supabase.from('account_invites')
           .update({ status: 'accepted', accepted_at: new Date().toISOString() })
