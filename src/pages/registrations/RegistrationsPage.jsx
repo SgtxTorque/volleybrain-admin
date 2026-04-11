@@ -122,13 +122,8 @@ export function RegistrationsPage({ showToast }) {
 
   async function updateStatus(playerId, regId, newStatus) {
     try {
-      await supabase.from('registrations').update({
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-        ...(newStatus === 'approved' ? { approved_at: new Date().toISOString() } : {})
-      }).eq('id', regId)
-
       if (newStatus === 'approved' && selectedSeason) {
+        // Generate fees FIRST before updating status
         const { data: playerData } = await supabase
           .from('players')
           .select('*, registrations(*)')
@@ -138,6 +133,10 @@ export function RegistrationsPage({ showToast }) {
         if (playerData) {
           const result = await generateFeesForPlayer(supabase, playerData, selectedSeason, null)
           if (result.success && !result.skipped) {
+            // Fees generated successfully — now update status
+            await supabase.from('registrations').update({
+              status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
+            }).eq('id', regId)
             showToast(`Approved! Generated ${result.feesCreated} fees ($${result.totalAmount.toFixed(2)})`, 'success')
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
               const feeSummary = [{ amount: result.totalAmount || 0, description: `Season fees (${result.feesCreated} items)` }]
@@ -146,6 +145,10 @@ export function RegistrationsPage({ showToast }) {
                 .catch(e => console.error('Email queue error:', e))
             }
           } else if (result.skipped) {
+            // Fees skipped (already exist or none configured) — safe to approve
+            await supabase.from('registrations').update({
+              status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
+            }).eq('id', regId)
             if (result.noFeesConfigured) {
               showToast('Approved! No fees configured - go to Setup to add fees', 'warning')
             } else {
@@ -157,13 +160,23 @@ export function RegistrationsPage({ showToast }) {
                 .catch(e => console.error('Email queue error:', e))
             }
           } else {
-            showToast('Approved (fee generation failed - check manually)', 'warning')
+            // Fee generation failed — block approval
+            showToast('Failed to generate fees. Registration not approved.', 'error')
+            return
           }
         } else {
           showToast('Registration approved!', 'success')
+          await supabase.from('registrations').update({
+            status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
+          }).eq('id', regId)
         }
         journey?.completeStep('register_players')
       } else {
+        // Non-approval status updates (deny, waitlist, etc.)
+        await supabase.from('registrations').update({
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+        }).eq('id', regId)
         showToast(`Registration ${newStatus}!`, 'success')
       }
 
@@ -218,10 +231,7 @@ export function RegistrationsPage({ showToast }) {
       const reg = player.registrations?.[0]
       if (!reg) continue
       try {
-        await supabase.from('registrations').update({
-          status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
-        }).eq('id', reg.id)
-        approved++
+        // Generate fees FIRST before updating status
         let fees = []
         if (selectedSeason) {
           const result = await generateFeesForPlayer(supabase, player, selectedSeason, null)
@@ -229,8 +239,17 @@ export function RegistrationsPage({ showToast }) {
             feesGenerated += result.feesCreated
             totalFeeAmount += result.totalAmount
             fees = [{ amount: result.totalAmount || 0, description: `Season fees (${result.feesCreated} items)` }]
+          } else if (!result.success && !result.skipped) {
+            // Fee generation failed — skip this player
+            console.error('Fee generation failed for player:', player.id, result.message)
+            continue
           }
         }
+        // Fees generated (or skipped/none configured) — now update status
+        await supabase.from('registrations').update({
+          status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
+        }).eq('id', reg.id)
+        approved++
         if (isEmailEnabled(organization, 'registration_approved') && player.parent_email) {
           const emailResult = await EmailService.sendApprovalNotification(player, selectedSeason, organization, fees)
           if (emailResult.success) emailsQueued++
