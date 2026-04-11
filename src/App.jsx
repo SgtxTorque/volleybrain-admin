@@ -14,6 +14,7 @@ import { RegistrationCartPage } from './pages/public/RegistrationCartPage'
 import CoachInviteAcceptPage from './pages/public/CoachInviteAcceptPage'
 import ParentInviteAcceptPage from './pages/public/ParentInviteAcceptPage'
 import PlayerLoginPage from './pages/public/PlayerLoginPage'
+import CoachJoinPage from './pages/public/CoachJoinPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 
 // Main App
@@ -82,6 +83,7 @@ function AppContent() {
       <Route path="/register/:orgIdOrSlug" element={<RegistrationCartRoute />} />
       <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
       <Route path="/invite/coach/:inviteCode" element={<CoachInviteAcceptPage />} />
+      <Route path="/join/coach/:orgId" element={<CoachJoinPage />} />
       <Route path="/invite/parent/:inviteCode" element={<ParentInviteAcceptPage />} />
       <Route path="/player-login" element={<PlayerLoginPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
