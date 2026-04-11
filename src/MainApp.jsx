@@ -1433,6 +1433,19 @@ function MainApp() {
   if (appMode === 'platform') {
     return (
       <>
+        {/* Platform Admin Mode Banner */}
+        <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm font-semibold flex items-center justify-center gap-2 z-50 sticky top-0">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Platform Admin Mode — Viewing All Organizations
+          <button
+            onClick={handleExitPlatformMode}
+            className="ml-4 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-xs font-medium transition-colors"
+          >
+            Return to {organization?.name || 'My Org'}
+          </button>
+        </div>
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full" /></div>}>
         <PlatformShell
           profile={profile}
