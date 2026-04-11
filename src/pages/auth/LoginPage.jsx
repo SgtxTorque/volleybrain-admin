@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 
 import { supabase } from '../../lib/supabase'
+import { isFeatureEnabled } from '../../config/feature-flags'
 
 /* ─── SVG brand logos ─── */
 function GoogleLogo() {
@@ -168,31 +169,39 @@ export function LoginPage({ initialMode, onBack }) {
           )}
 
           {/* ─── Social / OAuth Buttons ─── */}
-          <div className="space-y-3 mb-6">
-            <button
-              onClick={handleGoogleLogin}
-              disabled={!!oauthLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white text-[#10284C] font-bold py-3 rounded-xl border border-[#E8ECF2] hover:bg-slate-50 transition disabled:opacity-50"
-            >
-              <GoogleLogo />
-              {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
-            </button>
-            <button
-              onClick={handleAppleLogin}
-              disabled={!!oauthLoading}
-              className="w-full flex items-center justify-center gap-3 bg-black text-white font-bold py-3 rounded-xl hover:bg-slate-950 transition border border-white/[0.12] disabled:opacity-50"
-            >
-              <AppleLogo />
-              {oauthLoading === 'apple' ? 'Redirecting...' : 'Continue with Apple'}
-            </button>
-          </div>
+          {(isFeatureEnabled('googleOAuth') || isFeatureEnabled('appleOAuth')) && (
+            <div className="space-y-3 mb-6">
+              {isFeatureEnabled('googleOAuth') && (
+                <button
+                  onClick={handleGoogleLogin}
+                  disabled={!!oauthLoading}
+                  className="w-full flex items-center justify-center gap-3 bg-white text-[#10284C] font-bold py-3 rounded-xl border border-[#E8ECF2] hover:bg-slate-50 transition disabled:opacity-50"
+                >
+                  <GoogleLogo />
+                  {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
+                </button>
+              )}
+              {isFeatureEnabled('appleOAuth') && (
+                <button
+                  onClick={handleAppleLogin}
+                  disabled={!!oauthLoading}
+                  className="w-full flex items-center justify-center gap-3 bg-black text-white font-bold py-3 rounded-xl hover:bg-slate-950 transition border border-white/[0.12] disabled:opacity-50"
+                >
+                  <AppleLogo />
+                  {oauthLoading === 'apple' ? 'Redirecting...' : 'Continue with Apple'}
+                </button>
+              )}
+            </div>
+          )}
 
-          {/* ─── Divider ─── */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-white/[0.08]" />
-            <span className="text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">or continue with email</span>
-            <div className="flex-1 h-px bg-white/[0.08]" />
-          </div>
+          {/* ─── Divider (only shown when OAuth buttons are visible) ─── */}
+          {(isFeatureEnabled('googleOAuth') || isFeatureEnabled('appleOAuth')) && (
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-1 h-px bg-white/[0.08]" />
+              <span className="text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">or continue with email</span>
+              <div className="flex-1 h-px bg-white/[0.08]" />
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (

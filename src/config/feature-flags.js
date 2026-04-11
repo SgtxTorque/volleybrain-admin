@@ -43,6 +43,10 @@ export const FEATURE_FLAGS = {
   // ===== BUSINESS =====
   subscription: false,      // Subscription management
 
+  // ===== AUTH =====
+  googleOAuth: false,       // Google sign-in (requires Supabase OAuth config)
+  appleOAuth: false,        // Apple sign-in (requires Supabase OAuth config)
+
   // ===== SOCIAL =====
   teamWall: false,          // Team wall post feed, photo gallery, reactions
 
