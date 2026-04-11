@@ -323,13 +323,50 @@ export function PaymentsPage({ showToast }) {
     if (result.success) loadPayments()
   }
 
-  function handleSendReminder(data) {
-    showToast(`Reminder ${data.method === 'email' ? 'email' : data.method === 'text' ? 'text' : 'notification'} queued!`, 'success')
+  async function handleSendReminder(data) {
+    if (data.method === 'email' && isEmailEnabled(organization, 'payment_reminder')) {
+      try {
+        const target = data.target
+        const recipientEmail = target?.email || target?.parent_email
+        const parentName = target?.parentName || `${target?.first_name || ''} ${target?.last_name || ''}`.trim()
+        const outstanding = target?.payments?.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+        if (recipientEmail) {
+          const playerLike = { parent_email: recipientEmail, parent_name: parentName, first_name: parentName.split(' ')[0], last_name: parentName.split(' ').slice(1).join(' ') }
+          await EmailService.sendPaymentReminder(playerLike, selectedSeason || { name: '' }, organization, outstanding)
+          showToast('Payment reminder email sent!', 'success')
+        } else {
+          showToast('No email address found for this family', 'error')
+        }
+      } catch (err) {
+        showToast('Failed to send reminder: ' + err.message, 'error')
+      }
+    } else {
+      showToast(`Reminder ${data.method === 'email' ? 'email' : data.method === 'text' ? 'text' : 'notification'} queued!`, 'success')
+    }
     setShowReminderModal(null)
   }
 
-  function handleSendBlast(data) {
-    showToast(`Blast sent to ${data.count} families via ${data.method}!`, 'success')
+  async function handleSendBlast(data) {
+    if (data.method === 'email' && isEmailEnabled(organization, 'payment_reminder')) {
+      try {
+        const targetFamilies = data.targetGroup === 'unpaid'
+          ? familyList.filter(f => f.payments.some(p => !p.paid))
+          : familyList
+        let sent = 0
+        for (const family of targetFamilies) {
+          if (!family.email) continue
+          const outstanding = family.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+          const playerLike = { parent_email: family.email, parent_name: family.parentName || '', first_name: (family.parentName || '').split(' ')[0], last_name: (family.parentName || '').split(' ').slice(1).join(' ') }
+          await EmailService.sendPaymentReminder(playerLike, selectedSeason || { name: '' }, organization, outstanding)
+          sent++
+        }
+        showToast(`Payment reminder sent to ${sent} families!`, 'success')
+      } catch (err) {
+        showToast('Error sending reminders: ' + err.message, 'error')
+      }
+    } else {
+      showToast(`Blast sent to ${data.count} families via ${data.method}!`, 'success')
+    }
     setShowBlastModal(false)
   }
 
