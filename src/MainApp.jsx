@@ -977,6 +977,16 @@ function MainApp() {
         }
       }
 
+      // Fallback: if coaches table didn't find anything, check user_roles
+      if (!coachLink) {
+        const isCoachByRole = roles?.some(r => r.role === 'coach')
+        if (isCoachByRole) {
+          // user_roles says coach but coaches table query failed (RLS, empty seasons, etc.)
+          // Create a minimal coachLink so they route to CoachDashboard
+          coachLink = { id: null, profile_id: profile.id, team_coaches: [] }
+        }
+      }
+
       const { data: teamManagerStaff } = await supabase
         .from('team_staff')
         .select('team_id, staff_role, is_active, teams(id, name, color, season_id)')
@@ -1030,9 +1040,17 @@ function MainApp() {
       const savedView = localStorage.getItem('lynx_active_view')
       if (savedView && availableRoles.includes(savedView)) {
         setActiveView(savedView)
+      } else if (!savedView && !availableRoles.includes('admin') && availableRoles.includes('coach')) {
+        // First-time coach user — auto-set to coach instead of defaulting to admin
+        setActiveView('coach')
+        localStorage.setItem('lynx_active_view', 'coach')
       } else {
-        // Default to highest privilege role
-        setActiveView(availableRoles[0])
+        // Default to highest privilege role, or correct stale savedView
+        const newView = availableRoles[0] || 'admin'
+        setActiveView(newView)
+        if (savedView && !availableRoles.includes(savedView)) {
+          localStorage.setItem('lynx_active_view', newView)
+        }
       }
     } catch (err) {
       console.error('Error loading role context:', err)
