@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 
@@ -38,6 +38,15 @@ export function LoginPage({ initialMode, onBack }) {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [resetSending, setResetSending] = useState(false)
+
+  // Check for auth error in URL hash (e.g., expired OTP from password reset link)
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash.includes('error_code=otp_expired') || hash.includes('error=access_denied')) {
+      setError('This password reset link has expired. Please request a new one.')
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()

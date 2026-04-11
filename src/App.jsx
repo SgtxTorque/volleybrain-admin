@@ -14,6 +14,7 @@ import { RegistrationCartPage } from './pages/public/RegistrationCartPage'
 import CoachInviteAcceptPage from './pages/public/CoachInviteAcceptPage'
 import ParentInviteAcceptPage from './pages/public/ParentInviteAcceptPage'
 import PlayerLoginPage from './pages/public/PlayerLoginPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 
 // Main App
 import { MainApp } from './MainApp'
@@ -83,6 +84,7 @@ function AppContent() {
       <Route path="/invite/coach/:inviteCode" element={<CoachInviteAcceptPage />} />
       <Route path="/invite/parent/:inviteCode" element={<ParentInviteAcceptPage />} />
       <Route path="/player-login" element={<PlayerLoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* All other routes go through the authenticated app */}
       <Route path="/*" element={<AuthenticatedApp />} />

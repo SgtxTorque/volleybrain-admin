@@ -52,6 +52,10 @@ export function AuthProvider({ children }) {
         setNeedsOnboarding(false)
         setLoading(false)
       }
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked a valid password reset link — redirect to reset form
+        window.location.href = '/reset-password'
+      }
     })
 
     return () => subscription.unsubscribe()
