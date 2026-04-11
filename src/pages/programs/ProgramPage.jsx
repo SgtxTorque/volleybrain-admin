@@ -496,6 +496,12 @@ export default function ProgramPage({ showToast }) {
   }
 
   async function handleSeasonSave() {
+    // Guard: program must be loaded before we can insert (program_id is NOT NULL)
+    if (!program?.id) {
+      showToast?.('Cannot create season: program data is not loaded. Please refresh and try again.', 'error')
+      return
+    }
+
     // Delegate to SeasonsPage pattern — insert season
     const cleaned = {
       name: seasonForm.name?.trim(),
@@ -507,7 +513,7 @@ export default function ProgramPage({ showToast }) {
       capacity: seasonForm.capacity || null,
       description: seasonForm.description?.trim() || null,
       organization_id: organization.id,
-      program_id: program?.id || null,
+      program_id: program.id,
     }
 
     if (!cleaned.name) {
