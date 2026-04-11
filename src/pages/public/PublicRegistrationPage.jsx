@@ -48,6 +48,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [formStartTracked, setFormStartTracked] = useState(false)
   const [availableSeasons, setAvailableSeasons] = useState(null)
   const [registrationIds, setRegistrationIds] = useState([])
+  const [parentInviteUrl, setParentInviteUrl] = useState(null)
   const [capacityInfo, setCapacityInfo] = useState(null)
 
   // Draft restore state
@@ -799,6 +800,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
               expiresInHours: 168,  // 7 days for parent invites
             })
             inviteUrl = `${window.location.origin}/invite/parent/${invite.invite_code}`
+            setParentInviteUrl(inviteUrl)
           }
         } catch (inviteErr) {
           console.error('Failed to create parent invite:', inviteErr)
@@ -869,6 +871,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           currentChildName={currentChild.first_name}
           organization={organization}
           registrationIds={registrationIds}
+          inviteUrl={parentInviteUrl}
         />
       </>
     )

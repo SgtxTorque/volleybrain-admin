@@ -384,7 +384,7 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
 }
 
 // ─── Cart Success Screen ──────────────────────────────────────────────────
-function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee }) {
+function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee, inviteUrl }) {
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const totalRegs = registrationIds.length
 
@@ -448,7 +448,7 @@ function CartSuccessScreen({ children, childProgramMap, selectedPrograms, regist
             Track registrations, view schedules, and manage payments — all in one place.
           </p>
           <a
-            href="/claim-account"
+            href={inviteUrl || "/"}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#10284C] text-sm font-bold hover:bg-slate-100 transition-colors"
           >
             Create Account <ExternalLink className="w-3.5 h-3.5" />
@@ -1170,6 +1170,7 @@ export function RegistrationCartPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [registrationIds, setRegistrationIds] = useState([])
+  const [savedInviteUrl, setSavedInviteUrl] = useState(null)
 
   // App state
   const [organization, setOrganization] = useState(null)
@@ -1332,6 +1333,7 @@ export function RegistrationCartPage() {
               expiresInHours: 168, // 7 days for parent invites
             })
             parentInviteUrl = `${window.location.origin}/invite/parent/${invite.invite_code}`
+            setSavedInviteUrl(parentInviteUrl)
           }
         }
       } catch (inviteErr) {
@@ -1706,6 +1708,7 @@ export function RegistrationCartPage() {
           registrationIds={registrationIds}
           organization={organization}
           totalFee={cartTotal}
+          inviteUrl={savedInviteUrl}
         />
       </>
     )

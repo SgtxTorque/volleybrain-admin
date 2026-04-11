@@ -223,7 +223,7 @@ function FeePreviewCard({ season, feePerChild, childrenCount, totalFee, hasDisco
 }
 
 // ─── Success / confirmation screen ────────────────────────────────────────
-function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [] }) {
+function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [], inviteUrl }) {
   const count = childrenCount + (currentChildName ? 1 : 0)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const [hasSession, setHasSession] = useState(false)
@@ -284,7 +284,7 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
                 Create a Lynx account to track your registration status, manage payments, and stay connected with your team.
               </p>
               <a
-                href="/"
+                href={inviteUrl || "/"}
                 className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
                 style={{ fontFamily: 'var(--v2-font)' }}
               >
