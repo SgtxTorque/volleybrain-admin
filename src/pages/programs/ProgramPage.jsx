@@ -575,8 +575,8 @@ export default function ProgramPage({ showToast }) {
 
       const createdItems = ['team']
 
-      // Create team chat channel (matching TeamsPage pattern)
-      if (teamData.create_team_chat) {
+      // Always create team chat channel (ensures every team has a chat)
+      if (teamData.create_team_chat !== false) {
         try {
           const { data: chatData, error: chatErr } = await supabase.from('chat_channels').insert({
             season_id: seasonId,

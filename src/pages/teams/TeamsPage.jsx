@@ -203,7 +203,8 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
 
       const createdItems = ['team']
 
-      if (formData.create_team_chat) {
+      // Always create team chat channel (ensures every team has a chat)
+      if (formData.create_team_chat !== false) {
         const { data: teamChatData, error: chatError } = await supabase.from('chat_channels').insert({
           season_id: selectedSeason.id,
           team_id: newTeam.id,
