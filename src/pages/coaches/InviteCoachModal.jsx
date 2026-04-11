@@ -197,8 +197,11 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
       .select()
       .single()
 
-    if (coachError) {
+    if (coachError || !pendingCoach) {
       console.error('Error creating pending coach record:', coachError)
+      showToast?.('Failed to create coach invitation. Please try again.', 'error')
+      setSending(false)
+      return // STOP — don't send email with broken fallback URL
     }
 
     // 2. Link to team if selected
