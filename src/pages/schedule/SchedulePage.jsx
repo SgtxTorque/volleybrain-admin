@@ -138,6 +138,12 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         filteredData = filteredData.filter(event => !event.team_id || playerTeamIds.has(event.team_id))
       }
     }
+    if (activeView === 'coach' && roleContext?.coachInfo?.team_coaches?.length > 0) {
+      const coachTeamIds = new Set(roleContext.coachInfo.team_coaches.map(tc => tc.team_id).filter(Boolean))
+      if (coachTeamIds.size > 0) {
+        filteredData = filteredData.filter(event => !event.team_id || coachTeamIds.has(event.team_id))
+      }
+    }
 
     const transformedData = filteredData.map(event => ({
       ...event,
