@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { EmailService } from '../../lib/email-service'
-import { createInvitation, checkExistingAccount } from '../../lib/invite-utils'
+import { createInvitation, checkExistingAccount, grantRole } from '../../lib/invite-utils'
 import { AlertCircle, Info } from '../../constants/icons'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
@@ -785,6 +785,74 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       trackFunnelEvent('form_submitted', null, { children_count: allChildren.length })
       setRegistrationIds(createdRegistrationIds)
 
+      // === CREATE AUTH ACCOUNT (if password was provided and no existing account) ===
+      let authUserId = null
+      if (password && !existingAccount && sharedInfo.parent1_email) {
+        const parentEmail = sharedInfo.parent1_email.trim().toLowerCase()
+        const parentName = sharedInfo.parent1_name || parentEmail
+        try {
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: parentEmail,
+            password: password,
+            options: {
+              data: {
+                full_name: parentName,
+                role: 'parent',
+                organization_id: organization?.id,
+              }
+            }
+          })
+
+          if (authError) {
+            if (authError.message?.includes('already registered') || authError.message?.includes('already exists')) {
+              console.log('Auth account already exists for', parentEmail, '— skipping account creation')
+            } else {
+              console.error('Auth account creation failed:', authError.message)
+            }
+          } else if (authData?.user) {
+            authUserId = authData.user.id
+            console.log('Auth account created:', authUserId)
+
+            // Create profile record
+            try {
+              await supabase.from('profiles').upsert({
+                id: authUserId,
+                email: parentEmail,
+                full_name: parentName,
+                phone: sharedInfo.parent1_phone || null,
+                current_organization_id: organization?.id,
+                onboarding_completed: true,
+              }, { onConflict: 'id' })
+            } catch (profileErr) {
+              console.error('Profile creation failed:', profileErr.message)
+            }
+
+            // Add parent role
+            try {
+              await grantRole(authUserId, organization?.id, 'parent')
+            } catch (roleErr) {
+              console.error('Role assignment failed:', roleErr.message)
+            }
+
+            // Link players to auth user
+            if (createdPlayerIds.length > 0) {
+              try {
+                await supabase.from('players')
+                  .update({ parent_account_id: authUserId })
+                  .in('id', createdPlayerIds)
+              } catch (linkErr) {
+                console.error('Player link failed:', linkErr.message)
+              }
+            }
+
+            setAuthCreated(true)
+          }
+        } catch (err) {
+          console.error('Auth flow error:', err)
+          // Non-fatal — registration data is saved, invite fallback still works
+        }
+      }
+
       // Create parent invite + send registration confirmation email
       if (sharedInfo.parent1_email) {
         let inviteUrl = null
@@ -891,6 +959,8 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           organization={organization}
           registrationIds={registrationIds}
           inviteUrl={parentInviteUrl}
+          authCreated={authCreated}
+          parentEmail={sharedInfo.parent1_email}
         />
       </>
     )
