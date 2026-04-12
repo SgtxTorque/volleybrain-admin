@@ -11,7 +11,7 @@ import {
   V2DashboardLayout,
 } from '../../components/v2'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
-import SeasonStepper from '../../components/v2/admin/SeasonStepper'
+import LifecycleTracker from '../../components/v2/admin/LifecycleTracker'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { SeasonFormModal } from '../settings/SeasonFormModal'
@@ -163,7 +163,9 @@ export default function ProgramPage({ showToast }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [timedOut, setTimedOut] = useState(false)
+  // Default to 'setup' tab when setup is incomplete, else 'teams'
   const [activeTab, setActiveTab] = useState('teams')
+  const [setupTabInitialized, setSetupTabInitialized] = useState(false)
 
   // Data
   const [teams, setTeams] = useState([])
@@ -478,6 +480,17 @@ export default function ProgramPage({ showToast }) {
   })()
   const setupComplete = seasonSetupSteps.filter(s => s.status === 'done').length
   const setupTotal = seasonSetupSteps.length
+  const setupIncomplete = isAdmin && setupComplete < setupTotal
+
+  // Auto-switch to setup tab on first load when setup is incomplete
+  useEffect(() => {
+    if (!loading && !setupTabInitialized && setupIncomplete) {
+      setActiveTab('setup')
+      setSetupTabInitialized(true)
+    } else if (!loading && !setupTabInitialized) {
+      setSetupTabInitialized(true)
+    }
+  }, [loading, setupTabInitialized, setupIncomplete])
 
   // --- Season Modal Helpers ---
   function openSeasonModal() {
@@ -754,6 +767,14 @@ export default function ProgramPage({ showToast }) {
 
   // Tabs configuration (badges reflect filtered data)
   const tabs = [
+    // Season Setup tab — admin only, shows when setup is incomplete
+    ...(isAdmin ? [{
+      id: 'setup',
+      label: 'Season Setup',
+      badge: setupIncomplete ? `${setupComplete}/${setupTotal}` : undefined,
+      badgeColor: setupIncomplete ? '#4BB9EC' : '#10B981',
+      badgeIcon: !setupIncomplete ? '✓' : undefined,
+    }] : []),
     { id: 'teams', label: 'Teams', badge: tabTeams.length > 0 ? tabTeams.length : undefined },
     { id: 'registrations', label: 'Registrations', badge: tabPendingRegs > 0 ? tabPendingRegs : undefined },
     { id: 'payments', label: 'Payments', badge: tabOverduePayments > 0 ? tabOverduePayments : undefined },
@@ -855,6 +876,23 @@ export default function ProgramPage({ showToast }) {
                   activeTabId={activeTab}
                   onTabChange={setActiveTab}
                 >
+                  {activeTab === 'setup' && (
+                    <LifecycleTracker
+                      seasonName={selectedProgramSeason?.name || selectedSeason?.name || programSeasons[0]?.name || ''}
+                      seasonId={selectedProgramSeason?.id || selectedSeason?.id || programSeasons[0]?.id || ''}
+                      programId={programId}
+                      teamsCount={tabTeams.length}
+                      playersCount={tabPlayers?.length || 0}
+                      eventsCount={tabEvents.length}
+                      registrationsCount={tabRegistrations.length}
+                      approvedRegsCount={tabRegistrations.filter(r => r.status === 'approved' || r.status === 'rostered').length}
+                      paymentsCollected={tabPayments.filter(p => p.paid).reduce((sum, p) => sum + (Number(p.amount) || 0), 0)}
+                      paymentsExpected={tabPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)}
+                      showToast={showToast}
+                      navigate={navigate}
+                      onOpenRegLink={() => setShowRegLinkModal(true)}
+                    />
+                  )}
                   {activeTab === 'teams' && (
                     <AdminTeamsTab
                       teamsData={tabTeams}
@@ -1179,16 +1217,7 @@ export default function ProgramPage({ showToast }) {
                   })()}
                 </BodyTabs>
 
-                {/* Season Journey Stepper — admin only, hidden when all steps complete */}
-                {isAdmin && selectedSeason && setupComplete < setupTotal && (
-                  <SeasonStepper
-                    seasonName={selectedSeason?.name || ''}
-                    steps={seasonSetupSteps}
-                    completedCount={setupComplete}
-                    totalCount={setupTotal}
-                    onNavigate={(pageId) => navigate(`/${pageId}`)}
-                  />
-                )}
+                {/* Season Journey Stepper replaced by LifecycleTracker tab */}
               </div>
             }
             sideContent={

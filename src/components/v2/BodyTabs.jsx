@@ -59,16 +59,16 @@ export default function BodyTabs({
               }}
             >
               {tab.label}
-              {tab.badge > 0 && (
+              {tab.badge != null && tab.badge !== false && tab.badge !== 0 && (
                 <span style={{
                   minWidth: 18, height: 18, borderRadius: 9,
-                  background: isDark ? 'var(--v2-gold)' : 'var(--v2-navy)',
+                  background: tab.badgeColor || (isDark ? 'var(--v2-gold)' : 'var(--v2-navy)'),
                   color: isDark ? 'var(--v2-midnight)' : '#FFFFFF',
                   fontSize: 10, fontWeight: 700,
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   padding: '0 5px',
                 }}>
-                  {tab.badge}
+                  {tab.badgeIcon || tab.badge}
                 </span>
               )}
             </button>
