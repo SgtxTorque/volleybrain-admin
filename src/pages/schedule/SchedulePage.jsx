@@ -245,6 +245,39 @@ function SchedulePage({ showToast, activeView, roleContext }) {
           })
         } catch (_) { /* non-critical */ }
       }
+      // BATON PASS: Notify parents about new schedule event
+      if (newEvent?.team_id) {
+        try {
+          const { data: teamPlayers } = await supabase
+            .from('team_players')
+            .select('player_id, players(parent_account_id)')
+            .eq('team_id', newEvent.team_id)
+          const parentIds = [...new Set(
+            (teamPlayers || []).map(tp => tp.players?.parent_account_id).filter(Boolean)
+          )]
+          if (parentIds.length > 0) {
+            const eventDate = newEvent.event_date ? new Date(newEvent.event_date).toLocaleDateString() : ''
+            const notifications = parentIds.map(parentId => ({
+              user_id: parentId,
+              organization_id: organization?.id,
+              type: 'schedule_change',
+              title: 'New Event on the Schedule',
+              body: `${newEvent.event_type || 'Event'}: ${newEvent.title || newEvent.event_type || 'New event'} on ${eventDate}${newEvent.venue_name ? ' at ' + newEvent.venue_name : ''}.`,
+              data: {
+                event_id: newEvent.id,
+                team_id: newEvent.team_id,
+                event_type: newEvent.event_type,
+                event_date: newEvent.event_date,
+                action_url: '/schedule',
+              },
+              read: false,
+            }))
+            await supabase.from('notifications').insert(notifications)
+          }
+        } catch (notifErr) {
+          console.error('Baton pass failed (schedule→parents):', notifErr)
+        }
+      }
       loadEvents()
       return true
     } catch (err) { showToast('Error: ' + err.message, 'error'); return false }
