@@ -66,6 +66,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Registration form padding reduced (pb-40 → pb-24 on PublicRegistrationPage, pb-48 → pb-36 on RegistrationCartPage) → Mobile registration form: verify scroll behavior
 - WEB: Installment rounding migration script created (scripts/fix-installment-rounding.mjs) → Mobile: verify fee display shows corrected amounts after migration runs
 
+### April 12, 2026 (Parent Auth)
+- WEB: Registration form now creates Supabase auth account (signUp) + profile + user_role during submission → Mobile registration should implement the same pattern (currently creates auth account separately)
+- WEB: Login page now checks families table (parents) AND coaches table (coaches) on failed login, offers account recovery → Mobile login should implement the same fallback for both roles
+- WEB: Success screen shows different states based on auth creation result → Mobile success screen should match
+
 ---
 
 ## INFRASTRUCTURE CHANGES (April 11-12, 2026)
