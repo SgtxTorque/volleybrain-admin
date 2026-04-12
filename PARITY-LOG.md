@@ -115,6 +115,14 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 
 ---
 
+### April 12, 2026 (Onboarding Fixes)
+- WEB: Parent checklist step 1 renamed "Complete Registration" → "Get Placed on a Team" → Mobile parent onboarding should verify same language
+- WEB: Coach "No Teams" empty state now has "Check Again" button → Mobile coach empty state should verify similar
+- WEB: FloatingHelpButton enabled for coaches → Mobile has its own help pattern — no action needed
+- WEB: Open seasons banner shown to parents with existing players → Mobile should show same for returning parents
+
+---
+
 ## CRITICAL MOBILE ACTIONS (Do These First)
 
 1. **Search for `role: 'coach'` or `role: "coach"` in any user_roles insert/upsert** — change to `head_coach`, `assistant_coach`, or `team_manager` based on the coach's team_coaches.role value
