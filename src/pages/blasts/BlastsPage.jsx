@@ -13,6 +13,7 @@ import {
 import { EmailService } from '../../lib/email-service'
 import { buildLynxEmail, resolveOrgBranding } from '../../lib/email-html-builder'
 import PageShell from '../../components/pages/PageShell'
+import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
@@ -187,6 +188,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         : null
       }
     >
+      <TrackerReturnBanner />
       <SeasonFilterBar />
       {/* Stats */}
       <InnerStatRow stats={[

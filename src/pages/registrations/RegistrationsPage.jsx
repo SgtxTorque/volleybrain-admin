@@ -23,6 +23,7 @@ import PlayerDetailModal from './PlayerDetailModal'
 import PlayerDossierPanel from './PlayerDossierPanel'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
 import PageShell from '../../components/pages/PageShell'
+import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // Re-export for any legacy imports
@@ -439,6 +440,7 @@ export function RegistrationsPage({ showToast }) {
       title="Registrations"
       subtitle={selectedSeason?.name || 'All Seasons'}
     >
+      <TrackerReturnBanner />
       <div className="space-y-4" style={{ fontFamily: 'var(--v2-font)' }}>
       {/* Season filter */}
       <SeasonFilterBar />

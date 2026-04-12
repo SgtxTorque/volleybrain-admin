@@ -28,6 +28,7 @@ import AvailabilitySurveyModal from './AvailabilitySurveyModal'
 import EventDetailModal from './EventDetailModal'
 import VolunteerAutoAssignModal from './VolunteerAutoAssignModal'
 import PageShell from '../../components/pages/PageShell'
+import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 function SchedulePage({ showToast, activeView, roleContext }) {
@@ -449,6 +450,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         </div>
       }
     >
+      <TrackerReturnBanner />
       <div className="space-y-5">
       <SeasonFilterBar />
       <ScheduleStatRow events={events} activeView={activeView} />

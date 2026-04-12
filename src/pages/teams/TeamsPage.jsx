@@ -28,6 +28,7 @@ import ManageRosterModal from './ManageRosterModal'
 import AssignCoachesModal from './AssignCoachesModal'
 import TeamDetailPanel from './TeamDetailPanel'
 import PageShell from '../../components/pages/PageShell'
+import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // ============================================
@@ -538,6 +539,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
         </>
       }
     >
+      <TrackerReturnBanner />
       <div className="space-y-5">
         {/* Season + age group filters */}
         <div className="flex gap-3 items-center flex-wrap">

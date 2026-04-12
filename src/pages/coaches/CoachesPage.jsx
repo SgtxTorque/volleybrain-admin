@@ -18,6 +18,7 @@ import {
 import { generateInviteCode, createInvitation } from '../../lib/invite-utils'
 import { EmailService } from '../../lib/email-service'
 import PageShell from '../../components/pages/PageShell'
+import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import EmailCoachesModal from './EmailCoachesModal'
@@ -341,6 +342,7 @@ export function CoachesPage({ showToast }) {
         </div>
       }
     >
+      <TrackerReturnBanner />
       <SeasonFilterBar />
       <InnerStatRow stats={[
         { value: coaches.filter(c => c.status === 'active').length, label: 'ACTIVE', icon: '👨‍🏫' },
