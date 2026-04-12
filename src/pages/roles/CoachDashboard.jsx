@@ -872,6 +872,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         mainContent={
           <>
             {/* HERO CARD */}
+            <div data-coachmark="coach-home">
             <HeroCard
               orgLine={selectedTeam?.name || 'Your Team'}
               greeting={getCoachGreeting()}
@@ -883,6 +884,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 { value: notResponded || 0, label: 'No RSVP', color: notResponded > 0 ? 'red' : undefined },
               ]}
             />
+            </div>
 
             {/* TEAM SWITCHER */}
             <TeamSwitcher
