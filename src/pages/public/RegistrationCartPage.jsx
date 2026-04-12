@@ -1507,6 +1507,29 @@ export function RegistrationCartPage() {
         }
       }
 
+      // BATON PASS: Notify admin that new registration(s) were submitted
+      try {
+        const playerNames = children.map(c => `${c.first_name} ${c.last_name}`).join(', ')
+        const programNames = selectedPrograms.map(sp => sp.program?.name).filter(Boolean).join(', ')
+        await supabase.from('admin_notifications').insert({
+          organization_id: organization?.id,
+          type: 'registration_new',
+          title: 'New Registration',
+          message: `${playerNames} registered for ${programNames || 'programs'} by ${sharedInfo.parent1_name || parentEmail}.`,
+          is_read: false,
+          metadata: {
+            parent_email: parentEmail,
+            parent_name: sharedInfo.parent1_name,
+            player_names: children.map(c => `${c.first_name} ${c.last_name}`),
+            program_names: selectedPrograms.map(sp => sp.program?.name).filter(Boolean),
+            player_count: children.length,
+            source: 'shopping_cart',
+          }
+        })
+      } catch (err) {
+        console.error('Baton pass failed (registration→admin):', err)
+      }
+
       setRegistrationIds(createdRegistrationIds)
       setSubmitted(true)
     } catch (err) {
