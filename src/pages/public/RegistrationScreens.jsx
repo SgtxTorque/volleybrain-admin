@@ -223,7 +223,7 @@ function FeePreviewCard({ season, feePerChild, childrenCount, totalFee, hasDisco
 }
 
 // ─── Success / confirmation screen ────────────────────────────────────────
-function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [], inviteUrl }) {
+function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [], inviteUrl, authCreated, parentEmail }) {
   const count = childrenCount + (currentChildName ? 1 : 0)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const [hasSession, setHasSession] = useState(false)
@@ -262,7 +262,7 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
           </div>
         )}
 
-        {/* Section A: Create Your Account CTA (or Go to Dashboard if logged in) */}
+        {/* Section A: Account status CTA */}
         <div className="mt-8 pt-6 border-t border-slate-200">
           <h2 className="text-r-lg font-bold text-slate-900">What's next?</h2>
           {hasSession ? (
@@ -276,6 +276,25 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
                 style={{ fontFamily: 'var(--v2-font)' }}
               >
                 Go to Dashboard
+              </a>
+            </>
+          ) : authCreated ? (
+            <>
+              <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">
+                Your account is ready! Sign in to track registration status, manage payments, and stay connected with your team.
+              </p>
+              <div className="mt-4 p-4 rounded-[14px] bg-sky-50 border border-sky-200">
+                <p className="text-r-sm text-sky-800">
+                  <strong>Your login:</strong> {parentEmail}<br />
+                  Use the password you just created to sign in.
+                </p>
+              </div>
+              <a
+                href="/login"
+                className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
+                style={{ fontFamily: 'var(--v2-font)' }}
+              >
+                Sign In to Your Dashboard
               </a>
             </>
           ) : (
