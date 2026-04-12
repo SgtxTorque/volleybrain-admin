@@ -24,6 +24,7 @@ import CoachStatsTab from '../../components/v2/coach/CoachStatsTab'
 import CoachGamePrepTab from '../../components/v2/coach/CoachGamePrepTab'
 import CoachEngagementTab from '../../components/v2/coach/CoachEngagementTab'
 import { CoachLevelCard, CoachActivityCard, CoachBadgesCard, TeamPulseCard } from '../../components/v2/coach/CoachEngagementColumn'
+import CoachLifecycleTracker from '../../components/v2/coach/CoachLifecycleTracker'
 import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 
 // ── Event Detail Modal ──
@@ -907,6 +908,21 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 onClick={() => onNavigate?.('schedule')}
               />
             )}
+
+            {/* COACH LIFECYCLE TRACKER — getting-started card */}
+            <CoachLifecycleTracker
+              coachName={coachName}
+              teamName={selectedTeam?.name || ''}
+              teamId={selectedTeam?.id || ''}
+              rosterCount={roster.length}
+              eventsCount={upcomingEvents.length}
+              lineupSet={lineupSetForNextGame}
+              attendanceTaken={avgAttendanceLast3 != null && avgAttendanceLast3 > 0}
+              shoutoutsSent={weeklyShoutouts}
+              showToast={showToast}
+              onSwitchTab={setActiveTab}
+              onOpenShoutout={() => setShowShoutoutModal(true)}
+            />
 
             {/* INNER FLEX: Tabs/Roster + Engagement Column side by side */}
             <div style={{ display: 'flex', gap: 16 }}>
