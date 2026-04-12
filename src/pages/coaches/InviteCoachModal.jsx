@@ -117,6 +117,20 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
     const selectedTeam = teams?.find(t => t.id === teamId)
     const effectiveOrgId = orgId || organization?.id
 
+    // Auto-select season if none selected
+    let effectiveSeasonId = seasonId
+    if (!effectiveSeasonId) {
+      const { data: defaultSeason } = await supabase
+        .from('seasons')
+        .select('id')
+        .eq('organization_id', effectiveOrgId)
+        .in('status', ['active', 'upcoming'])
+        .order('start_date', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      effectiveSeasonId = defaultSeason?.id || null
+    }
+
     // 1. Grant coach role directly
     await grantRole(existingUser.id, effectiveOrgId, 'coach')
 
@@ -130,7 +144,7 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
       invite_email: email.trim(),
       invite_accepted_at: new Date().toISOString(),
       invited_by: profile?.id || null,
-      season_id: seasonId || null,
+      season_id: effectiveSeasonId,
     }).select().single()
 
     if (coachError) throw coachError
@@ -176,6 +190,20 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
   async function handleNewUserInvite() {
     const selectedTeam = teams?.find(t => t.id === teamId)
 
+    // Auto-select season if none selected
+    let effectiveSeasonId = seasonId
+    if (!effectiveSeasonId) {
+      const { data: defaultSeason } = await supabase
+        .from('seasons')
+        .select('id')
+        .eq('organization_id', organization?.id)
+        .in('status', ['active', 'upcoming'])
+        .order('start_date', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      effectiveSeasonId = defaultSeason?.id || null
+    }
+
     // 1. Create a pending coach record with invite code
     const inviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
 
@@ -190,7 +218,7 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
         invite_code: inviteCode,
         invited_at: new Date().toISOString(),
         invited_by: profile?.id || null,
-        season_id: seasonId || null,
+        season_id: effectiveSeasonId,
       })
       .select()
       .single()
