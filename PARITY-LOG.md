@@ -98,6 +98,14 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 
 ---
 
+### April 12, 2026 (Lifecycle Tracker)
+- WEB: Admin Lifecycle Tracker added to ProgramPage as "Season Setup" tab — 7 data-driven steps replacing SeasonStepper → Mobile should consider equivalent for season management screens
+- WEB: Coach Lifecycle Tracker added to CoachDashboard above tabs — 5 onboarding steps → Mobile coach view should implement similar first-login guidance
+- WEB: Smart return navigation (from=tracker breadcrumb) on teams, staff, schedule, registrations, announcements pages → Mobile deep linking may want similar "return to setup" pattern
+- WEB: SeasonStepper component no longer rendered on ProgramPage (component file preserved) → No mobile impact
+
+---
+
 ## CRITICAL MOBILE ACTIONS (Do These First)
 
 1. **Search for `role: 'coach'` or `role: "coach"` in any user_roles insert/upsert** — change to `head_coach`, `assistant_coach`, or `team_manager` based on the coach's team_coaches.role value
