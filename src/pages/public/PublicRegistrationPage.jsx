@@ -50,6 +50,10 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [registrationIds, setRegistrationIds] = useState([])
   const [parentInviteUrl, setParentInviteUrl] = useState(null)
   const [capacityInfo, setCapacityInfo] = useState(null)
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [existingAccount, setExistingAccount] = useState(null) // non-null if parent already has auth
+  const [authCreated, setAuthCreated] = useState(false)
 
   // Draft restore state
   const [showDraftRestore, setShowDraftRestore] = useState(false)
@@ -418,6 +422,21 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
     return () => clearTimeout(timer)
   }, [sharedInfo.parent1_email, organization?.id])
+
+  // ─── Check if parent already has an auth account ───────────────────────
+  useEffect(() => {
+    const email = sharedInfo.parent1_email?.trim()?.toLowerCase()
+    if (!email || !email.includes('@')) { setExistingAccount(null); return }
+
+    const timer = setTimeout(async () => {
+      try {
+        const profile = await checkExistingAccount(email)
+        setExistingAccount(profile) // null if no account
+      } catch { setExistingAccount(null) }
+    }, 600)
+
+    return () => clearTimeout(timer)
+  }, [sharedInfo.parent1_email])
 
   // ─── Fee calculation (full engine with discounts) ──────────────────────
   const feePerChild = calculateFeePerChild(season)
@@ -1104,11 +1123,77 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             setSignature={setSignature}
           />
 
+          {/* Account Creation Section — only show if parent doesn't already have an account */}
+          {!existingAccount && sharedInfo.parent1_email && (
+            <div className="mt-8 p-6 bg-white rounded-[14px] border border-gray-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Create Your Login</h3>
+                  <p className="text-sm text-gray-500">
+                    You'll use this to track {children[0]?.first_name || currentChild.first_name || 'your player'}'s registration, view schedules, and make payments.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={sharedInfo.parent1_email || ''}
+                  readOnly
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-400 mt-1">This is the email you entered earlier</p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Create Password *</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  minLength={8}
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Type your password again"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1">Passwords don't match</p>
+                )}
+              </div>
+
+              <div className="text-xs text-gray-400 space-y-1">
+                <p className={password.length >= 8 ? 'text-green-500' : ''}>
+                  {password.length >= 8 ? '\u2713' : '\u25CB'} At least 8 characters
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Submit */}
           <button
             type="submit"
-            disabled={submitting || (children.length === 0 && !currentChild.first_name)}
-            className="w-full py-4 rounded-xl font-bold text-lg transition-all bg-[#10284C] text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            disabled={
+              submitting ||
+              (children.length === 0 && !currentChild.first_name) ||
+              (!existingAccount && sharedInfo.parent1_email && (password.length < 8 || password !== confirmPassword))
+            }
+            className="w-full py-4 rounded-xl font-bold text-lg transition-all bg-[#10284C] text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-md mt-6"
             style={{ fontFamily: 'var(--v2-font)' }}
           >
             {submitting ? 'Submitting...' : `Let's Get Started${children.length > 1 ? ` (${children.length} children)` : ''}`}
