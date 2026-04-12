@@ -220,53 +220,69 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
 // ============================================
 // NOTIFICATION DROPDOWN COMPONENT
 // ============================================
-function NotificationDropdown({ tc, organization, isDark }) {
-  const [isOpen, setIsOpen] = useState(false)
+function NotificationDropdown({ tc, organization, isDark, activeView, user, isOpen: externalOpen, onClose }) {
+  const isAdmin = activeView === 'admin' || activeView === 'platform_admin'
+  const controlled = externalOpen !== undefined
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = controlled ? externalOpen : internalOpen
+  const setIsOpen = controlled ? (v) => { if (!v && onClose) onClose() } : setInternalOpen
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef(null)
 
   // Load notifications when dropdown opens
   useEffect(() => {
-    if (isOpen && organization?.id) {
+    if (isOpen && (organization?.id || user?.id)) {
       loadNotifications()
     }
-  }, [isOpen, organization?.id])
-
-  // Poll for unread count every 30 seconds
-  useEffect(() => {
-    if (!organization?.id) return
-    loadUnreadCount()
-    const interval = setInterval(loadUnreadCount, 30000)
-    return () => clearInterval(interval)
-  }, [organization?.id])
+  }, [isOpen, organization?.id, user?.id, activeView])
 
   const [unreadCount, setUnreadCount] = useState(0)
 
   async function loadUnreadCount() {
     try {
-      const { count } = await supabase
-        .from('admin_notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', organization.id)
-        .eq('is_read', false)
-      setUnreadCount(count || 0)
+      if (isAdmin) {
+        const { count } = await supabase
+          .from('admin_notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', organization.id)
+          .eq('is_read', false)
+        setUnreadCount(count || 0)
+      } else if (user?.id) {
+        const { count } = await supabase
+          .from('notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('read', false)
+        setUnreadCount(count || 0)
+      }
     } catch (err) {
-      // Table may not exist yet - silently fail
-      console.warn('admin_notifications table may not exist:', err.message)
+      console.warn('Notification count load failed:', err.message)
     }
   }
 
   async function loadNotifications() {
     setLoading(true)
     try {
-      const { data } = await supabase
-        .from('admin_notifications')
-        .select('*')
-        .eq('organization_id', organization.id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      setNotifications(data || [])
+      if (isAdmin) {
+        const { data } = await supabase
+          .from('admin_notifications')
+          .select('*')
+          .eq('organization_id', organization.id)
+          .order('created_at', { ascending: false })
+          .limit(20)
+        setNotifications(data || [])
+      } else if (user?.id) {
+        const { data } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20)
+        setNotifications((data || []).map(n => ({
+          ...n, is_read: n.read, message: n.body,
+        })))
+      }
     } catch (err) {
       console.warn('Error loading notifications:', err.message)
     }
@@ -274,28 +290,40 @@ function NotificationDropdown({ tc, organization, isDark }) {
   }
 
   async function markAsRead(notifId) {
-    await supabase
-      .from('admin_notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('id', notifId)
+    if (isAdmin) {
+      await supabase.from('admin_notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('id', notifId)
+    } else {
+      await supabase.from('notifications')
+        .update({ read: true, read_at: new Date().toISOString() })
+        .eq('id', notifId)
+    }
     setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, is_read: true } : n))
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
   async function markAllRead() {
-    if (!organization?.id) return
-    await supabase
-      .from('admin_notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('organization_id', organization.id)
-      .eq('is_read', false)
+    if (isAdmin) {
+      if (!organization?.id) return
+      await supabase.from('admin_notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('organization_id', organization.id)
+        .eq('is_read', false)
+    } else if (user?.id) {
+      await supabase.from('notifications')
+        .update({ read: true, read_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .eq('read', false)
+    }
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     setUnreadCount(0)
   }
 
   async function dismissNotification(notifId, e) {
     e.stopPropagation()
-    await supabase.from('admin_notifications').delete().eq('id', notifId)
+    const table = isAdmin ? 'admin_notifications' : 'notifications'
+    await supabase.from(table).delete().eq('id', notifId)
     setNotifications(prev => prev.filter(n => n.id !== notifId))
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
@@ -306,7 +334,12 @@ function NotificationDropdown({ tc, organization, isDark }) {
       case 'payment_received': return '💰'
       case 'waiver_signed': return '📝'
       case 'registration_new': return '🆕'
-      case 'rsvp_update': return '✅'
+      case 'registration_approved': return '✅'
+      case 'rsvp_update': return '📋'
+      case 'schedule_change': return '📅'
+      case 'team_assignment': return '👕'
+      case 'game_reminder': return '🏐'
+      case 'payment_due': return '💳'
       default: return '🔔'
     }
   }
@@ -334,6 +367,74 @@ function NotificationDropdown({ tc, organization, isDark }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const dropdownPanel = isOpen ? (
+    <div className={`${controlled ? '' : 'absolute right-0 top-full mt-3'} w-96 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]`}>
+      <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
+        <span className={`font-semibold ${tc.text}`}>Notifications {unreadCount > 0 && `(${unreadCount})`}</span>
+        <div className="flex items-center gap-3">
+          {unreadCount > 0 && (
+            <button onClick={markAllRead} className="text-xs text-lynx-sky hover:underline">Mark all read</button>
+          )}
+          {controlled && (
+            <button onClick={onClose} className={`text-xs ${tc.textMuted} hover:text-white`}>
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="max-h-96 overflow-y-auto">
+        {loading ? (
+          <div className="p-6 text-center">
+            <div className={`text-sm ${tc.textMuted}`}>Loading...</div>
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="p-6 text-center">
+            <div className="text-3xl mb-2">🔔</div>
+            <div className={`text-sm ${tc.textMuted}`}>No notifications yet</div>
+          </div>
+        ) : (
+          notifications.map(notif => (
+            <div
+              key={notif.id}
+              onClick={() => !notif.is_read && markAsRead(notif.id)}
+              className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition group ${!notif.is_read ? (isDark ? 'bg-lynx-charcoal/60' : 'bg-blue-50/50') : ''}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="text-xl mt-0.5">{getNotifIcon(notif.type)}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    {!notif.is_read && <div className="w-2 h-2 rounded-full bg-lynx-sky shrink-0" />}
+                    <p className={`font-medium text-sm ${tc.text} truncate`}>{notif.title}</p>
+                  </div>
+                  <p className={`text-xs ${tc.textMuted} mt-0.5 line-clamp-2`}>{notif.message}</p>
+                  <p className={`text-xs ${tc.textMuted} mt-1 opacity-60`}>{timeAgo(notif.created_at)}</p>
+                </div>
+                <button
+                  onClick={(e) => dismissNotification(notif.id, e)}
+                  className={`p-1 rounded ${tc.hoverBg} ${tc.textMuted} hover:text-red-400 opacity-0 group-hover:opacity-100 transition shrink-0`}
+                  title="Dismiss"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      {notifications.length > 0 && (
+        <div className={`p-3 border-t ${tc.border}`}>
+          <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-lynx-sky`}>
+            View all notifications
+          </button>
+        </div>
+      )}
+    </div>
+  ) : null
+
+  // Controlled mode: just return the panel (parent manages open state + positioning)
+  if (controlled) return dropdownPanel
+
+  // Uncontrolled mode: render bell + dropdown
   return (
     <div className="relative" ref={dropdownRef}>
       <button onClick={() => setIsOpen(!isOpen)} className="relative w-9 h-9 flex items-center justify-center rounded-full transition hover:bg-white/10">
@@ -345,63 +446,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
           </span>
         )}
       </button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-3 w-96 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
-          <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
-            <span className={`font-semibold ${tc.text}`}>Notifications {unreadCount > 0 && `(${unreadCount})`}</span>
-            {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-xs text-lynx-sky hover:underline">Mark all read</button>
-            )}
-          </div>
-          <div className="max-h-96 overflow-y-auto">
-            {loading ? (
-              <div className="p-6 text-center">
-                <div className={`text-sm ${tc.textMuted}`}>Loading...</div>
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="p-6 text-center">
-                <div className="text-3xl mb-2">🔔</div>
-                <div className={`text-sm ${tc.textMuted}`}>No notifications yet</div>
-              </div>
-            ) : (
-              notifications.map(notif => (
-                <div 
-                  key={notif.id} 
-                  onClick={() => !notif.is_read && markAsRead(notif.id)}
-                  className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition ${!notif.is_read ? (isDark ? 'bg-lynx-charcoal/60' : 'bg-blue-50/50') : ''}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="text-xl mt-0.5">{getNotifIcon(notif.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-lynx-sky shrink-0" />}
-                        <p className={`font-medium text-sm ${tc.text} truncate`}>{notif.title}</p>
-                      </div>
-                      <p className={`text-xs ${tc.textMuted} mt-0.5 line-clamp-2`}>{notif.message}</p>
-                      <p className={`text-xs ${tc.textMuted} mt-1 opacity-60`}>{timeAgo(notif.created_at)}</p>
-                    </div>
-                    <button 
-                      onClick={(e) => dismissNotification(notif.id, e)}
-                      className={`p-1 rounded ${tc.hoverBg} ${tc.textMuted} hover:text-red-400 opacity-0 group-hover:opacity-100 transition shrink-0`}
-                      title="Dismiss"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          {notifications.length > 0 && (
-            <div className={`p-3 border-t ${tc.border}`}>
-              <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-lynx-sky`}>
-                View all notifications
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      {dropdownPanel}
     </div>
   )
 }
@@ -922,25 +967,36 @@ function MainApp() {
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
   const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
   const [setupPanelOpen, setSetupPanelOpen] = useState(false)
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
 
-  // ---- Notification bell: poll unread count every 30s (admin only) ----
+  // ---- Notification bell: poll unread count every 30s (all roles) ----
   const [notifUnreadCount, setNotifUnreadCount] = useState(0)
   useEffect(() => {
-    if (!organization?.id || activeView !== 'admin') { setNotifUnreadCount(0); return }
+    if (!organization?.id) { setNotifUnreadCount(0); return }
+    const isAdmin = activeView === 'admin' || activeView === 'platform_admin'
     async function pollUnread() {
       try {
-        const { count } = await supabase
-          .from('admin_notifications')
-          .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.id)
-          .eq('is_read', false)
-        setNotifUnreadCount(count || 0)
+        if (isAdmin) {
+          const { count } = await supabase
+            .from('admin_notifications')
+            .select('id', { count: 'exact', head: true })
+            .eq('organization_id', organization.id)
+            .eq('is_read', false)
+          setNotifUnreadCount(count || 0)
+        } else if (user?.id) {
+          const { count } = await supabase
+            .from('notifications')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('read', false)
+          setNotifUnreadCount(count || 0)
+        }
       } catch (_) { /* table may not exist yet */ }
     }
     pollUnread()
     const interval = setInterval(pollUnread, 30000)
     return () => clearInterval(interval)
-  }, [organization?.id, activeView])
+  }, [organization?.id, activeView, user?.id])
 
   useEffect(() => {
     if (profile?.id && organization?.id) {
@@ -1563,12 +1619,33 @@ function MainApp() {
           onSignOut={signOut}
           onNavigateToProfile={() => navigate('/profile')}
           isDark={isDark}
-          notificationCount={activeView === 'admin' ? notifUnreadCount : 0}
-          onOpenNotifications={activeView === 'admin' ? () => navigate('/notifications') : undefined}
+          notificationCount={notifUnreadCount}
+          onOpenNotifications={() => {
+            if (activeView === 'admin') navigate('/notifications')
+            else setNotifDropdownOpen(prev => !prev)
+          }}
           isPlatformAdmin={isPlatformAdmin}
           onEnterPlatformMode={handleEnterPlatformMode}
           onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
         />
+
+        {/* Notification Dropdown Overlay (non-admin roles) */}
+        {notifDropdownOpen && activeView !== 'admin' && (
+          <>
+            <div className="fixed inset-0 z-[998]" onClick={() => setNotifDropdownOpen(false)} />
+            <div className="fixed top-14 z-[999]" style={{ left: 'calc(var(--v2-sidebar-width, 64px) + 8px)' }}>
+              <NotificationDropdown
+                tc={tc}
+                organization={organization}
+                isDark={isDark}
+                activeView={activeView}
+                user={user}
+                isOpen={notifDropdownOpen}
+                onClose={() => setNotifDropdownOpen(false)}
+              />
+            </div>
+          </>
+        )}
 
         {/* Main Content — offset by sidebar width (64px), capped at 2400px on ultrawide */}
         <div className="flex-1 min-h-screen relative z-10 overflow-x-hidden lynx-main-content" style={{ paddingLeft: 'var(--v2-sidebar-width)' }}>
@@ -1592,8 +1669,11 @@ function MainApp() {
               ]}
               searchPlaceholder="Search..."
               onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-              hasNotifications={activeView === 'admin' && notifUnreadCount > 0}
-              onNotificationClick={activeView === 'admin' ? () => navigate(getPathForPage('notifications')) : undefined}
+              hasNotifications={notifUnreadCount > 0}
+              onNotificationClick={() => {
+                if (activeView === 'admin') navigate(getPathForPage('notifications'))
+                else setNotifDropdownOpen(prev => !prev)
+              }}
               avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
               onAvatarClick={() => navigate('/profile')}
               onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
