@@ -39,7 +39,7 @@ function WaiverRow({ label, signed, isDark }) {
   )
 }
 
-export default function PlayerDossierPanel({ player, registration, onClose, onApprove, onDeny, onEdit, isDark }) {
+export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, isDark }) {
   if (!player) return null
 
   const reg = registration || player.registrations?.[0]
@@ -163,7 +163,10 @@ export default function PlayerDossierPanel({ player, registration, onClose, onAp
               <SectionLabel isDark={isDark}>Payment</SectionLabel>
               <div className={`rounded-lg px-3 py-2 flex justify-between items-center ${isDark ? 'bg-[#10284C]' : 'bg-[#10284C]'}`}>
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total</span>
-                <span className="text-base font-black text-white">{reg?.registration_fee ? `$${reg.registration_fee}` : '—'}</span>
+                <span className="text-base font-black text-white">{(() => {
+                  const totalFees = (payments || player.payments)?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+                  return totalFees > 0 ? `$${totalFees.toFixed(2)}` : '—'
+                })()}</span>
               </div>
             </div>
           </div>

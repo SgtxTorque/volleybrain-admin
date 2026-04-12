@@ -81,7 +81,7 @@ export function RegistrationsPage({ showToast }) {
     setLoading(true)
     let query = supabase
       .from('players')
-      .select('*, registrations(*), seasons:season_id(id, name)')
+      .select('*, registrations(*), seasons:season_id(id, name), payments(amount)')
       .order('created_at', { ascending: false })
 
     if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
@@ -516,6 +516,7 @@ export function RegistrationsPage({ showToast }) {
               <PlayerDossierPanel
                 player={dossierPlayer}
                 registration={dossierPlayer.registrations?.[0]}
+                payments={dossierPlayer.payments}
                 onClose={() => setDossierPlayer(null)}
                 onApprove={() => {
                   const reg = dossierPlayer.registrations?.[0]
