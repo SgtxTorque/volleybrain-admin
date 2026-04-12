@@ -326,7 +326,7 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
         </p>
       </div>
 
-      <div className="px-4 pb-48 max-w-2xl mx-auto">
+      <div className="px-4 pb-36 max-w-2xl mx-auto">
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
@@ -730,7 +730,7 @@ function FamilyInfoStep({ mergedConfig, sharedInfo, setSharedInfo, waiverState, 
         <p className="text-sm text-slate-500 mt-1">Enter your info once — it applies to all children and programs.</p>
       </div>
 
-      <div className="px-4 pb-48 max-w-2xl mx-auto">
+      <div className="px-4 pb-36 max-w-2xl mx-auto">
         {/* Parent/Emergency/Medical fields */}
         <SharedInfoCard
           config={mergedConfig}
@@ -1075,7 +1075,7 @@ function ProgramCatalogStep({ availablePrograms, selectedPrograms, setSelectedPr
         <p className="text-sm text-slate-500 mt-1">Select the programs you'd like to register for. You can pick multiple!</p>
       </div>
 
-      <div className="px-4 pb-48 max-w-2xl mx-auto space-y-3">
+      <div className="px-4 pb-36 max-w-2xl mx-auto space-y-3">
         {availablePrograms.length === 0 ? (
           <div className={`${CARD} p-8 text-center`}>
             <p className="text-slate-500 text-sm">No programs with open registration at this time.</p>
