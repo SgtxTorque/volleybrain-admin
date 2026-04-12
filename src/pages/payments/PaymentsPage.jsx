@@ -277,6 +277,10 @@ export function PaymentsPage({ showToast }) {
 
     showToast('Payment marked as paid', 'success')
     setShowMarkPaidModal(null)
+    // Optimistic: update payment status immediately
+    setPayments(prev => prev.map(p =>
+      p.id === paymentId ? { ...p, paid: true, status: 'verified', paid_date: details.paid_date || new Date().toISOString().split('T')[0] } : p
+    ))
     loadPayments()
   }
 
@@ -286,6 +290,10 @@ export function PaymentsPage({ showToast }) {
     }).eq('id', paymentId)
     if (unpaidErr) { console.error('Mark unpaid error:', unpaidErr); showToast('Failed to update payment', 'error'); return }
     showToast('Payment marked as unpaid', 'success')
+    // Optimistic: update payment status immediately
+    setPayments(prev => prev.map(p =>
+      p.id === paymentId ? { ...p, paid: false, status: 'pending', paid_date: null } : p
+    ))
     loadPayments()
   }
 
@@ -294,6 +302,8 @@ export function PaymentsPage({ showToast }) {
     if (delErr) { console.error('Delete payment error:', delErr); showToast('Failed to remove fee', 'error'); return }
     showToast('Fee removed', 'success')
     setShowDeleteModal(null)
+    // Optimistic: remove payment from list immediately
+    setPayments(prev => prev.filter(p => p.id !== paymentId))
     loadPayments()
   }
 
@@ -390,9 +400,15 @@ export function PaymentsPage({ showToast }) {
         }).eq('id', payment.id)
       }
       showToast(`${familyPayments.length} payments marked as paid`, 'success')
+      // Optimistic: update all family payments immediately
+      const paidIds = new Set(familyPayments.map(p => p.id))
+      setPayments(prev => prev.map(p =>
+        paidIds.has(p.id) ? { ...p, paid: true, status: 'verified', paid_date: new Date().toISOString().split('T')[0] } : p
+      ))
       loadPayments()
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error')
+      loadPayments()
     }
   }
 

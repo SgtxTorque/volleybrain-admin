@@ -322,6 +322,10 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     showToast('Player added to team and rostered', 'success')
     journey?.completeStep('register_players')
     journey?.completeStep('add_roster')
+    // Optimistic: update team player count immediately
+    setTeams(prev => prev.map(t =>
+      t.id === teamId ? { ...t, team_players: [...(t.team_players || []), { player_id: playerId }] } : t
+    ))
     loadTeams()
     loadUnrosteredPlayers()
   }
@@ -772,6 +776,10 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
           onRemovePlayer={async (teamId, playerId) => {
             await supabase.from('team_players').delete().eq('team_id', teamId).eq('player_id', playerId)
             showToast('Player removed from team', 'success')
+            // Optimistic: remove player from team immediately
+            setTeams(prev => prev.map(t =>
+              t.id === teamId ? { ...t, team_players: (t.team_players || []).filter(tp => tp.player_id !== playerId) } : t
+            ))
             loadTeams()
             loadUnrosteredPlayers()
             // Refresh roster team with fresh data

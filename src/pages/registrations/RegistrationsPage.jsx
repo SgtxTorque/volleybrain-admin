@@ -180,9 +180,16 @@ export function RegistrationsPage({ showToast }) {
         showToast(`Registration ${newStatus}!`, 'success')
       }
 
+      // Optimistic: update local state immediately so badge reflects new status
+      setRegistrations(prev => prev.map(p =>
+        p.id === playerId
+          ? { ...p, registrations: p.registrations?.map(r => r.id === regId ? { ...r, status: newStatus } : r) }
+          : p
+      ))
       loadRegistrations()
     } catch (err) {
       showToast('Error updating status: ' + err.message, 'error')
+      loadRegistrations()
     }
   }
 
@@ -195,9 +202,15 @@ export function RegistrationsPage({ showToast }) {
       }).eq('id', regId)
       showToast('Registration denied', 'success')
       setShowDenyModal(null)
+      // Optimistic: update local state immediately
+      setRegistrations(prev => prev.map(p => {
+        const r = p.registrations?.[0]
+        return r?.id === regId ? { ...p, registrations: [{ ...r, status: 'withdrawn' }] } : p
+      }))
       loadRegistrations()
     } catch (err) {
       showToast('Error: ' + err.message, 'error')
+      loadRegistrations()
     }
   }
 
@@ -265,6 +278,13 @@ export function RegistrationsPage({ showToast }) {
     journey?.completeStep('register_players')
     setSelectedIds(new Set())
     setBulkProcessing(false)
+    // Optimistic: update approved players immediately
+    const approvedIds = new Set(pending.map(p => p.id))
+    setRegistrations(prev => prev.map(p =>
+      approvedIds.has(p.id)
+        ? { ...p, registrations: p.registrations?.map(r => ({ ...r, status: 'approved' })) }
+        : p
+    ))
     loadRegistrations()
   }
 
@@ -299,6 +319,13 @@ export function RegistrationsPage({ showToast }) {
     setSelectedIds(new Set())
     setShowBulkDenyModal(false)
     setBulkProcessing(false)
+    // Optimistic: update denied players immediately
+    const deniedIds = new Set(eligible.map(p => p.id))
+    setRegistrations(prev => prev.map(p =>
+      deniedIds.has(p.id)
+        ? { ...p, registrations: p.registrations?.map(r => ({ ...r, status: 'withdrawn' })) }
+        : p
+    ))
     loadRegistrations()
   }
 
@@ -324,6 +351,13 @@ export function RegistrationsPage({ showToast }) {
     showToast(`Moved ${moved} registrations to waitlist`, 'success')
     setSelectedIds(new Set())
     setBulkProcessing(false)
+    // Optimistic: update waitlisted players immediately
+    const waitlistIds = new Set(eligible.map(p => p.id))
+    setRegistrations(prev => prev.map(p =>
+      waitlistIds.has(p.id)
+        ? { ...p, registrations: p.registrations?.map(r => ({ ...r, status: 'waitlist' })) }
+        : p
+    ))
     loadRegistrations()
   }
 
