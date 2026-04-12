@@ -210,6 +210,43 @@ export function QuickRsvpModal({ event, userId, playerId, onClose, onRsvp, showT
 
       showToast?.(status === 'yes' ? 'RSVP confirmed!' : 'RSVP updated.', 'success')
       onRsvp?.(event.id, rsvpStatus)
+
+      // BATON PASS: Notify coach(es) about RSVP update
+      if (event.team_id) {
+        try {
+          const { data: teamCoaches } = await supabase
+            .from('team_coaches')
+            .select('coach_id, coaches(user_id)')
+            .eq('team_id', event.team_id)
+          const { data: rsvpCounts } = await supabase
+            .from('event_rsvps')
+            .select('status')
+            .eq('event_id', event.id)
+          const confirmed = (rsvpCounts || []).filter(r => ['yes', 'going', 'confirmed'].includes(r.status)).length
+          const total = (rsvpCounts || []).length
+          const coachUserIds = (teamCoaches || []).map(c => c.coaches?.user_id).filter(Boolean)
+          if (coachUserIds.length > 0) {
+            const notifications = coachUserIds.map(coachId => ({
+              user_id: coachId,
+              type: 'rsvp_update',
+              title: 'RSVP Update',
+              body: `${confirmed} of ${total} players confirmed for ${event.title || event.event_type || 'upcoming event'}.`,
+              data: {
+                event_id: event.id,
+                team_id: event.team_id,
+                confirmed_count: confirmed,
+                total_count: total,
+                action_url: '/schedule',
+              },
+              read: false,
+            }))
+            await supabase.from('notifications').insert(notifications)
+          }
+        } catch (notifErr) {
+          console.error('Baton pass failed (RSVP→coach):', notifErr)
+        }
+      }
+
       onClose()
     } catch (err) {
       console.error('RSVP error:', err)
