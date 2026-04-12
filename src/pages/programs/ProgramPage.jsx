@@ -259,9 +259,7 @@ export default function ProgramPage({ showToast }) {
         supabase.from('schedule_events')
           .select('*, teams:team_id(name)')
           .in('season_id', programSeasonIds)
-          .gte('event_date', new Date().toISOString().split('T')[0])
-          .order('event_date', { ascending: true })
-          .limit(20),
+          .order('event_date', { ascending: true }),
 
         supabase.from('waiver_signatures')
           .select('id, status, season_id')
