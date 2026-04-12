@@ -64,7 +64,6 @@ function SeasonsPage({ showToast }) {
       .from('registration_templates')
       .select('*, sports(id, name, icon)')
       .eq('organization_id', organization.id)
-      .eq('is_active', true)
       .order('is_default', { ascending: false })
     setTemplates(data || [])
   }
