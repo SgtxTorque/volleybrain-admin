@@ -16,6 +16,7 @@ import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { SeasonFormModal } from '../settings/SeasonFormModal'
 import NewTeamModal from '../teams/NewTeamModal'
+import RegLinkModal from '../../components/ui/RegLinkModal'
 import {
   Calendar, CalendarPlus, Users, Megaphone, BarChart3,
   ClipboardList, AlertTriangle, RefreshCw, ArrowLeft, Layers, Link2,
@@ -178,6 +179,7 @@ export default function ProgramPage({ showToast }) {
   // Modals
   const [showSeasonModal, setShowSeasonModal] = useState(false)
   const [showTeamModal, setShowTeamModal] = useState(false)
+  const [showRegLinkModal, setShowRegLinkModal] = useState(false)
   const [seasonForm, setSeasonForm] = useState({
     name: '', sport_id: null, status: 'draft', start_date: '', end_date: '',
     registration_open: false, capacity: null, description: '',
@@ -457,12 +459,7 @@ export default function ProgramPage({ showToast }) {
     { label: 'View Reports', icon: BarChart3, onClick: () => navigate('/reports') },
     { label: 'Registrations', icon: ClipboardList, onClick: () => navigate('/registrations') },
     { label: 'Registration Link', icon: Link2, onClick: () => {
-      const slug = organization?.slug || organization?.id
-      const url = `${window.location.origin}/register/${slug}?program=${program?.id}`
-      navigator.clipboard.writeText(url).then(
-        () => showToast?.('Registration link copied!', 'success'),
-        () => { window.prompt('Copy this registration link:', url) }
-      )
+      setShowRegLinkModal(true)
     }},
   )
 
@@ -1241,6 +1238,15 @@ export default function ProgramPage({ showToast }) {
           onCreate={handleTeamCreate}
         />
       )}
+
+      <RegLinkModal
+        isOpen={showRegLinkModal}
+        onClose={() => setShowRegLinkModal(false)}
+        organization={organization}
+        seasons={programSeasons}
+        defaultSeasonId={selectedProgramSeason?.id || null}
+        showToast={showToast}
+      />
     </div>
   )
 }
