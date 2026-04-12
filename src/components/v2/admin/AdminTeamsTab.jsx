@@ -91,15 +91,28 @@ export default function AdminTeamsTab({
             </div>
 
             {/* Team info */}
-            <div>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--v2-text-primary)' }}>
-                {team.name}
-              </div>
-              {team.age_group && (
-                <div style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>
-                  {team.age_group}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {team.logo_url ? (
+                <img src={team.logo_url} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+              ) : (
+                <div style={{
+                  width: 28, height: 28, borderRadius: 6, flexShrink: 0,
+                  background: team.color || '#4BB9EC', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 800, color: '#fff',
+                }}>
+                  {(team.abbreviation || team.name || '?').slice(0, 2).toUpperCase()}
                 </div>
               )}
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--v2-text-primary)' }}>
+                  {team.name}
+                </div>
+                {team.age_group && (
+                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>
+                    {team.age_group}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Player avatar stack */}

@@ -175,7 +175,14 @@ export default function TeamsTableView({
                       {/* Team name + color dot */}
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: team.color || '#888' }} />
+                          {team.logo_url ? (
+                            <img src={team.logo_url} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center text-[10px] font-extrabold text-white"
+                              style={{ backgroundColor: team.color || '#4BB9EC' }}>
+                              {(team.abbreviation || team.name || '?').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <span className={`text-sm font-bold truncate block ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
                               {team.name}
