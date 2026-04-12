@@ -864,9 +864,7 @@ const TOP_NAV_PREREQS = {
   // Needs finished org setup
   payments:              { needs: 'orgSetup', tooltip: 'Finish club setup to unlock payments' },
   paymentsetup:          { needs: 'orgSetup', tooltip: 'Finish club setup to configure payments' },
-  chats:                 { needs: 'orgSetup', tooltip: 'Finish club setup to unlock messaging' },
-  blasts:                { needs: 'orgSetup', tooltip: 'Finish club setup to unlock announcements' },
-  notifications:         { needs: 'orgSetup', tooltip: 'Finish club setup to unlock notifications' },
+  // chats, blasts, notifications — no longer gated (communication should always be available)
 }
 
 // Wrapper component that sits inside SeasonProvider so it can call useSeason().
