@@ -1704,7 +1704,7 @@ function MainApp() {
         <BlastAlertChecker />
 
         {/* Floating buttons — vertical stack, bottom-right. Hidden when SetupHelper panel is open. */}
-        {activeView === 'parent' && !setupPanelOpen && <FloatingHelpButton />}
+        {(activeView === 'parent' || activeView === 'coach') && !setupPanelOpen && <FloatingHelpButton />}
         {activeView === 'admin' && <SetupHelper
           onNavigate={(pageId) => navigate(getPathForPage(pageId))}
           onPanelToggle={setSetupPanelOpen}

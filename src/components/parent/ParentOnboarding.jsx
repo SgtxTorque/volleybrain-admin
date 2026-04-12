@@ -401,23 +401,25 @@ export function FloatingHelpButton() {
   const { accent, isDark } = useTheme()
   const [showMenu, setShowMenu] = useState(false)
 
-  if (!tutorial || tutorial.isActive) return null
+  // Hide while parent tutorial is actively playing
+  if (tutorial?.isActive) return null
 
   return (
     <div className="fixed z-40" style={{ bottom: 168, right: 24 }}>
       {/* Menu */}
       {showMenu && (
-        <div 
+        <div
           className="absolute bottom-16 right-0 rounded-xl shadow-xl overflow-hidden min-w-52"
           style={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff',
             border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
           }}
         >
+          {tutorial?.startTutorial && (
           <button
             onClick={() => { tutorial.startTutorial(); setShowMenu(false) }}
             className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
-            style={{ 
+            style={{
               color: isDark ? '#e2e8f0' : '#1e293b',
               backgroundColor: 'transparent',
             }}
@@ -426,6 +428,7 @@ export function FloatingHelpButton() {
           >
             🎓 Take the Tour
           </button>
+          )}
           <button
             onClick={() => { window.open('https://thelynxapp.com', '_blank'); setShowMenu(false) }}
             className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
