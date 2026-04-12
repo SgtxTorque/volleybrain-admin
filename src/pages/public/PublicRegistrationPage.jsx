@@ -61,7 +61,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   // ─── Auto-save draft key ────────────────────────────────────────────────
   const DRAFT_KEY = `lynx-registration-draft-${seasonId || 'unknown'}`
 
-  // ─── Auto-save form state to localStorage ──────────────────────────────
+  // ─── Auto-save form state to sessionStorage (scoped to browser tab) ───
   useEffect(() => {
     if (children.length === 0 && !currentChild?.first_name) return
     const draft = {
@@ -72,14 +72,14 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       savedAt: new Date().toISOString()
     }
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-    } catch (e) { /* localStorage full or unavailable */ }
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+    } catch (e) { /* sessionStorage full or unavailable */ }
   }, [children, currentChild, sharedInfo, customAnswers])
 
   // ─── Restore draft on page load ────────────────────────────────────────
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(DRAFT_KEY)
+      const raw = sessionStorage.getItem(DRAFT_KEY)
       if (raw) {
         const draft = JSON.parse(raw)
         const savedAt = new Date(draft.savedAt)
@@ -88,11 +88,11 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           setSavedDraft(draft)
           setShowDraftRestore(true)
         } else {
-          localStorage.removeItem(DRAFT_KEY)
+          sessionStorage.removeItem(DRAFT_KEY)
         }
       }
     } catch (e) {
-      localStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(DRAFT_KEY)
     }
   }, [])
 
@@ -107,7 +107,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   }
 
   function discardDraft() {
-    localStorage.removeItem(DRAFT_KEY)
+    sessionStorage.removeItem(DRAFT_KEY)
     setShowDraftRestore(false)
   }
 
@@ -824,7 +824,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         }
       }
 
-      localStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(DRAFT_KEY)
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)
