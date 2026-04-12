@@ -822,12 +822,25 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   if (teams.length === 0) {
     return (
       <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`} style={{ minHeight: '60vh' }}>
-        <div className="text-center px-6">
-          <div className={`w-20 h-20 rounded-xl mx-auto mb-r-4 flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
+        <div className="text-center py-12 px-6">
+          <div className={`w-20 h-20 rounded-xl mx-auto mb-4 flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
             <Shield className="w-10 h-10 text-lynx-sky" />
           </div>
-          <h2 className={`text-r-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No Teams Assigned</h2>
-          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Contact your league administrator to get started.</p>
+          <h2 className={`text-r-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No Teams Assigned Yet</h2>
+          <p className={`text-sm mb-6 max-w-md mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Your club administrator needs to assign you to a team. This usually happens within a few hours of accepting your invitation.
+          </p>
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={() => loadCoachData()}
+              className="px-6 py-2.5 bg-lynx-sky text-white font-semibold rounded-[14px] hover:brightness-110 transition text-sm"
+            >
+              Check Again
+            </button>
+            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              If you just accepted your invitation, your admin may still be setting things up.
+            </p>
+          </div>
         </div>
       </div>
     )
