@@ -133,6 +133,9 @@ export default function ParentInviteAcceptPage() {
       await new Promise(resolve => setTimeout(resolve, 500))
     }
 
+    // Clear stale view so loadRoleContext sets the correct one for the new org
+    localStorage.removeItem('lynx_active_view')
+
     setAccepted(true)
     setTimeout(() => {
       window.location.href = '/dashboard'
