@@ -40,6 +40,14 @@ export function LoginPage({ initialMode, onBack }) {
   const [message, setMessage] = useState('')
   const [resetSending, setResetSending] = useState(false)
 
+  // Recovery state for parents/coaches with records but no auth account
+  const [showRecovery, setShowRecovery] = useState(false)
+  const [recoveryType, setRecoveryType] = useState('') // 'parent' or 'coach'
+  const [recoveryName, setRecoveryName] = useState('')
+  const [recoveryInviteCode, setRecoveryInviteCode] = useState('')
+  const [recoveryOrgId, setRecoveryOrgId] = useState('')
+  const [recoveryLoading, setRecoveryLoading] = useState(false)
+
   // Check for auth error in URL hash (e.g., expired OTP from password reset link)
   useEffect(() => {
     const hash = window.location.hash
@@ -63,9 +71,176 @@ export function LoginPage({ initialMode, onBack }) {
         setMessage('Account created! You can now continue.')
       }
     } catch (err) {
+      // On login failure, check if this person has a record but no auth account
+      if (mode === 'login' && err.message?.includes('Invalid login credentials')) {
+        try {
+          // CHECK 1: Parent with a family record but no auth
+          const { data: familyMatch } = await supabase
+            .from('families')
+            .select('id, primary_email, primary_contact_name, organization_id')
+            .eq('primary_email', email.trim().toLowerCase())
+            .maybeSingle()
+
+          if (familyMatch) {
+            // Verify they truly have no auth account (profiles table)
+            const { data: profileMatch } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', email.trim().toLowerCase())
+              .maybeSingle()
+
+            if (!profileMatch) {
+              setError('')
+              setRecoveryType('parent')
+              setRecoveryName(familyMatch.primary_contact_name || email.trim())
+              setRecoveryOrgId(familyMatch.organization_id || '')
+              setShowRecovery(true)
+              setLoading(false)
+              return
+            }
+          }
+
+          // CHECK 2: Coach with an invite but no auth
+          const { data: coachMatch } = await supabase
+            .from('coaches')
+            .select('id, email, invite_code, invite_status, season_id')
+            .eq('email', email.trim().toLowerCase())
+            .eq('invite_status', 'invited')
+            .order('invited_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          if (coachMatch) {
+            setError('')
+            setRecoveryType('coach')
+            setRecoveryName(email.trim())
+            setRecoveryInviteCode(coachMatch.invite_code || '')
+            setShowRecovery(true)
+            setLoading(false)
+            return
+          }
+
+          // CHECK 3: Coach in coaches table without pending invite (active but no auth)
+          const { data: activeCoach } = await supabase
+            .from('coaches')
+            .select('id, email, season_id')
+            .eq('email', email.trim().toLowerCase())
+            .limit(1)
+            .maybeSingle()
+
+          if (activeCoach) {
+            // Look up org from the season
+            let orgId = ''
+            if (activeCoach.season_id) {
+              const { data: season } = await supabase
+                .from('seasons')
+                .select('organization_id')
+                .eq('id', activeCoach.season_id)
+                .maybeSingle()
+              orgId = season?.organization_id || ''
+            }
+
+            // Check if they have no profile
+            const { data: coachProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', email.trim().toLowerCase())
+              .maybeSingle()
+
+            if (!coachProfile) {
+              setError('')
+              setRecoveryType('coach')
+              setRecoveryName(email.trim())
+              setRecoveryOrgId(orgId)
+              setShowRecovery(true)
+              setLoading(false)
+              return
+            }
+          }
+        } catch (checkErr) {
+          console.error('Recovery check failed:', checkErr)
+        }
+      }
+
       setError(err.message)
     }
     setLoading(false)
+  }
+
+  async function handleRecoveryAction() {
+    try {
+      setRecoveryLoading(true)
+
+      if (recoveryType === 'parent') {
+        // Look for an existing parent invite
+        const { data: invite } = await supabase
+          .from('invitations')
+          .select('invite_code')
+          .eq('email', email.trim().toLowerCase())
+          .eq('invite_type', 'parent')
+          .eq('status', 'pending')
+          .order('invited_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (invite?.invite_code) {
+          window.location.href = `/invite/parent/${invite.invite_code}`
+          return
+        }
+
+        // No existing invite — create one on the fly
+        const { data: family } = await supabase
+          .from('families')
+          .select('id, organization_id')
+          .eq('primary_email', email.trim().toLowerCase())
+          .maybeSingle()
+
+        if (family?.organization_id) {
+          const inviteCode = crypto.randomUUID()
+          const { error: inviteError } = await supabase
+            .from('invitations')
+            .insert({
+              email: email.trim().toLowerCase(),
+              invite_type: 'parent',
+              role: 'parent',
+              invite_code: inviteCode,
+              organization_id: family.organization_id,
+              status: 'pending',
+              invited_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+            })
+
+          if (!inviteError) {
+            window.location.href = `/invite/parent/${inviteCode}`
+            return
+          }
+        }
+
+        setError('We found your registration but couldn\'t set up your account. Please contact your club administrator.')
+
+      } else if (recoveryType === 'coach') {
+        if (recoveryInviteCode) {
+          window.location.href = `/invite/coach/${recoveryInviteCode}`
+        } else if (recoveryOrgId) {
+          window.location.href = `/join/coach/${recoveryOrgId}`
+        } else {
+          setError('We found your coaching record but couldn\'t locate your invitation. Please ask your club administrator to resend your invite.')
+        }
+      }
+    } catch (err) {
+      console.error('Recovery action error:', err)
+      setError('Something went wrong. Please try again or contact your club administrator.')
+    } finally {
+      setRecoveryLoading(false)
+    }
+  }
+
+  function clearRecovery() {
+    setShowRecovery(false)
+    setRecoveryType('')
+    setRecoveryName('')
+    setRecoveryInviteCode('')
+    setRecoveryOrgId('')
   }
 
   async function handleForgotPassword() {
@@ -236,7 +411,7 @@ export function LoginPage({ initialMode, onBack }) {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={e => { setEmail(e.target.value); clearRecovery() }}
                 required
                 className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 focus:outline-none transition"
                 placeholder="you@example.com"
@@ -281,6 +456,52 @@ export function LoginPage({ initialMode, onBack }) {
               }
             </button>
           </form>
+
+          {/* Recovery card for parents/coaches with records but no auth */}
+          {showRecovery && (
+            <div className="mt-4 p-4 bg-sky-500/10 border border-sky-500/30 rounded-xl">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-sky-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  {recoveryType === 'parent' ? (
+                    <>
+                      <p className="text-sm font-medium text-sky-300">
+                        We found a registration for {recoveryName}!
+                      </p>
+                      <p className="text-sm text-sky-400/80 mt-1">
+                        It looks like your account hasn't been set up yet.
+                        Click below to create your password and access your dashboard.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-sky-300">
+                        We found a coaching invitation for {recoveryName}!
+                      </p>
+                      <p className="text-sm text-sky-400/80 mt-1">
+                        Your club invited you as a coach but your account hasn't been set up yet.
+                        Click below to accept your invitation and get started.
+                      </p>
+                    </>
+                  )}
+                  <button
+                    onClick={handleRecoveryAction}
+                    disabled={recoveryLoading}
+                    className="mt-3 px-4 py-2 bg-[#4BB9EC] text-white text-sm font-semibold rounded-xl hover:bg-[#3a9fd4] transition-colors disabled:opacity-50"
+                  >
+                    {recoveryLoading
+                      ? 'Loading...'
+                      : (recoveryType === 'parent' ? 'Set Up My Account' : 'Accept My Invitation')
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-center text-slate-500 text-sm mt-6">
