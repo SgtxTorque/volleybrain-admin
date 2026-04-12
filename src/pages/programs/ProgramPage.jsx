@@ -203,6 +203,13 @@ export default function ProgramPage({ showToast }) {
     }
   }, [program?.id])
 
+  // Preselect season from SeasonContext (e.g., sidebar click)
+  useEffect(() => {
+    if (selectedSeason && selectedSeason.program_id === programId && !selectedProgramSeason) {
+      setSelectedProgramSeason(selectedSeason)
+    }
+  }, [selectedSeason?.id, programId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // --- Data Fetching ---
   const loadProgramData = useCallback(async () => {
     if (!programId || !organization?.id) return
