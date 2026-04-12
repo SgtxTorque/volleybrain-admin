@@ -933,6 +933,34 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         console.error('Baton pass failed (registration→admin):', err)
       }
 
+      // BATON PASS: Email admin about new registration
+      try {
+        const playerNames = allChildren.map(c => `${c.first_name} ${c.last_name}`).join(', ')
+        const adminEmail = organization?.contact_email || organization?.settings?.contact_email
+        if (adminEmail) {
+          await supabase.from('email_notifications').insert({
+            organization_id: organization?.id,
+            recipient_email: adminEmail,
+            recipient_name: organization?.name || 'Admin',
+            type: 'blast_announcement',
+            template_type: 'blast_announcement',
+            subject: `New Registration: ${playerNames} for ${season?.name || 'the season'}`,
+            data: {
+              heading: 'New Registration Received',
+              body: `<p><strong>${playerNames}</strong> has been registered for <strong>${season?.name || 'the season'}</strong> by ${sharedInfo.parent1_name || sharedInfo.parent1_email}.</p><p>Log in to review and approve the registration.</p>`,
+              html_body: `<p><strong>${playerNames}</strong> has been registered for <strong>${season?.name || 'the season'}</strong> by ${sharedInfo.parent1_name || sharedInfo.parent1_email}.</p><p>Log in to review and approve the registration.</p>`,
+              org_name: organization?.name,
+              app_url: window.location.origin,
+            },
+            status: 'pending',
+            category: 'transactional',
+            created_at: new Date().toISOString(),
+          })
+        }
+      } catch (err) {
+        console.error('Baton pass failed (registration→admin email):', err)
+      }
+
       sessionStorage.removeItem(DRAFT_KEY)
       setSubmitted(true)
     } catch (err) {
