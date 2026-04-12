@@ -80,6 +80,37 @@ export default function CoachInviteAcceptPage() {
         }
       }
 
+      // Fallback: if season_id is null, resolve org from team_coaches → teams → seasons
+      if (!coach._season && coach.team_coaches?.length > 0) {
+        const teamId = coach.team_coaches[0].teams?.id || coach.team_coaches[0].team_id
+        if (teamId) {
+          const { data: teamSeason } = await supabase
+            .from('teams')
+            .select('season_id, seasons(organization_id, name, organizations(id, name, slug, logo_url, primary_color))')
+            .eq('id', teamId)
+            .single()
+          if (teamSeason?.seasons) {
+            coach._season = teamSeason.seasons
+            org = teamSeason.seasons.organizations
+          }
+        }
+      }
+
+      // Fallback 2: check invitations table for org (has organization_id directly)
+      if (!org) {
+        const { data: inviteRecord } = await supabase
+          .from('invitations')
+          .select('organization_id, organizations(id, name, slug, logo_url, primary_color)')
+          .eq('coach_id', coach.id)
+          .maybeSingle()
+        if (inviteRecord?.organizations) {
+          org = inviteRecord.organizations
+          if (!coach._season) {
+            coach._season = { organization_id: inviteRecord.organization_id }
+          }
+        }
+      }
+
       // Check invitations table for expiration
       const { data: invitation } = await supabase
         .from('invitations')
@@ -142,8 +173,37 @@ export default function CoachInviteAcceptPage() {
       // Non-critical
     }
 
-    // Add coach role to user_roles
-    const orgId = invite._season?.organization_id
+    // Resolve orgId from multiple sources (season_id may be null)
+    let orgId = invite._season?.organization_id
+
+    // Fallback 1: check invitations table (has organization_id directly)
+    if (!orgId) {
+      const { data: linkedInvitation } = await supabase
+        .from('invitations')
+        .select('organization_id')
+        .eq('coach_id', invite.id)
+        .maybeSingle()
+      if (linkedInvitation?.organization_id) {
+        orgId = linkedInvitation.organization_id
+      }
+    }
+
+    // Fallback 2: resolve from team_coaches → teams → seasons → organizations
+    if (!orgId && invite.team_coaches?.length > 0) {
+      const teamId = invite.team_coaches[0].team_id
+      if (teamId) {
+        const { data: teamData } = await supabase
+          .from('teams')
+          .select('season_id, seasons(organization_id)')
+          .eq('id', teamId)
+          .single()
+        if (teamData?.seasons?.organization_id) {
+          orgId = teamData.seasons.organization_id
+        }
+      }
+    }
+
+    // Add coach role to user_roles and update profile (only if orgId resolved)
     if (orgId) {
       await supabase.from('user_roles').upsert({
         user_id: userId,
@@ -152,12 +212,15 @@ export default function CoachInviteAcceptPage() {
         is_active: true,
       }, { onConflict: 'user_id,organization_id,role' })
 
-      // Set current org
       await supabase.from('profiles').update({
         current_organization_id: orgId,
         onboarding_completed: true,
       }).eq('id', userId)
+    } else {
+      console.error('Could not resolve organization ID for coach invite:', invite.id)
     }
+
+    return orgId
   }
 
   // Verify profile writes committed, then redirect
@@ -191,8 +254,7 @@ export default function CoachInviteAcceptPage() {
     setProcessing(true)
     setError(null)
     try {
-      await acceptInvite(currentUser.id, currentUser.email)
-      const orgId = invite._season?.organization_id
+      const orgId = await acceptInvite(currentUser.id, currentUser.email)
       await verifyAndRedirect(currentUser.id, orgId)
     } catch (err) {
       setError('Error accepting invitation: ' + err.message)
@@ -224,19 +286,17 @@ export default function CoachInviteAcceptPage() {
       if (signUpError) throw signUpError
 
       if (authData.user) {
-        const orgId = invite._season?.organization_id || null
-
-        // Create/update profile
+        // Create/update profile (orgId will be corrected by acceptInvite if needed)
         await supabase.from('profiles').upsert({
           id: authData.user.id,
           email: formEmail,
           full_name: `${invite.first_name} ${invite.last_name}`,
           phone: formPhone || null,
-          current_organization_id: orgId,
+          current_organization_id: invite._season?.organization_id || null,
           onboarding_completed: true,
         })
 
-        await acceptInvite(authData.user.id, formEmail)
+        const orgId = await acceptInvite(authData.user.id, formEmail)
 
         // Ensure we're signed in (signUp may not auto-login if email confirmation is on)
         await supabase.auth.signInWithPassword({ email: formEmail, password: formPassword })
@@ -261,8 +321,7 @@ export default function CoachInviteAcceptPage() {
       if (loginError) throw loginError
 
       if (data.user) {
-        await acceptInvite(data.user.id, data.user.email)
-        const orgId = invite._season?.organization_id
+        const orgId = await acceptInvite(data.user.id, data.user.email)
         await verifyAndRedirect(data.user.id, orgId)
       }
     } catch (err) {
