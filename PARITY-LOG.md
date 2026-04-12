@@ -61,6 +61,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Optimistic UI updates added to 11 mutation handlers (registrations, teams, payments) — local state updates immediately before background refetch → Mobile uses React Native state — verify similar optimistic pattern for approve/pay/roster actions
 - WEB: Registration draft storage moved from localStorage to sessionStorage (prevents cross-family data exposure) → Mobile uses AsyncStorage — verify draft persistence is scoped per user/session, not globally
 
+### April 12, 2026 (Quick Fixes)
+- WEB: Top nav communication gate removed (chats/blasts/notifications no longer require orgSetup in MainApp.jsx TOP_NAV_PREREQS) → Mobile admin nav should verify same
+- WEB: Registration form padding reduced (pb-40 → pb-24 on PublicRegistrationPage, pb-48 → pb-36 on RegistrationCartPage) → Mobile registration form: verify scroll behavior
+- WEB: Installment rounding migration script created (scripts/fix-installment-rounding.mjs) → Mobile: verify fee display shows corrected amounts after migration runs
+
 ---
 
 ## INFRASTRUCTURE CHANGES (April 11-12, 2026)
