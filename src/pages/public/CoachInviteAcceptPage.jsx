@@ -203,12 +203,25 @@ export default function CoachInviteAcceptPage() {
       }
     }
 
+    // Map team_coaches role to user_roles constraint value
+    const teamRole = invite.team_coaches?.[0]?.role || 'head'
+    const roleMap = {
+      'head': 'head_coach',
+      'head_coach': 'head_coach',
+      'assistant': 'assistant_coach',
+      'assistant_coach': 'assistant_coach',
+      'manager': 'team_manager',
+      'team_manager': 'team_manager',
+      'volunteer': 'assistant_coach',
+    }
+    const userRole = roleMap[teamRole] || 'head_coach'
+
     // Add coach role to user_roles and update profile (only if orgId resolved)
     if (orgId) {
       await supabase.from('user_roles').upsert({
         user_id: userId,
         organization_id: orgId,
-        role: 'coach',
+        role: userRole,
         is_active: true,
       }, { onConflict: 'user_id,organization_id,role' })
 

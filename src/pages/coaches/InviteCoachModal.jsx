@@ -131,8 +131,10 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
       effectiveSeasonId = defaultSeason?.id || null
     }
 
-    // 1. Grant coach role directly
-    await grantRole(existingUser.id, effectiveOrgId, 'coach')
+    // 1. Grant coach role directly (map to user_roles constraint value)
+    const roleMap = { 'head': 'head_coach', 'assistant': 'assistant_coach', 'manager': 'team_manager', 'volunteer': 'assistant_coach' }
+    const userRole = roleMap[role] || 'head_coach'
+    await grantRole(existingUser.id, effectiveOrgId, userRole)
 
     // 2. Create coaches record linked to existing profile
     const { data: newCoach, error: coachError } = await supabase.from('coaches').insert({
