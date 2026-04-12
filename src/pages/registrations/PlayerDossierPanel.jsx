@@ -65,6 +65,11 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
     ? new Date(reg.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null
 
+  // Extract photo from registration_data if not on player record
+  const photoUrl = player.photo_url
+    || reg?.registration_data?.player?._photoPreview
+    || null
+
   return (
     <div className={`sticky top-4 rounded-2xl border overflow-hidden ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}
       style={{ fontFamily: 'var(--v2-font)' }}>
@@ -77,8 +82,8 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
 
       {/* Player identity */}
       <div className={`px-5 py-4 flex items-center gap-4 border-b shrink-0 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
-        {player.photo_url ? (
-          <img src={player.photo_url} alt="" className="w-14 h-14 rounded-full object-cover shrink-0" />
+        {photoUrl ? (
+          <img src={photoUrl} alt="" className="w-14 h-14 rounded-full object-cover shrink-0" />
         ) : (
           <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-black shrink-0 ${isDark ? 'bg-[#4BB9EC]/10 text-[#4BB9EC]' : 'bg-[#4BB9EC]/10 text-[#4BB9EC]'}`}>
             {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
