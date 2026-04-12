@@ -106,6 +106,15 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 
 ---
 
+### April 12, 2026 (Baton Pass)
+- WEB: Registration submit now inserts into admin_notifications + email_notifications → Mobile registration should do the same
+- WEB: Registration approval now inserts into notifications (triggers push via existing webhook) → Mobile may already handle this differently
+- WEB: Schedule event creation now notifies parents via notifications table → Mobile should verify coach-side schedule creation does the same
+- WEB: RSVP now notifies coaches via notifications table → Mobile RSVP should implement the same
+- WEB: Notification bell now works for all roles (coach, parent read from notifications table) → Mobile already has push — no action needed
+
+---
+
 ## CRITICAL MOBILE ACTIONS (Do These First)
 
 1. **Search for `role: 'coach'` or `role: "coach"` in any user_roles insert/upsert** — change to `head_coach`, `assistant_coach`, or `team_manager` based on the coach's team_coaches.role value
