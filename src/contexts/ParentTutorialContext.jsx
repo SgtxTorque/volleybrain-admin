@@ -54,13 +54,13 @@ export const PARENT_TUTORIAL_STEPS = [
 // Parent checklist items (shown on dashboard)
 // navTo values must match page IDs in MainApp.jsx routing
 export const PARENT_CHECKLIST = [
-  { 
-    id: 'complete_registration', 
-    title: 'Complete Registration', 
-    description: 'Your player is registered and on a team',
+  {
+    id: 'complete_registration',
+    title: 'Get Placed on a Team',
+    description: 'Your admin will assign your player to a team — hang tight!',
     icon: '📝',
     checkFn: (data) => data.isRegistered,
-    navTo: null, // Already on dashboard, no navigation needed
+    navTo: null, // Admin action — parent can't do this themselves
   },
   { 
     id: 'add_player_photo', 
