@@ -173,6 +173,27 @@ export function RegistrationsPage({ showToast }) {
             status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
           }).eq('id', regId)
         }
+        // BATON PASS: In-app + push notification to parent
+        if (playerData?.parent_account_id) {
+          try {
+            await supabase.from('notifications').insert({
+              user_id: playerData.parent_account_id,
+              organization_id: organization?.id,
+              type: 'registration_approved',
+              title: `Welcome to ${selectedSeason?.name || 'the season'}!`,
+              body: `${playerData.first_name} ${playerData.last_name}'s registration has been approved.`,
+              data: {
+                player_id: playerId,
+                season_id: selectedSeason?.id,
+                action_url: '/dashboard',
+              },
+              read: false,
+            })
+          } catch (notifErr) {
+            console.error('Baton pass failed (approval→parent push):', notifErr)
+          }
+        }
+
         journey?.completeStep('register_players')
         setTrackerSuccessInfo('Registration')
       } else {
@@ -270,6 +291,26 @@ export function RegistrationsPage({ showToast }) {
         if (isEmailEnabled(organization, 'registration_approved') && player.parent_email) {
           const emailResult = await EmailService.sendApprovalNotification(player, selectedSeason, organization, fees)
           if (emailResult.success) emailsQueued++
+        }
+        // BATON PASS: In-app + push notification to parent
+        if (player.parent_account_id) {
+          try {
+            await supabase.from('notifications').insert({
+              user_id: player.parent_account_id,
+              organization_id: organization?.id,
+              type: 'registration_approved',
+              title: `Welcome to ${selectedSeason?.name || 'the season'}!`,
+              body: `${player.first_name} ${player.last_name}'s registration has been approved.`,
+              data: {
+                player_id: player.id,
+                season_id: selectedSeason?.id,
+                action_url: '/dashboard',
+              },
+              read: false,
+            })
+          } catch (notifErr) {
+            console.error('Baton pass failed (bulk approval→parent push):', notifErr)
+          }
         }
       } catch (err) {
         console.error('Error approving player:', player.id, err)
