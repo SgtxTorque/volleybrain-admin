@@ -29,6 +29,7 @@ import AssignCoachesModal from './AssignCoachesModal'
 import TeamDetailPanel from './TeamDetailPanel'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // ============================================
@@ -43,6 +44,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
   const [showNewTeamModal, setShowNewTeamModal] = useState(false)
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
   const [unrosteredPlayers, setUnrosteredPlayers] = useState([])
   const [search, setSearch] = useState('')
   const [selectedPlayer, setSelectedPlayer] = useState(null)
@@ -263,6 +265,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
         } catch (_) { /* non-critical */ }
       }
       setShowNewTeamModal(false)
+      setTrackerSuccessInfo(newTeam?.name || 'Your team')
       loadTeams()
     } catch (err) {
       console.error('Unexpected error creating team:', err)
@@ -820,6 +823,14 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
         />
       )}
 
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="🏐"
+        title="Team Created!"
+        subtitle={`${trackerSuccessInfo} is ready for players and coaches.`}
+        stayLabel="Create Another Team"
+      />
     </PageShell>
   )
 }

@@ -29,6 +29,7 @@ import EventDetailModal from './EventDetailModal'
 import VolunteerAutoAssignModal from './VolunteerAutoAssignModal'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 function SchedulePage({ showToast, activeView, roleContext }) {
@@ -59,6 +60,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [showBulkPractice, setShowBulkPractice] = useState(false)
   const [showBulkGames, setShowBulkGames] = useState(false)
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
   const [showBulkWizard, setShowBulkWizard] = useState(false)
   const [showVenueManager, setShowVenueManager] = useState(false)
   const [showAvailabilitySurvey, setShowAvailabilitySurvey] = useState(false)
@@ -228,6 +230,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       }).select().single()
       if (error) throw error
       showToast('Event created!', 'success')
+      setTrackerSuccessInfo(newEvent?.title || 'Event')
       journey?.completeStep('create_schedule')
       if (profile?.id) {
         try {
@@ -590,6 +593,15 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         <div className="fixed inset-0 z-10" onClick={() => { setShowQuickActions(false); setShowShareMenu(false) }} />
       )}
       </div>
+
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="📅"
+        title="Event Created!"
+        subtitle={`${trackerSuccessInfo} has been added to the schedule.`}
+        stayLabel="Create Another Event"
+      />
     </PageShell>
   )
 }

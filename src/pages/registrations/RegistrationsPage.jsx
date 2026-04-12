@@ -24,6 +24,7 @@ import PlayerDossierPanel from './PlayerDossierPanel'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // Re-export for any legacy imports
@@ -59,6 +60,7 @@ export function RegistrationsPage({ showToast }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null)
   const [editMode, setEditMode] = useState(false)
   const [showDenyModal, setShowDenyModal] = useState(null)
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
 
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -172,6 +174,7 @@ export function RegistrationsPage({ showToast }) {
           }).eq('id', regId)
         }
         journey?.completeStep('register_players')
+        setTrackerSuccessInfo('Registration')
       } else {
         // Non-approval status updates (deny, waitlist, etc.)
         await supabase.from('registrations').update({
@@ -610,6 +613,15 @@ export function RegistrationsPage({ showToast }) {
         />
       )}
       </div>
+
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="✅"
+        title="Registration Approved!"
+        subtitle="Player has been approved and fees generated."
+        stayLabel="Process More Registrations"
+      />
     </PageShell>
   )
 }

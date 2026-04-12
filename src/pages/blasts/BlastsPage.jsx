@@ -14,6 +14,7 @@ import { EmailService } from '../../lib/email-service'
 import { buildLynxEmail, resolveOrgBranding } from '../../lib/email-html-builder'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
@@ -30,6 +31,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
   const [showComposeModal, setShowComposeModal] = useState(false)
   const [selectedBlast, setSelectedBlast] = useState(null)
   const [filterType, setFilterType] = useState('all')
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
   
   // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
   function getSportSeasonIds() {
@@ -308,7 +310,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           teams={teams}
           isCoach={isCoach}
           onClose={() => setShowComposeModal(false)}
-          onSent={() => { loadBlasts(); setShowComposeModal(false) }}
+          onSent={() => { loadBlasts(); setShowComposeModal(false); setTrackerSuccessInfo('Announcement') }}
           showToast={showToast}
         />
       )}
@@ -321,6 +323,15 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           showToast={showToast}
         />
       )}
+
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="📢"
+        title="Announcement Sent!"
+        subtitle="Your announcement has been delivered to all recipients."
+        stayLabel="Send Another"
+      />
     </PageShell>
   )
 }

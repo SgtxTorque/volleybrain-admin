@@ -19,6 +19,7 @@ import { generateInviteCode, createInvitation } from '../../lib/invite-utils'
 import { EmailService } from '../../lib/email-service'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import EmailCoachesModal from './EmailCoachesModal'
@@ -54,6 +55,7 @@ export function CoachesPage({ showToast }) {
   const [selectedCoachForDetail, setSelectedCoachForDetail] = useState(null)
   const [showEmailBlast, setShowEmailBlast] = useState(false)
   const [showInviteCoach, setShowInviteCoach] = useState(false)
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
 
   useEffect(() => {
     if (selectedSeason?.id) { loadCoaches(); loadTeams() }
@@ -172,7 +174,9 @@ export function CoachesPage({ showToast }) {
           } catch (_) { /* non-critical */ }
         }
       }
-      setShowAddModal(false); setEditingCoach(null); loadCoaches()
+      setShowAddModal(false); setEditingCoach(null);
+      setTrackerSuccessInfo(`${formData.first_name || ''} ${formData.last_name || ''}`.trim() || 'Coach')
+      loadCoaches()
     } catch (err) { showToast(`Error creating coach: ${err.message}`, 'error') }
   }
 
@@ -421,6 +425,15 @@ export function CoachesPage({ showToast }) {
           showToast={showToast}
         />
       )}
+
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="👨‍🏫"
+        title="Coach Added!"
+        subtitle={`${trackerSuccessInfo} has been added to the staff.`}
+        stayLabel="Add Another Coach"
+      />
     </PageShell>
   )
 }
