@@ -760,6 +760,47 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               activeTeam={activeTeam}
             />
 
+            {/* OPEN REGISTRATIONS BANNER — shows for returning parents who may need to register for a new season */}
+            {(() => {
+              const registeredSeasonIds = new Set(registrationData.map(c => c.season?.id).filter(Boolean))
+              const unregisteredSeasons = openSeasons.filter(s => !registeredSeasonIds.has(s.id))
+              if (unregisteredSeasons.length === 0) return null
+              return (
+                <div style={{
+                  background: isDark ? 'rgba(75,185,236,0.08)' : '#e8f6fd',
+                  border: `1px solid ${isDark ? 'rgba(75,185,236,0.2)' : '#b8e2f8'}`,
+                  borderRadius: 14, padding: '14px 18px', marginBottom: 2,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 22 }}>📝</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: isDark ? '#e2e8f0' : '#10284C', margin: 0 }}>
+                        {unregisteredSeasons.length === 1
+                          ? `Registration is open for ${unregisteredSeasons[0].name}!`
+                          : `${unregisteredSeasons.length} seasons have open registration!`
+                        }
+                      </p>
+                      <p style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', margin: '2px 0 0' }}>
+                        Register now to secure your spot.
+                      </p>
+                    </div>
+                    <a
+                      href={getRegistrationUrl(unregisteredSeasons[0])}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '8px 16px', background: '#4BB9EC', color: '#fff',
+                        fontSize: 13, fontWeight: 600, borderRadius: 14,
+                        textDecoration: 'none', whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Register →
+                    </a>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* INNER FLEX: Content + Engagement Column side by side */}
             <div className="lynx-parent-layout" style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
