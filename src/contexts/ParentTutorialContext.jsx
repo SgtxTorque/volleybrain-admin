@@ -62,13 +62,13 @@ export const PARENT_CHECKLIST = [
     checkFn: (data) => data.isRegistered,
     navTo: null, // Admin action — parent can't do this themselves
   },
-  { 
-    id: 'add_player_photo', 
-    title: 'Add Player Photo', 
-    description: 'Upload a photo for the player card',
+  {
+    id: 'add_player_photo',
+    title: 'Add Player Photo',
+    description: 'Tap your child\'s player card on the dashboard to upload a photo',
     icon: '📷',
     checkFn: (data) => data.hasPhoto,
-    navTo: null, // Photo upload is on dashboard hero card
+    navTo: 'dashboard', // Photo upload is on the KidCards component on the dashboard
   },
   { 
     id: 'make_payment', 
