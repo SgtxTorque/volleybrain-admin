@@ -979,7 +979,7 @@ function MainApp() {
 
       // Fallback: if coaches table didn't find anything, check user_roles
       if (!coachLink) {
-        const isCoachByRole = roles?.some(r => r.role === 'coach')
+        const isCoachByRole = roles?.some(r => ['head_coach', 'assistant_coach', 'team_manager'].includes(r.role))
         if (isCoachByRole) {
           // user_roles says coach but coaches table query failed (RLS, empty seasons, etc.)
           // Create a minimal coachLink so they route to CoachDashboard
