@@ -30,7 +30,7 @@ const ADMIN_STEPS = [
     id: 'assign_coaches',
     title: 'Assign coaches to teams',
     description: 'Give each team a head coach so they can see their roster.',
-    completionCheck: (d) => d.teamsCount > 0, // proxy: teams exist = org is managing coaches (no coach query available)
+    completionCheck: (d) => d.coachesAssignedCount > 0,
     ctaLabel: 'Go to Staff Portal',
     navigateTo: '/coaches',
     milestone: 'Key step',
@@ -98,6 +98,7 @@ export default function LifecycleTracker({
   seasonId,
   programId,
   teamsCount = 0,
+  coachesAssignedCount = 0,
   playersCount = 0,
   eventsCount = 0,
   registrationsCount = 0,
@@ -115,6 +116,7 @@ export default function LifecycleTracker({
   // Compute step completion from props
   const data = {
     teamsCount,
+    coachesAssignedCount,
     playersCount,
     eventsCount,
     registrationsCount,

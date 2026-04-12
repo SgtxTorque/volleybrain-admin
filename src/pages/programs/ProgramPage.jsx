@@ -233,7 +233,7 @@ export default function ProgramPage({ showToast }) {
 
       const [teamsRes, playersRes, regsRes, paymentsRes, eventsRes, waiversRes] = await Promise.all([
         supabase.from('teams')
-          .select('*, team_players(count), season:seasons(id, name, sport:sports(id, name, icon))')
+          .select('*, team_players(count), team_coaches(count), season:seasons(id, name, sport:sports(id, name, icon))')
           .in('season_id', programSeasonIds)
           .order('name'),
 
@@ -882,6 +882,7 @@ export default function ProgramPage({ showToast }) {
                       seasonId={selectedProgramSeason?.id || selectedSeason?.id || programSeasons[0]?.id || ''}
                       programId={programId}
                       teamsCount={tabTeams.length}
+                      coachesAssignedCount={tabTeams.reduce((sum, t) => sum + (t.team_coaches?.[0]?.count || 0), 0)}
                       playersCount={tabPlayers?.length || 0}
                       eventsCount={tabEvents.length}
                       registrationsCount={tabRegistrations.length}
