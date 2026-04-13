@@ -778,9 +778,8 @@ export default function ProgramPage({ showToast }) {
     ...(isAdmin ? [{
       id: 'setup',
       label: 'Season Setup',
-      badge: setupIncomplete ? `${setupComplete}/${setupTotal}` : undefined,
+      badge: `${setupComplete}/${setupTotal}`,
       badgeColor: setupIncomplete ? '#4BB9EC' : '#10B981',
-      badgeIcon: !setupIncomplete ? '✓' : undefined,
     }] : []),
     { id: 'teams', label: 'Teams', badge: tabTeams.length > 0 ? tabTeams.length : undefined },
     { id: 'registrations', label: 'Registrations', badge: tabPendingRegs > 0 ? tabPendingRegs : undefined },

@@ -257,7 +257,7 @@ export default function LifecycleTracker({
 
       {/* ─── Steps List ─── */}
       {(!allDone || !showCelebration) && (
-        <div className={`rounded-b-[14px] divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-slate-100'} ${cardBg}`}>
+        <div className={`rounded-b-[14px] divide-y pb-2 ${isDark ? 'divide-white/[0.06]' : 'divide-slate-100'} ${cardBg}`}>
           {steps.map((step, i) => {
             const isCurrent = currentStep?.id === step.id
             const isBlocked = step.blocked
