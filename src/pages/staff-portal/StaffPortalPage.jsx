@@ -13,6 +13,7 @@ import { EmailService } from '../../lib/email-service'
 import { generateInviteCode } from '../../lib/invite-utils'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
+import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
 import PersonCard from './PersonCard'
 import PersonDetailPanel from './PersonDetailPanel'
 import EmailCoachesModal from '../coaches/EmailCoachesModal'
@@ -542,6 +543,7 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
         </div>
       }
     >
+      <TrackerReturnBanner />
       <SeasonFilterBar />
 
       {/* Navy Overview Header */}
