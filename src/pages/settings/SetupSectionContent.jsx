@@ -552,8 +552,8 @@ function SetupSectionContent({
                     onClick={() => updateField('ageSystem', 'grade')}
                     className={`flex-1 px-3 py-2 rounded-lg border-2 text-center transition-all text-sm ${
                       localData.ageSystem === 'grade'
-                        ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 font-medium'
-                        : `${tc.border}`
+                        ? 'border-[#4BB9EC] bg-[#4BB9EC]/10 text-[#4BB9EC] font-medium'
+                        : `${tc.border} text-gray-600 dark:text-slate-300`
                     }`}
                   >
                     📚 Grade-Based
@@ -562,8 +562,8 @@ function SetupSectionContent({
                     onClick={() => updateField('ageSystem', 'age')}
                     className={`flex-1 px-3 py-2 rounded-lg border-2 text-center transition-all text-sm ${
                       localData.ageSystem === 'age'
-                        ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 font-medium'
-                        : `${tc.border}`
+                        ? 'border-[#4BB9EC] bg-[#4BB9EC]/10 text-[#4BB9EC] font-medium'
+                        : `${tc.border} text-gray-600 dark:text-slate-300`
                     }`}
                   >
                     🎂 Age-Based
@@ -591,7 +591,7 @@ function SetupSectionContent({
                             className={`px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${
                               isActive
                                 ? 'bg-[#4BB9EC] text-white border-[#4BB9EC]'
-                                : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
+                                : 'border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:border-[#4BB9EC]/40'
                             }`}
                           >
                             {isActive && '✓ '}{div}
