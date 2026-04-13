@@ -39,11 +39,11 @@ export function SeasonFormModal({
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs — Registration config moved to Lifecycle Tracker Step 2 */}
         <div className={`flex border-b ${tc.border}`}>
           {[
             { id: 'basic', label: 'Basic Info' },
-            { id: 'registration', label: 'Registration' },
+            // { id: 'registration', label: 'Registration' }, // Moved to RegistrationSetupModal (Lifecycle Step 2)
             { id: 'fees', label: 'Fees & Pricing' },
           ].map(tab => (
             <button
@@ -66,10 +66,10 @@ export function SeasonFormModal({
             <BasicInfoTab form={form} setForm={setForm} sports={sports} tc={tc} isDark={isDark} showErrors={showErrors} selectedProgram={selectedProgram} />
           )}
 
-          {/* Registration Tab */}
-          {modalTab === 'registration' && (
+          {/* Registration Tab — moved to Lifecycle Tracker Step 2 (RegistrationSetupModal) */}
+          {/* {modalTab === 'registration' && (
             <RegistrationTab form={form} setForm={setForm} templates={templates} tc={tc} isDark={isDark} />
-          )}
+          )} */}
 
           {/* Fees Tab */}
           {modalTab === 'fees' && (
@@ -94,7 +94,7 @@ export function SeasonFormModal({
             <div className="flex gap-3">
               {modalTab !== 'basic' && (
                 <button
-                  onClick={() => setModalTab(modalTab === 'fees' ? 'registration' : 'basic')}
+                  onClick={() => setModalTab('basic')}
                   className={`px-6 py-2 rounded-[14px] border ${tc.border} ${tc.text}`}
                 >
                   Back
@@ -102,7 +102,7 @@ export function SeasonFormModal({
               )}
               {modalTab !== 'fees' ? (
                 <button
-                  onClick={() => setModalTab(modalTab === 'basic' ? 'registration' : 'fees')}
+                  onClick={() => setModalTab('fees')}
                   className="px-6 py-2 rounded-[14px] bg-lynx-navy text-white font-bold hover:brightness-110"
                 >
                   Next
