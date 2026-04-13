@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { Check, Lock, ChevronRight } from 'lucide-react'
+import RegistrationSetupModal from '../../ui/RegistrationSetupModal'
 
 // ---------- Step definitions ----------
 const ADMIN_STEPS = [
@@ -17,6 +18,15 @@ const ADMIN_STEPS = [
     completionCheck: () => true, // Always done — we're on the season's program page
     ctaLabel: null,
     navigateTo: null,
+  },
+  {
+    id: 'registration_setup',
+    title: 'Set up registration form',
+    description: 'Choose what info families fill out and set registration dates.',
+    completionCheck: (d) => Boolean(d.hasRegistrationTemplate || d.registrationOpen),
+    ctaLabel: 'Set Up Registration',
+    navigateTo: null,
+    action: 'openRegistrationModal',
   },
   {
     id: 'create_teams',
@@ -39,7 +49,7 @@ const ADMIN_STEPS = [
   },
   {
     id: 'open_registration',
-    title: 'Open registration & share link',
+    title: 'Share registration link — GO LIVE!',
     description: 'Share your registration link with families via email, QR code, or social.',
     completionCheck: (d) => d.registrationsCount > 0 || d.playersCount > 0,
     ctaLabel: 'Share Registration',
@@ -67,7 +77,7 @@ const ADMIN_STEPS = [
   },
   {
     id: 'send_announcement',
-    title: 'Send your first announcement',
+    title: 'Send your first announcement — LAUNCH!',
     description: 'Welcome families to the season — let them know you\'re ready!',
     completionCheck: (d) => d.playersCount > 0 && d.eventsCount > 0 && d.approvedRegsCount > 0,
     ctaLabel: 'Send Announcement',
@@ -97,6 +107,7 @@ export default function LifecycleTracker({
   seasonName,
   seasonId,
   programId,
+  organizationId,
   teamsCount = 0,
   coachesAssignedCount = 0,
   playersCount = 0,
@@ -105,13 +116,17 @@ export default function LifecycleTracker({
   approvedRegsCount = 0,
   paymentsCollected = 0,
   paymentsExpected = 0,
+  hasRegistrationTemplate = false,
+  registrationOpen = false,
   showToast,
   navigate,
   onOpenRegLink,
+  onRefreshSeason,
 }) {
   const { isDark } = useTheme()
   const prevCompleted = useRef(new Set())
   const [showCelebration, setShowCelebration] = useState(false)
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
 
   // Compute step completion from props
   const data = {
@@ -123,6 +138,8 @@ export default function LifecycleTracker({
     approvedRegsCount,
     paymentsCollected,
     paymentsExpected,
+    hasRegistrationTemplate,
+    registrationOpen,
   }
 
   const steps = ADMIN_STEPS.map(step => {
@@ -169,6 +186,10 @@ export default function LifecycleTracker({
 
   // CTA click handler
   const handleCTA = (step) => {
+    if (step.action === 'openRegistrationModal') {
+      setShowRegistrationModal(true)
+      return
+    }
     if (step.action === 'openRegLink') {
       onOpenRegLink?.()
       return
@@ -191,6 +212,7 @@ export default function LifecycleTracker({
   const textMuted = isDark ? 'text-slate-400' : 'text-slate-500'
 
   return (
+    <>
     <div className="space-y-0">
       {/* ─── Hero Header ─── */}
       <div
@@ -343,5 +365,19 @@ export default function LifecycleTracker({
         </div>
       )}
     </div>
+
+    <RegistrationSetupModal
+      isOpen={showRegistrationModal}
+      onClose={() => setShowRegistrationModal(false)}
+      seasonId={seasonId}
+      seasonName={seasonName}
+      organizationId={organizationId}
+      onComplete={() => {
+        onRefreshSeason?.()
+        setShowRegistrationModal(false)
+        showToast?.('Registration setup saved!', 'success')
+      }}
+    />
+    </>
   )
 }

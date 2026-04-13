@@ -901,6 +901,7 @@ export default function ProgramPage({ showToast }) {
                       seasonName={selectedProgramSeason?.name || selectedSeason?.name || programSeasons[0]?.name || ''}
                       seasonId={selectedProgramSeason?.id || selectedSeason?.id || programSeasons[0]?.id || ''}
                       programId={programId}
+                      organizationId={organization?.id}
                       teamsCount={tabTeams.length}
                       coachesAssignedCount={tabTeams.reduce((sum, t) => sum + (t.team_coaches?.[0]?.count || 0), 0)}
                       playersCount={tabPlayers?.length || 0}
@@ -909,9 +910,12 @@ export default function ProgramPage({ showToast }) {
                       approvedRegsCount={tabRegistrations.filter(r => r.status === 'approved' || r.status === 'rostered').length}
                       paymentsCollected={tabPayments.filter(p => p.paid).reduce((sum, p) => sum + (Number(p.amount) || 0), 0)}
                       paymentsExpected={tabPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)}
+                      hasRegistrationTemplate={Boolean((selectedProgramSeason || programSeasons[0])?.registration_template_id)}
+                      registrationOpen={Boolean((selectedProgramSeason || programSeasons[0])?.registration_open)}
                       showToast={showToast}
                       navigate={navigate}
                       onOpenRegLink={() => setShowRegLinkModal(true)}
+                      onRefreshSeason={loadProgramData}
                     />
                   )}
                   {activeTab === 'teams' && (
