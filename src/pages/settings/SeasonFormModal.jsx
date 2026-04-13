@@ -256,10 +256,16 @@ function RegistrationTab({ form, setForm, templates, tc, isDark }) {
         </select>
         <p className={`text-xs ${tc.textMuted} mt-1`}>
           Select which registration form to use for this season.
-          <a href="#" onClick={(e) => { e.preventDefault(); window.open('/templates', '_blank') }} className="text-lynx-sky hover:underline ml-1">
+          <a href="#" onClick={(e) => { e.preventDefault(); window.open('/settings/templates', '_blank') }} className="text-lynx-sky hover:underline ml-1">
             Manage templates
           </a>
         </p>
+        {!form.registration_template_id && (
+          <div className={`mt-2 p-3 ${tc.cardBgAlt} rounded-[14px] text-xs ${tc.textMuted}`}>
+            <p className={`font-medium ${tc.textSecondary} mb-1`}>Default form collects:</p>
+            <p>Player info (name, DOB, gender, grade, jersey size), parent contact, emergency contact, and medical information.</p>
+          </div>
+        )}
       </div>
 
       <div className={`${tc.cardBgAlt} rounded-[14px] p-4 mb-4`}>
