@@ -914,7 +914,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       // BATON PASS: Notify admin that new registration(s) were submitted
       try {
         const playerNames = allChildren.map(c => `${c.first_name} ${c.last_name}`).join(', ')
-        await supabase.from('admin_notifications').insert({
+        const { error: bpErr } = await supabase.from('admin_notifications').insert({
           organization_id: organization?.id,
           type: 'registration_new',
           title: 'New Registration',
@@ -929,8 +929,9 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             player_count: allChildren.length,
           }
         })
+        if (bpErr) console.error('Baton pass failed (registration→admin):', bpErr.message, bpErr.details, bpErr.hint)
       } catch (err) {
-        console.error('Baton pass failed (registration→admin):', err)
+        console.error('Baton pass failed (registration→admin):', err?.message, err?.details, err?.hint)
       }
 
       // BATON PASS: Email admin about new registration
@@ -958,7 +959,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           })
         }
       } catch (err) {
-        console.error('Baton pass failed (registration→admin email):', err)
+        console.error('Baton pass failed (registration→admin email):', err?.message, err?.details, err?.hint)
       }
 
       sessionStorage.removeItem(DRAFT_KEY)

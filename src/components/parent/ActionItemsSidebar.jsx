@@ -243,7 +243,7 @@ export function QuickRsvpModal({ event, userId, playerId, onClose, onRsvp, showT
             await supabase.from('notifications').insert(notifications)
           }
         } catch (notifErr) {
-          console.error('Baton pass failed (RSVP→coach):', notifErr)
+          console.error('Baton pass failed (RSVP→coach):', notifErr?.message, notifErr?.details, notifErr?.hint)
         }
       }
 

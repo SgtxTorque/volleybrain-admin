@@ -1527,7 +1527,7 @@ export function RegistrationCartPage() {
           }
         })
       } catch (err) {
-        console.error('Baton pass failed (registration→admin):', err)
+        console.error('Baton pass failed (registration→admin):', err?.message, err?.details, err?.hint)
       }
 
       // BATON PASS: Email admin about new registration
@@ -1556,7 +1556,7 @@ export function RegistrationCartPage() {
           })
         }
       } catch (err) {
-        console.error('Baton pass failed (registration→admin email):', err)
+        console.error('Baton pass failed (registration→admin email):', err?.message, err?.details, err?.hint)
       }
 
       setRegistrationIds(createdRegistrationIds)

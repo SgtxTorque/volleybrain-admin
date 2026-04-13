@@ -275,7 +275,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
             await supabase.from('notifications').insert(notifications)
           }
         } catch (notifErr) {
-          console.error('Baton pass failed (schedule→parents):', notifErr)
+          console.error('Baton pass failed (schedule→parents):', notifErr?.message, notifErr?.details, notifErr?.hint)
         }
       }
       loadEvents()

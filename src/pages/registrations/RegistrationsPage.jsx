@@ -176,7 +176,7 @@ export function RegistrationsPage({ showToast }) {
         // BATON PASS: In-app + push notification to parent
         if (playerData?.parent_account_id) {
           try {
-            await supabase.from('notifications').insert({
+            const { error: bpErr } = await supabase.from('notifications').insert({
               user_id: playerData.parent_account_id,
               organization_id: organization?.id,
               type: 'registration_approved',
@@ -189,8 +189,9 @@ export function RegistrationsPage({ showToast }) {
               },
               read: false,
             })
+            if (bpErr) console.error('Baton pass failed (approval→parent push):', bpErr.message, bpErr.details, bpErr.hint)
           } catch (notifErr) {
-            console.error('Baton pass failed (approval→parent push):', notifErr)
+            console.error('Baton pass failed (approval→parent push):', notifErr?.message, notifErr?.details, notifErr?.hint)
           }
         }
 
@@ -295,7 +296,7 @@ export function RegistrationsPage({ showToast }) {
         // BATON PASS: In-app + push notification to parent
         if (player.parent_account_id) {
           try {
-            await supabase.from('notifications').insert({
+            const { error: bpErr } = await supabase.from('notifications').insert({
               user_id: player.parent_account_id,
               organization_id: organization?.id,
               type: 'registration_approved',
@@ -308,8 +309,9 @@ export function RegistrationsPage({ showToast }) {
               },
               read: false,
             })
+            if (bpErr) console.error('Baton pass failed (bulk approval→parent push):', bpErr.message, bpErr.details, bpErr.hint)
           } catch (notifErr) {
-            console.error('Baton pass failed (bulk approval→parent push):', notifErr)
+            console.error('Baton pass failed (bulk approval→parent push):', notifErr?.message, notifErr?.details, notifErr?.hint)
           }
         }
       } catch (err) {
