@@ -432,11 +432,11 @@ export function SetupWizard({ onComplete, onBack }) {
           .maybeSingle()
 
         if (!accountInvite) {
-          // Check coaches table — invite codes are lowercase hex
+          // Check coaches table — codes are 8-char uppercase (legacy may be 16-char lowercase hex)
           const { data: coachInvite } = await supabase
             .from('coaches')
             .select('id, invite_code, invite_status')
-            .eq('invite_code', inviteCode.toLowerCase())
+            .ilike('invite_code', inviteCode)
             .eq('invite_status', 'invited')
             .maybeSingle()
 
