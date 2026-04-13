@@ -199,7 +199,7 @@ export function CoachesPage({ showToast }) {
   async function resendInvite(coach) {
     try {
       // Generate a new invite code
-      const newInviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
+      const newInviteCode = generateInviteCode()
 
       // Update the coaches record with new code
       await supabase.from('coaches').update({
