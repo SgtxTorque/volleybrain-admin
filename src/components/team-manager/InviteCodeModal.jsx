@@ -7,15 +7,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { X, Copy, Share2, Check, RefreshCw } from '../../constants/icons'
-
-function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return code
-}
+import { generateTeamInviteCode } from '../../lib/invite-utils'
 
 export default function InviteCodeModal({ teamId, teamName, onClose, showToast }) {
   const { isDark } = useTheme()
@@ -55,7 +47,7 @@ export default function InviteCodeModal({ teamId, teamName, onClose, showToast }
         setCode(existing.code)
       } else {
         // Generate and insert a new code
-        const newCode = generateCode()
+        const newCode = generateTeamInviteCode()
         const { error: insertError } = await supabase
           .from('team_invite_codes')
           .insert({

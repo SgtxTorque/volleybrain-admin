@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase'
 import {
   ChevronLeft, ChevronRight, Check, Copy, Share2, Users, Calendar, Trophy
 } from '../../constants/icons'
+import { generateTeamInviteCode } from '../../lib/invite-utils'
 
 const SPORT_OPTIONS = [
   { value: 'volleyball', label: 'Volleyball', icon: '🏐' },
@@ -37,13 +38,6 @@ function getDefaultSeasonName() {
   if (month >= 5 && month <= 7) return `Summer ${year}`
   if (month >= 8 && month <= 10) return `Fall ${year}`
   return `Winter ${year}`
-}
-
-function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length))
-  return code
 }
 
 export default function TeamManagerSetup({ roleContext, showToast, onComplete }) {
@@ -216,7 +210,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
       // ── Step 7: Generate invite code (graceful if table missing) ──
       let code = null
       try {
-        code = generateCode()
+        code = generateTeamInviteCode()
         await supabase.from('team_invite_codes').insert({
           team_id: newTeam.id,
           code,

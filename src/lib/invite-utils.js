@@ -14,6 +14,19 @@ export function generateInviteCode() {
 }
 
 /**
+ * Generate a short, readable invite code for teams.
+ * 6 characters, uppercase alphanumeric (no I, O, 0, 1 to avoid confusion).
+ */
+export function generateTeamInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
+
+/**
  * Generate a secure invite token (longer, for email magic links).
  * 40 chars hex — more secure than 8-char readable code.
  */
