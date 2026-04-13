@@ -10,7 +10,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { X, Copy, Link, Mail, Share2, UserPlus, CheckCircle2 } from 'lucide-react'
 import { EmailService } from '../../lib/email-service'
-import { checkExistingAccount, createInvitation, acceptInvitation, grantRole } from '../../lib/invite-utils'
+import { generateInviteCode, checkExistingAccount, createInvitation, acceptInvitation, grantRole } from '../../lib/invite-utils'
 
 const COACH_ROLES = [
   { value: 'head', label: 'Head Coach' },
@@ -207,7 +207,7 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
     }
 
     // 1. Create a pending coach record with invite code
-    const inviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
+    const inviteCode = generateInviteCode()
 
     const { data: pendingCoach, error: coachError } = await supabase
       .from('coaches')
