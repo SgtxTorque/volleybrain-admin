@@ -14,6 +14,7 @@ import { generateInviteCode } from '../../lib/invite-utils'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import PersonCard from './PersonCard'
 import PersonDetailPanel from './PersonDetailPanel'
 import EmailCoachesModal from '../coaches/EmailCoachesModal'
@@ -58,6 +59,9 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
 
   // Selection & detail
   const [selectedPerson, setSelectedPerson] = useState(null)
+
+  // Tracker popup
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
 
   // Modals
   const [showCoachForm, setShowCoachForm] = useState(false)
@@ -203,6 +207,7 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
         const { error } = await supabase.from('coaches').insert({ ...cleaned, season_id: selectedSeason.id, invite_code: generateInviteCode() })
         if (error) throw error
         showToast('Coach added', 'success')
+        setTrackerSuccessInfo(`${cleaned.first_name || ''} ${cleaned.last_name || ''}`.trim() || 'Coach')
       }
       setShowCoachForm(false); setEditingCoach(null); loadAll()
     } catch (err) { showToast(`Error: ${err.message}`, 'error') }
@@ -258,6 +263,7 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
         })
         if (error) throw error
         showToast('Staff member added', 'success')
+        setTrackerSuccessInfo(`${formData.first_name || ''} ${formData.last_name || ''}`.trim() || 'Staff Member')
       }
       setShowStaffForm(false); setEditingStaff(null); loadAll()
     } catch (err) { showToast(`Error: ${err.message}`, 'error') }
@@ -806,6 +812,15 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
           showToast={showToast}
         />
       )}
+
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="👨‍🏫"
+        title="Staff Added!"
+        subtitle={`${trackerSuccessInfo} has been added to the staff.`}
+        stayLabel="Add Another Person"
+      />
     </PageShell>
   )
 }
