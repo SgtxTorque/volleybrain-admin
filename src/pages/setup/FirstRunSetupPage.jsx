@@ -285,6 +285,48 @@ export default function FirstRunSetupPage({ showToast }) {
       })
       setSetupData(prev => ({ ...prev, ...data }))
 
+      // ── Auto-create programs for each enabled sport (only on sports step) ──
+      if (sectionKey === 'sports' && Array.isArray(data.enabledSports)) {
+        try {
+          const { data: existingPrograms } = await supabase
+            .from('programs')
+            .select('id, name, sport_id')
+            .eq('organization_id', organization.id)
+
+          const existingNames = new Set(
+            (existingPrograms || []).map(p => p.name.toLowerCase())
+          )
+
+          const { data: sportRecords } = await supabase
+            .from('sports')
+            .select('id, name')
+
+          const sportMap = Object.fromEntries(
+            (sportRecords || []).map(s => [s.name.toLowerCase(), s])
+          )
+
+          const sportsToCreate = data.enabledSports.filter(
+            sportName => !existingNames.has(sportName.toLowerCase())
+          )
+
+          for (const sportName of sportsToCreate) {
+            const sportRecord = sportMap[sportName.toLowerCase()]
+            const programName = sportRecord?.name
+              || sportName.charAt(0).toUpperCase() + sportName.slice(1)
+
+            await supabase.from('programs').insert({
+              organization_id: organization.id,
+              name: programName,
+              sport_id: sportRecord?.id || null,
+              is_active: true,
+              display_order: (existingPrograms?.length || 0) + sportsToCreate.indexOf(sportName),
+            })
+          }
+        } catch (err) {
+          console.error('Auto-create programs failed (non-blocking):', err)
+        }
+      }
+
       return true
     } catch (err) {
       console.error('Save error:', err)
