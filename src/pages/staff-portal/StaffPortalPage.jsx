@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { exportToCSV } from '../../lib/csv-export'
 import {
   Users, Search, Plus, Download, Mail, UserPlus, Grid, List,
-  ChevronDown, X, Clock, RefreshCw, Trash2
+  ChevronDown, X, Clock, RefreshCw, Trash2, Copy, Share2
 } from '../../constants/icons'
 import { EmailService } from '../../lib/email-service'
 import { generateInviteCode } from '../../lib/invite-utils'
@@ -643,6 +643,8 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
                 isDark={isDark}
                 onResend={handleResendInvite}
                 onCancel={handleCancelInvite}
+                showToast={showToast}
+                orgName={organization?.name}
               />
             ))}
           </div>
@@ -832,7 +834,7 @@ const roleLabelsMap = {
   head: 'Head Coach', assistant: 'Assistant Coach', manager: 'Manager', volunteer: 'Volunteer'
 }
 
-function PendingInviteCard({ coach, isDark, onResend, onCancel }) {
+function PendingInviteCard({ coach, isDark, onResend, onCancel, showToast, orgName }) {
   const [resending, setResending] = useState(false)
   const teamName = coach.assignments?.[0]?.teams?.name
   const daysSince = coach.invited_at
@@ -903,6 +905,51 @@ function PendingInviteCard({ coach, isDark, onResend, onCancel }) {
           Invited {new Date(coach.invited_at).toLocaleDateString('en-US', {
             month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
           })}
+        </div>
+      )}
+
+      {/* Mobile Invite Code */}
+      {coach.invite_code && (
+        <div className={`mb-3 pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-amber-200/60'}`}>
+          <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            Mobile Invite Code
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`flex-1 rounded-lg px-3 py-2 font-mono text-lg font-bold tracking-[0.2em] text-center ${
+              isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white' : 'bg-white border border-amber-200 text-[#10284C]'
+            }`}>
+              {coach.invite_code}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                navigator.clipboard.writeText(coach.invite_code)
+                showToast?.('Code copied!', 'success')
+              }}
+              className={`px-2.5 py-2 rounded-lg text-xs font-semibold transition ${
+                isDark ? 'text-slate-300 border border-white/[0.06] hover:bg-white/[0.06]' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50'
+              }`}
+              title="Copy code"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                const shareText = `Hey ${coach.first_name || 'Coach'}! You've been added to ${orgName || 'our club'} as a coach on Lynx. Download the app and enter this code to join:\n\nInvite Code: ${coach.invite_code}\n\nDownload Lynx: https://thelynxapp.com`
+                if (navigator.share) {
+                  navigator.share({ text: shareText })
+                } else {
+                  navigator.clipboard.writeText(shareText)
+                  showToast?.('Share text copied!', 'success')
+                }
+              }}
+              className="px-2.5 py-2 rounded-lg text-xs font-semibold text-white bg-[#4BB9EC] hover:bg-[#2a9dd4] transition"
+              title="Share code"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 

@@ -397,7 +397,9 @@ export function CoachesPage({ showToast }) {
               onAssign={() => setAssigningCoach(coach)}
               onToggleStatus={() => toggleCoachStatus(coach)}
               onDelete={() => deleteCoach(coach)}
-              onResendInvite={() => resendInvite(coach)} />
+              onResendInvite={() => resendInvite(coach)}
+              showToast={showToast}
+              orgName={organization?.name} />
           ))}
         </div>
       )}
@@ -441,7 +443,7 @@ export function CoachesPage({ showToast }) {
 // ============================================
 // COACH CARD — Redesigned (no gradient banner, kebab menu, compact layout)
 // ============================================
-function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStatus, onDelete, onResendInvite }) {
+function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStatus, onDelete, onResendInvite, showToast, orgName }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const bgCheck = bgCheckLabels[coach.background_check_status] || bgCheckLabels.not_started
 
@@ -592,6 +594,51 @@ function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStat
             </span>
           )}
         </div>
+
+        {/* Mobile Invite Code (only for pending invites) */}
+        {coach.invite_status === 'invited' && coach.invite_code && (
+          <div className={`mt-3 pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+            <div className={`text-r-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              Mobile Invite Code
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`flex-1 rounded-lg px-3 py-1.5 font-mono text-base font-bold tracking-[0.2em] text-center ${
+                isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white' : 'bg-lynx-cloud border border-lynx-silver text-[#10284C]'
+              }`}>
+                {coach.invite_code}
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigator.clipboard.writeText(coach.invite_code)
+                  showToast?.('Code copied!', 'success')
+                }}
+                className={`px-2 py-1.5 rounded-lg text-r-xs font-semibold transition ${
+                  isDark ? 'text-slate-300 border border-white/[0.06] hover:bg-white/[0.06]' : 'text-slate-600 bg-white border border-lynx-silver hover:bg-lynx-frost'
+                }`}
+                title="Copy code"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const shareText = `Hey ${coach.first_name || 'Coach'}! You've been added to ${orgName || 'our club'} as a coach on Lynx. Download the app and enter this code to join:\n\nInvite Code: ${coach.invite_code}\n\nDownload Lynx: https://thelynxapp.com`
+                  if (navigator.share) {
+                    navigator.share({ text: shareText })
+                  } else {
+                    navigator.clipboard.writeText(shareText)
+                    showToast?.('Share text copied!', 'success')
+                  }
+                }}
+                className="px-2 py-1.5 rounded-lg text-r-xs font-semibold text-white bg-[#4BB9EC] hover:bg-[#2a9dd4] transition"
+                title="Share code"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Team assignments */}
         {coach.assignments?.length > 0 && (
