@@ -275,20 +275,32 @@ export function GettingStartedGuide({ onNavigate }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <EmptyStateCTA emoji={'\uD83D\uDCC5'} title="Create Your First Season"
-              description="Define your season dates, fees, and registration windows"
-              buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
-            <EmptyStateCTA emoji={'\uD83D\uDC65'} title="Add Your First Team"
-              description="Create teams and start building your rosters"
-              buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
-            <EmptyStateCTA emoji={'\uD83D\uDCCB'} title="Open Registration"
-              description="Create a season first, then open registration for families"
-              buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
-            <EmptyStateCTA emoji={'\uD83D\uDCC6'} title="Create Schedule"
-              description="Add practices, games, and events for your teams"
-              buttonLabel="Go to Schedule" onClick={() => onNavigate?.('schedule')} isDark={isDark} />
-          </div>
+          {(() => {
+            const hasCreatedSeason = journeyCompletedSteps.includes('create_season')
+            const hasAddedTeams = journeyCompletedSteps.includes('add_teams')
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <EmptyStateCTA emoji={'\uD83D\uDCC5'} title="Create Your First Season"
+                  description="Define your season dates, fees, and registration windows"
+                  buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
+                <div className={!hasCreatedSeason ? 'opacity-50 pointer-events-none' : ''}>
+                  <EmptyStateCTA emoji={'\uD83D\uDC65'} title="Add Your First Team"
+                    description={hasCreatedSeason ? "Create teams and start building your rosters" : "Create a season first"}
+                    buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
+                </div>
+                <div className={!hasCreatedSeason ? 'opacity-50 pointer-events-none' : ''}>
+                  <EmptyStateCTA emoji={'\uD83D\uDCCB'} title="Open Registration"
+                    description={hasCreatedSeason ? "Share your registration link with families" : "Create a season first"}
+                    buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
+                </div>
+                <div className={!(hasCreatedSeason && hasAddedTeams) ? 'opacity-50 pointer-events-none' : ''}>
+                  <EmptyStateCTA emoji={'\uD83D\uDCC6'} title="Create Schedule"
+                    description={hasCreatedSeason && hasAddedTeams ? "Add practices, games, and events for your teams" : "Create a season and add teams first"}
+                    buttonLabel="Go to Schedule" onClick={() => onNavigate?.('schedule')} isDark={isDark} />
+                </div>
+              </div>
+            )
+          })()}
         </>
       )}
     </div>
