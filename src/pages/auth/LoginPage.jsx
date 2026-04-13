@@ -4,6 +4,7 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 
 import { supabase } from '../../lib/supabase'
 import { isFeatureEnabled } from '../../config/feature-flags'
+import { generateInviteToken } from '../../lib/invite-utils'
 
 /* ─── SVG brand logos ─── */
 function GoogleLogo() {
@@ -196,7 +197,7 @@ export function LoginPage({ initialMode, onBack }) {
           .maybeSingle()
 
         if (family?.organization_id) {
-          const inviteCode = crypto.randomUUID()
+          const inviteCode = generateInviteToken()
           const { error: inviteError } = await supabase
             .from('invitations')
             .insert({
