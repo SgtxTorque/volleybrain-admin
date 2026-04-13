@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useProgram } from '../../contexts/ProgramContext'
 import { useSeason } from '../../contexts/SeasonContext'
@@ -153,6 +153,7 @@ function ProgramEmptyState({ program, onCreateSeason }) {
 export default function ProgramPage({ showToast }) {
   const { programId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user, organization, isAdmin } = useAuth()
   const { programs, selectedProgram, selectProgram, refreshPrograms } = useProgram()
   const { allSeasons, selectedSeason, selectSeason, refreshSeasons } = useSeason()
@@ -163,9 +164,10 @@ export default function ProgramPage({ showToast }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [timedOut, setTimedOut] = useState(false)
-  // Default to 'setup' tab when setup is incomplete, else 'teams'
-  const [activeTab, setActiveTab] = useState('teams')
-  const [setupTabInitialized, setSetupTabInitialized] = useState(false)
+  // Read tab from URL param (e.g., ?tab=setup) for back-navigation preservation
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(tabParam || 'teams')
+  const [setupTabInitialized, setSetupTabInitialized] = useState(!!tabParam)
 
   // Data
   const [teams, setTeams] = useState([])

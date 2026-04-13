@@ -176,7 +176,7 @@ export default function LifecycleTracker({
     if (step.navigateTo && navigate) {
       const params = new URLSearchParams({
         from: 'tracker',
-        returnTo: `/programs/${programId}`,
+        returnTo: `/programs/${programId}?tab=setup`,
         season: seasonName || '',
         step: String(steps.indexOf(step) + 1),
         total: String(totalCount),
