@@ -737,6 +737,58 @@ function OrganizationPage({ showToast }) {
     )
   }
 
+  // Check whether a section's data has ever been explicitly written to the DB.
+  // Used to decide whether to show "✓ Saved" or "Save" on the button.
+  function sectionSavedToDB(sectionKey) {
+    const raw = organization?.settings || {}
+    switch (sectionKey) {
+      case 'identity': return Boolean(raw.short_name || raw.primary_color)
+      case 'contact': return Boolean(raw.contact_name || raw.phone)
+      case 'sports': return Array.isArray(raw.enabled_sports) && raw.enabled_sports.length > 0
+      case 'online': return Boolean(raw.website || raw.facebook || raw.instagram)
+      case 'legal': return Boolean(raw.legal_name)
+      case 'payments': return Boolean(raw.payment_methods && Object.keys(raw.payment_methods).length > 0)
+      case 'fees': return 'default_registration_fee' in raw
+      case 'facilities': return venues.length > 0
+      case 'registration': return 'auto_approve_registrations' in raw
+      case 'registrationForm': return Boolean(raw.registration_fields) || Boolean(organization?.registration_template_id)
+      case 'coaches': return 'require_background_check' in raw
+      case 'jerseys': return Boolean(raw.jersey_vendor) || 'jersey_number_start' in raw
+      case 'notifications': return 'email_notifications_enabled' in raw || 'game_reminder_hours' in raw
+      case 'volunteers': return 'require_volunteer_hours' in raw
+      case 'branding': return Boolean(raw.branding?.primary_color)
+      case 'staff': return false // staff is checked by adminUsers count, not settings
+      default: return false
+    }
+  }
+
+  // Complete Setup handler — sets setup_complete flag
+  async function handleCompleteSetup() {
+    const currentSettings = organization?.settings || {}
+    const { error } = await supabase
+      .from('organizations')
+      .update({
+        settings: {
+          ...currentSettings,
+          setup_complete: true,
+          setup_completed_at: new Date().toISOString(),
+        }
+      })
+      .eq('id', organization.id)
+
+    if (!error) {
+      setOrganization({
+        ...organization,
+        settings: {
+          ...currentSettings,
+          setup_complete: true,
+          setup_completed_at: new Date().toISOString(),
+        }
+      })
+      showToast?.('Setup complete! All features are now unlocked.', 'success')
+    }
+  }
+
   // Count statuses — drive the copy under the progress bar from required sections only
   const completedCount = requiredSections.filter(s => getSectionStatus(s.key).status === 'complete').length
   const inProgressCount = requiredSections.filter(s => getSectionStatus(s.key).status === 'partial').length
@@ -833,7 +885,28 @@ function OrganizationPage({ showToast }) {
               All set! Your club is ready to rock. {'\ud83c\udf89'}
             </p>
           )}
+          {organization?.settings?.setup_complete && (
+            <div className="flex items-center gap-2 text-[#22C55E] text-sm font-medium mt-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Setup complete — all features unlocked
+            </div>
+          )}
         </div>
+        {overallPercent === 100 && !organization?.settings?.setup_complete && (
+          <div className="mt-4 p-4 bg-white/10 rounded-[14px] text-center">
+            <p className="text-sm font-medium text-white/80 mb-3">
+              All essentials are complete! Finish setup to unlock all features.
+            </p>
+            <button
+              onClick={handleCompleteSetup}
+              className="px-6 py-3 bg-[#22C55E] text-white font-bold rounded-[14px] hover:bg-[#16A34A] transition-colors"
+            >
+              Complete Organization Setup
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2-Column Layout — desktop */}
@@ -889,7 +962,7 @@ function OrganizationPage({ showToast }) {
                           : isDark ? 'bg-white/[0.06] text-slate-500 cursor-default' : 'bg-[#F0F1F3] text-slate-400 cursor-default'
                     }`}
                   >
-                    {saving ? 'Saving...' : sectionHasChanges ? 'Save Changes' : '\u2713 Saved'}
+                    {saving ? 'Saving...' : sectionHasChanges ? 'Save Changes' : sectionSavedToDB(expandedSection) ? '\u2713 Saved' : 'Save'}
                   </button>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-slate-400">
@@ -985,7 +1058,7 @@ function OrganizationPage({ showToast }) {
                         : isDark ? 'bg-white/[0.06] text-slate-500' : 'bg-[#F0F1F3] text-slate-400'
                   }`}
                 >
-                  {saving ? 'Saving...' : sectionHasChanges ? 'Save' : '\u2713 Saved'}
+                  {saving ? 'Saving...' : sectionHasChanges ? 'Save' : sectionSavedToDB(expandedSection) ? '\u2713 Saved' : 'Save'}
                 </button>
               </div>
               <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeSection.description}</p>
