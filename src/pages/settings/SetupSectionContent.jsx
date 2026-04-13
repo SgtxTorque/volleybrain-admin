@@ -1151,6 +1151,15 @@ function SetupSectionContent({
 
         return (
           <div className="space-y-6">
+            <div className="flex items-center gap-3 p-3 bg-sky-50 border border-sky-200 rounded-[14px] mb-1">
+              <span className="text-sky-600 text-sm">💡</span>
+              <p className="text-sm text-sky-700">
+                These are your org-wide defaults. For season-specific registration forms, use{' '}
+                <a href="/settings/templates" className="font-semibold text-sky-600 underline">
+                  Registration Templates
+                </a>.
+              </p>
+            </div>
             <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
               <p className={`text-sm ${tc.textMuted}`}>
                 📋 Customize what information you collect during registration. Toggle fields on/off and mark them as required or optional.

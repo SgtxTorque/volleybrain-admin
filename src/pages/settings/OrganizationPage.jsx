@@ -623,7 +623,7 @@ function OrganizationPage({ showToast }) {
       icon: 'clipboard',
       estTime: '10-15 min',
       description: 'Customize what info you collect from families',
-      required: true,
+      required: false,
       category: 'configuration',
     },
     {
