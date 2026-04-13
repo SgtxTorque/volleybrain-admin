@@ -184,10 +184,17 @@ export default function ProgramPage({ showToast }) {
   const [showSeasonModal, setShowSeasonModal] = useState(false)
   const [showTeamModal, setShowTeamModal] = useState(false)
   const [showRegLinkModal, setShowRegLinkModal] = useState(false)
+  const orgSettings = organization?.settings || {}
   const [seasonForm, setSeasonForm] = useState({
     name: '', sport_id: null, status: 'draft', start_date: '', end_date: '',
     registration_open: false, capacity: null, description: '',
-    fee_registration: 0, fee_uniform: 0, fee_monthly: 0, months_in_season: 1,
+    fee_registration: orgSettings.default_registration_fee ?? 150,
+    fee_uniform: orgSettings.default_uniform_fee ?? 45,
+    fee_monthly: orgSettings.default_monthly_fee ?? 50,
+    months_in_season: orgSettings.default_monthly_fee ? 3 : 1,
+    early_bird_discount: orgSettings.early_bird_discount ?? 0,
+    sibling_discount_type: orgSettings.sibling_discount ? 'percent' : 'none',
+    sibling_discount_amount: orgSettings.sibling_discount ?? 0,
     program_id: null,
   })
   const [seasonModalTab, setSeasonModalTab] = useState('basic')
@@ -501,11 +508,18 @@ export default function ProgramPage({ showToast }) {
 
   // --- Season Modal Helpers ---
   function openSeasonModal() {
+    const os = organization?.settings || {}
     setSeasonForm({
       name: '', sport_id: program?.sport_id || null, status: 'upcoming',
       start_date: '', end_date: '', registration_open: false,
       capacity: null, description: '',
-      fee_registration: 0, fee_uniform: 0, fee_monthly: 0, months_in_season: 1,
+      fee_registration: os.default_registration_fee ?? 150,
+      fee_uniform: os.default_uniform_fee ?? 45,
+      fee_monthly: os.default_monthly_fee ?? 50,
+      months_in_season: os.default_monthly_fee ? 3 : 1,
+      early_bird_discount: os.early_bird_discount ?? 0,
+      sibling_discount_type: os.sibling_discount ? 'percent' : 'none',
+      sibling_discount_amount: os.sibling_discount ?? 0,
       program_id: program?.id || null,
     })
     setSeasonModalTab('basic')
