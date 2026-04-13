@@ -1620,17 +1620,14 @@ function MainApp() {
           onNavigateToProfile={() => navigate('/profile')}
           isDark={isDark}
           notificationCount={notifUnreadCount}
-          onOpenNotifications={() => {
-            if (activeView === 'admin') navigate('/notifications')
-            else setNotifDropdownOpen(prev => !prev)
-          }}
+          onOpenNotifications={() => setNotifDropdownOpen(prev => !prev)}
           isPlatformAdmin={isPlatformAdmin}
           onEnterPlatformMode={handleEnterPlatformMode}
           onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
         />
 
-        {/* Notification Dropdown Overlay (non-admin roles) */}
-        {notifDropdownOpen && activeView !== 'admin' && (
+        {/* Notification Dropdown Overlay (all roles including admin) */}
+        {notifDropdownOpen && (
           <>
             <div className="fixed inset-0 z-[998]" onClick={() => setNotifDropdownOpen(false)} />
             <div className="fixed top-14 z-[999]" style={{ left: 'calc(var(--v2-sidebar-width, 64px) + 8px)' }}>
@@ -1670,10 +1667,7 @@ function MainApp() {
               searchPlaceholder="Search..."
               onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
               hasNotifications={notifUnreadCount > 0}
-              onNotificationClick={() => {
-                if (activeView === 'admin') navigate(getPathForPage('notifications'))
-                else setNotifDropdownOpen(prev => !prev)
-              }}
+              onNotificationClick={() => setNotifDropdownOpen(prev => !prev)}
               avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
               onAvatarClick={() => navigate('/profile')}
               onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
