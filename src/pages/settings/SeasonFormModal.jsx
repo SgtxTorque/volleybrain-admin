@@ -428,7 +428,8 @@ function FeesTab({ form, setForm, totalFee, tc, isDark }) {
       </div>
 
       {/* Per-Family Fee */}
-      <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3 mt-6`}>Per-Family Fee</h4>
+      <div className={`border-t ${tc.border} pt-4 mt-4`} />
+      <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3`}>Per-Family Fee</h4>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={`block text-sm ${tc.textMuted} mb-2`}>Family Registration Fee ($)</label>
@@ -444,7 +445,8 @@ function FeesTab({ form, setForm, totalFee, tc, isDark }) {
       </div>
 
       {/* Sibling Discount */}
-      <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3 mt-6`}>Sibling Discount</h4>
+      <div className={`border-t ${tc.border} pt-4 mt-4`} />
+      <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3`}>Sibling Discount</h4>
       <div className={`${tc.cardBgAlt} rounded-[14px] p-4 mb-4`}>
         <p className={`text-sm ${tc.textSecondary}`}>
           Family: Automatically discount fees when multiple kids from the same family register.
@@ -502,7 +504,8 @@ function FeesTab({ form, setForm, totalFee, tc, isDark }) {
       )}
 
       {/* Fee Summary */}
-      <div className={`${tc.cardBgAlt} rounded-[14px] p-5 mt-6`}>
+      <div className={`border-t ${tc.border} pt-4 mt-4`} />
+      <div className={`${tc.cardBgAlt} rounded-[14px] p-5`}>
         <h4 className={`${tc.textMuted} text-sm mb-3`}>Fee Summary (Per Player)</h4>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
