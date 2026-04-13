@@ -206,6 +206,15 @@ export default function CoachFormModal({ coach, onSave, onClose, showToast }) {
 
           {/* STEP 3: Compliance */}
           {step === 3 && (<>
+            <div className={`p-3 rounded-[14px] mb-2 ${tc.cardBgAlt}`}>
+              <p className={`text-sm ${tc.textSecondary}`}>
+                <span className="font-medium">These fields are optional.</span> Track coach compliance with your organization's requirements.
+              </p>
+              <p className={`text-xs mt-1 ${tc.textMuted}`}>
+                Configure organization waivers in{' '}
+                <a href="/settings/waivers" className="text-[#4BB9EC] hover:underline">Settings &rarr; Waivers</a>
+              </p>
+            </div>
             <div className={`p-4 rounded-xl border ${tc.border}`}>
               <h4 className={`text-sm font-bold ${tc.text} mb-3 flex items-center gap-2`}><Shield className="w-4 h-4" /> Background Check</h4>
               <div className="grid grid-cols-3 gap-3">
