@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
 import { Plus, Edit, Trash2, Copy, Eye } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
+import TrackerSuccessPopup from '../../components/ui/TrackerSuccessPopup'
 import { RegistrationTemplateModal, SPORT_POSITIONS, DEFAULT_CONFIG } from './RegistrationTemplateModal'
 
 function RegistrationTemplatesPage({ showToast }) {
@@ -13,8 +14,10 @@ function RegistrationTemplatesPage({ showToast }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const journey = useJourney()
 
+  const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
   const [templates, setTemplates] = useState([])
   const [sports, setSports] = useState([])
   const [loading, setLoading] = useState(true)
@@ -141,6 +144,10 @@ function RegistrationTemplatesPage({ showToast }) {
     showToast?.(editingTemplate ? 'Template updated!' : 'Template created!', 'success')
     if (!editingTemplate) {
       journey?.completeStep?.('open_registration')
+      // Show tracker return popup if we came from registration setup flow
+      if (searchParams.get('from') === 'registration-setup') {
+        setTrackerSuccessInfo(form.name.trim() || 'Template')
+      }
     }
     setShowModal(false)
     loadTemplates()
@@ -470,6 +477,15 @@ function RegistrationTemplatesPage({ showToast }) {
         sports={sports}
         tc={tc}
         isDark={isDark}
+      />
+
+      <TrackerSuccessPopup
+        show={!!trackerSuccessInfo}
+        onDismiss={() => setTrackerSuccessInfo(null)}
+        emoji="📋"
+        title="Template Created!"
+        subtitle={`"${trackerSuccessInfo}" is ready to use for registration.`}
+        stayLabel="Create Another Template"
       />
     </PageShell>
   )
