@@ -441,10 +441,27 @@ export default function FirstRunSetupPage({ showToast }) {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              onClick={() => navigate('/settings/seasons')}
+              onClick={async () => {
+                try {
+                  const { data: firstProgram } = await supabase
+                    .from('programs')
+                    .select('id')
+                    .eq('organization_id', organization.id)
+                    .order('created_at', { ascending: true })
+                    .limit(1)
+                    .maybeSingle()
+                  if (firstProgram) {
+                    navigate(`/programs/${firstProgram.id}`)
+                  } else {
+                    navigate('/dashboard')
+                  }
+                } catch (_) {
+                  navigate('/dashboard')
+                }
+              }}
               className="bg-[#10284C] text-white font-bold px-8 py-3 rounded-xl hover:brightness-110 transition"
             >
-              Create First Season →
+              Set Up Your First Season →
             </button>
             <button
               onClick={() => navigate('/dashboard')}
