@@ -129,6 +129,14 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Season rename now propagates via selectedSeason refresh + refreshPrograms call. → MOBILE: No action needed (web-only React state issue).
 - WEB: Backfill script created for missing sport records (src/scripts/backfill-sport-records.js). Run manually with service role key.
 
+### April 14, 2026 (Evening)
+- WEB: Fixed player insert to use date_of_birth instead of birth_date (PublicRegistrationPage, RegistrationCartPage). → MOBILE: Check if mobile registration has the same field name mismatch.
+- WEB: Scoped loadOpenSeasons() on parent dashboard to current organization_id. → MOBILE: Verify mobile parent dashboard also scopes open seasons by org.
+- WEB: Added loading/disabled state to registration approve buttons to prevent double-click. → MOBILE: No action (approval is web-only).
+- WEB: fee-calculator.js now handles 23505 unique constraint violations gracefully. → MOBILE: If mobile ever triggers fee generation, same pattern should be used.
+- WEB: Backfill script for player DOB (src/scripts/backfill-player-dob.js). Run manually.
+- WEB: Dedup script for duplicate payment records (src/scripts/dedup-payment-records.js). Run manually before adding DB constraint.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
