@@ -330,8 +330,15 @@ export async function generateFeesForPlayer(supabase, player, season, showToast)
     
     // Insert fees
     const { error } = await supabase.from('payments').insert(fees)
-    
-    if (error) throw error
+
+    if (error) {
+      // 23505 = unique_violation — fees already exist (race condition caught by DB)
+      if (error.code === '23505') {
+        console.log('Fees already exist (caught by unique constraint) for player:', player.id)
+        return { success: true, skipped: true, message: 'Fees already generated' }
+      }
+      throw error
+    }
     
     const totalAmount = fees.reduce((sum, f) => sum + f.amount, 0)
     const siblingNote = siblingIndex > 0 ? ` (sibling #${siblingIndex + 1})` : ''
@@ -461,7 +468,14 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
     if (allFees.length > 0) {
       // Insert all fees in one batch
       const { error: insertError } = await supabase.from('payments').insert(allFees)
-      if (insertError) throw insertError
+      if (insertError) {
+        // 23505 = unique_violation — some fees already exist (race condition caught by DB)
+        if (insertError.code === '23505') {
+          console.log('Some fees already exist (caught by unique constraint), batch insert skipped')
+        } else {
+          throw insertError
+        }
+      }
     }
     
     const message = `Generated ${totalFeesCreated} fees for ${playersNeedingFees.length} players totaling $${totalAmount.toFixed(2)}`
