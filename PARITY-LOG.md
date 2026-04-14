@@ -123,6 +123,14 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 
 ---
 
+### April 14, 2026
+- WEB: Fixed fee-calculator.js — monthly installments now use fee_monthly as per-month rate (was dividing by months_in_season). → MOBILE: Check if mobile has a parallel fee calculator that generates payment records. If so, it may have the same ÷ bug.
+- WEB: SetupWizard and FirstRunSetupPage now create org-scoped sport records (including code column) in the sports table during onboarding. → MOBILE: No action needed (mobile doesn't create programs).
+- WEB: Season rename now propagates via selectedSeason refresh + refreshPrograms call. → MOBILE: No action needed (web-only React state issue).
+- WEB: Backfill script created for missing sport records (src/scripts/backfill-sport-records.js). Run manually with service role key.
+
+---
+
 ## CRITICAL MOBILE ACTIONS (Do These First)
 
 1. **Search for `role: 'coach'` or `role: "coach"` in any user_roles insert/upsert** — change to `head_coach`, `assistant_coach`, or `team_manager` based on the coach's team_coaches.role value
