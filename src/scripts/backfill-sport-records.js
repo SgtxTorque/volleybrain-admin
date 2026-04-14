@@ -11,13 +11,13 @@ if (!supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 const KNOWN_SPORTS = {
-  volleyball:  { code: 'volleyball',  icon: '\ud83c\udfd0', color: '#FFB800' },
-  basketball:  { code: 'basketball',  icon: '\ud83c\udfc0', color: '#EF6C00' },
-  soccer:      { code: 'soccer',      icon: '\u26bd',       color: '#2E7D32' },
-  baseball:    { code: 'baseball',    icon: '\u26be',       color: '#C62828' },
-  softball:    { code: 'softball',    icon: '\ud83e\udd4e', color: '#E91E63' },
-  football:    { code: 'football',    icon: '\ud83c\udfc8', color: '#6A1B9A' },
-  lacrosse:    { code: 'lacrosse',    icon: '\ud83e\udd4d', color: '#00838F' },
+  volleyball:  { code: 'volleyball',  icon: '\ud83c\udfd0', color: '#FFB800', color2: '#FFA000', accent: '#FFF8E1' },
+  basketball:  { code: 'basketball',  icon: '\ud83c\udfc0', color: '#EF6C00', color2: '#E65100', accent: '#FFF3E0' },
+  soccer:      { code: 'soccer',      icon: '\u26bd',       color: '#2E7D32', color2: '#1B5E20', accent: '#E8F5E9' },
+  baseball:    { code: 'baseball',    icon: '\u26be',       color: '#C62828', color2: '#B71C1C', accent: '#FFEBEE' },
+  softball:    { code: 'softball',    icon: '\ud83e\udd4e', color: '#E91E63', color2: '#C2185B', accent: '#FCE4EC' },
+  football:    { code: 'football',    icon: '\ud83c\udfc8', color: '#6A1B9A', color2: '#4A148C', accent: '#F3E5F5' },
+  lacrosse:    { code: 'lacrosse',    icon: '\ud83e\udd4d', color: '#00838F', color2: '#006064', accent: '#E0F7FA' },
 }
 
 async function backfill(dryRun = true) {
@@ -91,6 +91,8 @@ async function backfill(dryRun = true) {
               name: name,
               icon: meta.icon,
               color_primary: meta.color,
+              color_secondary: meta.color2,
+              color_accent: meta.accent,
               is_active: true,
               sort_order: sortOrder,
             })

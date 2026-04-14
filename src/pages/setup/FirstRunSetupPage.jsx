@@ -288,13 +288,13 @@ export default function FirstRunSetupPage({ showToast }) {
       // ── Auto-create programs for each enabled sport (only on sports step) ──
       if (sectionKey === 'sports' && Array.isArray(data.enabledSports)) {
         const SPORT_META = {
-          volleyball:  { code: 'volleyball',  icon: '🏐', color: '#FFB800' },
-          basketball:  { code: 'basketball',  icon: '🏀', color: '#EF6C00' },
-          soccer:      { code: 'soccer',      icon: '⚽', color: '#2E7D32' },
-          baseball:    { code: 'baseball',    icon: '⚾', color: '#C62828' },
-          softball:    { code: 'softball',    icon: '🥎', color: '#E91E63' },
-          football:    { code: 'football',    icon: '🏈', color: '#6A1B9A' },
-          lacrosse:    { code: 'lacrosse',    icon: '🥍', color: '#00838F' },
+          volleyball:  { code: 'volleyball',  icon: '🏐', color: '#FFB800', color2: '#FFA000', accent: '#FFF8E1' },
+          basketball:  { code: 'basketball',  icon: '🏀', color: '#EF6C00', color2: '#E65100', accent: '#FFF3E0' },
+          soccer:      { code: 'soccer',      icon: '⚽', color: '#2E7D32', color2: '#1B5E20', accent: '#E8F5E9' },
+          baseball:    { code: 'baseball',    icon: '⚾', color: '#C62828', color2: '#B71C1C', accent: '#FFEBEE' },
+          softball:    { code: 'softball',    icon: '🥎', color: '#E91E63', color2: '#C2185B', accent: '#FCE4EC' },
+          football:    { code: 'football',    icon: '🏈', color: '#6A1B9A', color2: '#4A148C', accent: '#F3E5F5' },
+          lacrosse:    { code: 'lacrosse',    icon: '🥍', color: '#00838F', color2: '#006064', accent: '#E0F7FA' },
         }
 
         try {
@@ -337,6 +337,8 @@ export default function FirstRunSetupPage({ showToast }) {
                   name: displayName,
                   icon: meta.icon || '🎯',
                   color_primary: meta.color || '#546E7A',
+                  color_secondary: meta.color2 || '#455A64',
+                  color_accent: meta.accent || '#ECEFF1',
                   is_active: true,
                   sort_order: sportsToCreate.indexOf(sportName),
                 })

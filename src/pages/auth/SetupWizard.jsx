@@ -299,13 +299,13 @@ export function SetupWizard({ onComplete, onBack }) {
 
       // Sport metadata for org-scoped sport records
       const SPORT_META = {
-        volleyball:  { icon: '\ud83c\udfd0', color: '#FFB800' },
-        basketball:  { icon: '\ud83c\udfc0', color: '#EF6C00' },
-        soccer:      { icon: '\u26bd',       color: '#2E7D32' },
-        baseball:    { icon: '\u26be',       color: '#C62828' },
-        softball:    { icon: '\ud83e\udd4e', color: '#E91E63' },
-        football:    { icon: '\ud83c\udfc8', color: '#6A1B9A' },
-        lacrosse:    { icon: '\ud83e\udd4d', color: '#00838F' },
+        volleyball:  { icon: '\ud83c\udfd0', color: '#FFB800', color2: '#FFA000', accent: '#FFF8E1' },
+        basketball:  { icon: '\ud83c\udfc0', color: '#EF6C00', color2: '#E65100', accent: '#FFF3E0' },
+        soccer:      { icon: '\u26bd',       color: '#2E7D32', color2: '#1B5E20', accent: '#E8F5E9' },
+        baseball:    { icon: '\u26be',       color: '#C62828', color2: '#B71C1C', accent: '#FFEBEE' },
+        softball:    { icon: '\ud83e\udd4e', color: '#E91E63', color2: '#C2185B', accent: '#FCE4EC' },
+        football:    { icon: '\ud83c\udfc8', color: '#6A1B9A', color2: '#4A148C', accent: '#F3E5F5' },
+        lacrosse:    { icon: '\ud83e\udd4d', color: '#00838F', color2: '#006064', accent: '#E0F7FA' },
       }
 
       // Create a starter program — ALWAYS, regardless of sport selection
@@ -342,8 +342,10 @@ export function SetupWizard({ onComplete, onBack }) {
               organization_id: createdOrgId,
               code: sportCode,
               name: sportName,
-              icon: meta.icon || null,
-              color_primary: meta.color || null,
+              icon: meta.icon || '🎯',
+              color_primary: meta.color || '#546E7A',
+              color_secondary: meta.color2 || '#455A64',
+              color_accent: meta.accent || '#ECEFF1',
               is_active: true,
               sort_order: 0,
             })
