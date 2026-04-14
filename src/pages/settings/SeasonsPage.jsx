@@ -20,7 +20,7 @@ function SeasonsPage({ showToast }) {
   const journey = useJourney()
   const { organization, profile } = useAuth()
   const { refreshSeasons } = useSeason()
-  const { selectedProgram } = useProgram()
+  const { selectedProgram, refreshPrograms } = useProgram()
   const { sports } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
@@ -130,6 +130,7 @@ function SeasonsPage({ showToast }) {
       setShowModal(false)
       loadSeasons()
       refreshSeasons()
+      refreshPrograms()
     } else {
       const { data: newSeason, error } = await supabase
         .from('seasons')

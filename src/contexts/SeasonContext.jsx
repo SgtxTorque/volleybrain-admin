@@ -126,18 +126,24 @@ export function SeasonProvider({ children }) {
         }
       }
       
-      // Otherwise, try to restore from localStorage, or use active/first season
-      const savedSeasonId = localStorage.getItem('vb_selected_season')
-      if (savedSeasonId === 'all') {
-        setSelectedSeason(ALL_SEASONS)
-      } else if (!selectedSeason || isAllSeasons(selectedSeason)) {
-        const savedSeason = data?.find(s => s.id === savedSeasonId)
-        const activeSeason = data?.find(s => s.status === 'active')
-        // Auto-select the best option
-        const newSelection = savedSeason || activeSeason || data?.[0] || null
-        setSelectedSeason(newSelection)
-        if (newSelection?.id) {
-          localStorage.setItem('vb_selected_season', newSelection.id)
+      // If a season is currently selected (and not "All Seasons"),
+      // refresh it with the updated data so renames propagate immediately.
+      if (selectedSeason && !isAllSeasons(selectedSeason)) {
+        const updated = (data || []).find(s => s.id === selectedSeason.id)
+        if (updated) setSelectedSeason(updated)
+      } else {
+        // Otherwise, try to restore from localStorage, or use active/first season
+        const savedSeasonId = localStorage.getItem('vb_selected_season')
+        if (savedSeasonId === 'all') {
+          setSelectedSeason(ALL_SEASONS)
+        } else {
+          const savedSeason = data?.find(s => s.id === savedSeasonId)
+          const activeSeason = data?.find(s => s.status === 'active')
+          const newSelection = savedSeason || activeSeason || data?.[0] || null
+          setSelectedSeason(newSelection)
+          if (newSelection?.id) {
+            localStorage.setItem('vb_selected_season', newSelection.id)
+          }
         }
       }
     } catch (err) {
