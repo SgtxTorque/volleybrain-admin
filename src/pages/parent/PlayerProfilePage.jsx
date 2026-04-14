@@ -83,7 +83,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
 
       setInfoForm({
         first_name: playerData.first_name || '', last_name: playerData.last_name || '',
-        date_of_birth: playerData.date_of_birth || playerData.birth_date || '',
+        birth_date: playerData.birth_date || '',
         gender: playerData.gender || childData.gender || '',
         grade: playerData.grade || '', school: playerData.school || '',
         position: playerData.position || childData.position_preference || '',
@@ -127,7 +127,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
     try {
       const playerUpdate = {
         first_name: infoForm.first_name, last_name: infoForm.last_name,
-        date_of_birth: infoForm.date_of_birth || null, gender: infoForm.gender || null,
+        birth_date: infoForm.birth_date || null, gender: infoForm.gender || null,
         grade: infoForm.grade || null, school: infoForm.school || null,
         position: infoForm.position || null, experience_level: infoForm.experience_level || null,
         parent_name: infoForm.parent_name || null, parent_email: infoForm.parent_email || null,

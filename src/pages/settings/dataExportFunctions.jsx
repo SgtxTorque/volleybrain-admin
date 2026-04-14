@@ -12,7 +12,7 @@ export async function exportPlayers(activeOrg, getSeasonIds) {
   const { data: players } = await supabase
     .from('players')
     .select(
-      'id, first_name, last_name, email, phone, date_of_birth, gender, grade, position, jersey_number, school, status, parent_name, parent_email, parent_phone, parent_phone_secondary, medical_notes, allergies, created_at, season_id'
+      'id, first_name, last_name, email, phone, birth_date, gender, grade, position, jersey_number, school, status, parent_name, parent_email, parent_phone, parent_phone_secondary, medical_notes, allergies, created_at, season_id'
     )
     .in('season_id', seasonIds)
     .order('last_name')
@@ -65,7 +65,7 @@ export async function exportPlayers(activeOrg, getSeasonIds) {
   ]
 
   const rows = players.map((p) => [
-    p.first_name, p.last_name, p.email, p.phone, fmtDate(p.date_of_birth),
+    p.first_name, p.last_name, p.email, p.phone, fmtDate(p.birth_date),
     p.gender, p.grade, p.position, p.jersey_number, p.school,
     p.status, regMap[p.id] || '', (teamMap[p.id] || []).join('; '),
     p.parent_name, p.parent_email, p.parent_phone, p.parent_phone_secondary,

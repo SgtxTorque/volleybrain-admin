@@ -154,7 +154,7 @@ function ReportsPage({ showToast }) {
 
   async function loadPlayersReport() {
     const { data, error } = await supabase.from('players')
-      .select('id, first_name, last_name, email, phone, grade, position, jersey_number, uniform_size_jersey, status, photo_url, parent_name, parent_email, parent_phone, parent_phone_secondary, date_of_birth, school, medical_notes, allergies, created_at, updated_at')
+      .select('id, first_name, last_name, email, phone, grade, position, jersey_number, uniform_size_jersey, status, photo_url, parent_name, parent_email, parent_phone, parent_phone_secondary, birth_date, school, medical_notes, allergies, created_at, updated_at')
       .eq('season_id', selectedSeasonId).order('last_name')
     if (error) { console.error('Players query error:', error); setData([]); return }
     const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color)').in('player_id', (data || []).map(p => p.id))
@@ -164,7 +164,7 @@ function ReportsPage({ showToast }) {
       ...p, full_name: `${p.first_name} ${p.last_name}`,
       team_name: teamMap[p.id]?.[0]?.name || 'Unassigned', team_color: teamMap[p.id]?.[0]?.color || '#666',
       teams_list: teamMap[p.id]?.map(t => t.name).join(', ') || 'Unassigned',
-      age: p.date_of_birth ? Math.floor((new Date() - new Date(p.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)) : null
+      age: p.birth_date ? Math.floor((new Date() - new Date(p.birth_date)) / (365.25 * 24 * 60 * 60 * 1000)) : null
     }))
     let filtered = transformed
     if (filters.team !== 'all') filtered = filtered.filter(p => teamMap[p.id]?.some(t => t.id === filters.team))

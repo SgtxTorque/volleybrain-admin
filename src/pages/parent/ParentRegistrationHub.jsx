@@ -159,7 +159,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
           season_id: seasonId,
           first_name: form.first_name,
           last_name: form.last_name,
-          date_of_birth: form.date_of_birth || null,
+          birth_date: form.date_of_birth || null,
           gender: form.gender || null,
           grade: form.grade || null,
           school: form.school || null,
