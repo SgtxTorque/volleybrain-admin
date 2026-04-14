@@ -739,6 +739,25 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         }
         createdPlayerIds.push(player.id)
 
+        // Upload player photo to Supabase Storage if one was selected during registration
+        if (child._photoFile && player?.id) {
+          try {
+            const ext = child._photoFile.name?.split('.').pop() || 'jpg'
+            const path = `player-photos/${player.id}_${Date.now()}.${ext}`
+            const { error: uploadErr } = await supabase.storage.from('media').upload(path, child._photoFile)
+            if (!uploadErr) {
+              const { data: urlData } = supabase.storage.from('media').getPublicUrl(path)
+              if (urlData?.publicUrl) {
+                await supabase.from('players').update({ photo_url: urlData.publicUrl }).eq('id', player.id)
+              }
+            } else {
+              console.warn('Photo upload failed (non-blocking):', uploadErr.message)
+            }
+          } catch (photoErr) {
+            console.warn('Photo upload error (non-blocking):', photoErr)
+          }
+        }
+
         // Check for existing registration before inserting
         const { data: existingReg } = await supabase
           .from('registrations')
