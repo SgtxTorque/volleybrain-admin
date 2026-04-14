@@ -66,6 +66,7 @@ export function RegistrationsPage({ showToast }) {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkProcessing, setBulkProcessing] = useState(false)
   const [showBulkDenyModal, setShowBulkDenyModal] = useState(false)
+  const [approvingIds, setApprovingIds] = useState(new Set())
 
   // View mode
   const [viewMode, setViewMode] = useState('table')
@@ -124,6 +125,8 @@ export function RegistrationsPage({ showToast }) {
   // ========== STATUS UPDATES ==========
 
   async function updateStatus(playerId, regId, newStatus) {
+    if (newStatus === 'approved' && approvingIds.has(regId)) return
+    if (newStatus === 'approved') setApprovingIds(prev => new Set([...prev, regId]))
     try {
       if (newStatus === 'approved' && selectedSeason) {
         // Generate fees FIRST before updating status
@@ -216,6 +219,12 @@ export function RegistrationsPage({ showToast }) {
     } catch (err) {
       showToast('Error updating status: ' + err.message, 'error')
       loadRegistrations()
+    } finally {
+      setApprovingIds(prev => {
+        const next = new Set(prev)
+        next.delete(regId)
+        return next
+      })
     }
   }
 
@@ -258,6 +267,7 @@ export function RegistrationsPage({ showToast }) {
   }
 
   async function approvePlayers(players, label) {
+    if (bulkProcessing) return
     setBulkProcessing(true)
     const pending = players.filter(p => ['submitted', 'pending', 'new'].includes(p.registrations?.[0]?.status))
     if (pending.length === 0) {
@@ -589,6 +599,7 @@ export function RegistrationsPage({ showToast }) {
               selectedPendingCount={selectedPendingCount}
               dossierPlayerId={dossierPlayer?.id}
               onRowSelect={setDossierPlayer}
+              approvingIds={approvingIds}
             />
           </div>
 
