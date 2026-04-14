@@ -287,6 +287,16 @@ export default function FirstRunSetupPage({ showToast }) {
 
       // ── Auto-create programs for each enabled sport (only on sports step) ──
       if (sectionKey === 'sports' && Array.isArray(data.enabledSports)) {
+        const SPORT_META = {
+          volleyball:  { code: 'volleyball',  icon: '🏐', color: '#FFB800' },
+          basketball:  { code: 'basketball',  icon: '🏀', color: '#EF6C00' },
+          soccer:      { code: 'soccer',      icon: '⚽', color: '#2E7D32' },
+          baseball:    { code: 'baseball',    icon: '⚾', color: '#C62828' },
+          softball:    { code: 'softball',    icon: '🥎', color: '#E91E63' },
+          football:    { code: 'football',    icon: '🏈', color: '#6A1B9A' },
+          lacrosse:    { code: 'lacrosse',    icon: '🥍', color: '#00838F' },
+        }
+
         try {
           const { data: existingPrograms } = await supabase
             .from('programs')
@@ -297,12 +307,14 @@ export default function FirstRunSetupPage({ showToast }) {
             (existingPrograms || []).map(p => p.name.toLowerCase())
           )
 
-          const { data: sportRecords } = await supabase
+          // Query org-scoped sport records (not global)
+          const { data: orgSportRecords } = await supabase
             .from('sports')
-            .select('id, name')
+            .select('id, name, code')
+            .eq('organization_id', organization.id)
 
           const sportMap = Object.fromEntries(
-            (sportRecords || []).map(s => [s.name.toLowerCase(), s])
+            (orgSportRecords || []).map(s => [s.code?.toLowerCase() || s.name.toLowerCase(), s])
           )
 
           const sportsToCreate = data.enabledSports.filter(
@@ -310,7 +322,29 @@ export default function FirstRunSetupPage({ showToast }) {
           )
 
           for (const sportName of sportsToCreate) {
-            const sportRecord = sportMap[sportName.toLowerCase()]
+            const sportCode = sportName.toLowerCase().replace(/[^a-z0-9]/g, '')
+            let sportRecord = sportMap[sportCode]
+
+            // Create org-scoped sport record if it doesn't exist
+            if (!sportRecord) {
+              const meta = SPORT_META[sportCode] || {}
+              const displayName = sportName.charAt(0).toUpperCase() + sportName.slice(1)
+              const { data: newSport } = await supabase
+                .from('sports')
+                .insert({
+                  organization_id: organization.id,
+                  code: meta.code || sportCode,
+                  name: displayName,
+                  icon: meta.icon || '🎯',
+                  color_primary: meta.color || '#546E7A',
+                  is_active: true,
+                  sort_order: sportsToCreate.indexOf(sportName),
+                })
+                .select('id, name, code')
+                .single()
+              sportRecord = newSport
+            }
+
             const programName = sportRecord?.name
               || sportName.charAt(0).toUpperCase() + sportName.slice(1)
 

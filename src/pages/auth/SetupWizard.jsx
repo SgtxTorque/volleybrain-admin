@@ -335,10 +335,12 @@ export function SetupWizard({ onComplete, onBack }) {
 
         // Create org-scoped sport record if none exists
         if (!sportId) {
+          const sportCode = selectedSport.toLowerCase().replace(/[^a-z0-9]/g, '')
           const { data: newSport } = await supabase
             .from('sports')
             .insert({
               organization_id: createdOrgId,
+              code: sportCode,
               name: sportName,
               icon: meta.icon || null,
               color_primary: meta.color || null,
