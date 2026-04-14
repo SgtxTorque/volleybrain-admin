@@ -115,7 +115,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     }
   }, [roleContext?.children, profile?.id])
 
-  useEffect(() => { loadOpenSeasons() }, [])
+  useEffect(() => { loadOpenSeasons() }, [organization?.id])
 
   // Load achievements when active child changes
   useEffect(() => {
@@ -520,10 +520,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
   async function loadOpenSeasons() {
     try {
+      if (!organization?.id) return
       // Match mobile app: use registration_open boolean instead of date-based checks
       const { data } = await supabase.from('seasons')
         .select('*, sports(name, icon), organizations(id, name, slug, settings)')
         .eq('registration_open', true)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false })
       setOpenSeasons(data || [])
     } catch (err) { console.warn('Error loading open seasons:', err) }
