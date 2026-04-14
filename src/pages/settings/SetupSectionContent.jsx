@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Users, X, Upload, Palette, Image, Eye
 } from '../../constants/icons'
+import { ALL_SPORTS } from '../../components/ui/SportGridSelector'
 
 // ============================================
 // FORM HELPER COMPONENTS (defined outside to prevent remount on re-render)
@@ -436,20 +437,7 @@ function SetupSectionContent({
         )
 
       case 'sports':
-        const allSports = [
-          { id: 'volleyball', name: 'Volleyball', icon: 'volleyball' },
-          { id: 'basketball', name: 'Basketball', icon: '🏀' },
-          { id: 'soccer', name: 'Soccer', icon: '⚽' },
-          { id: 'baseball', name: 'Baseball', icon: '⚾' },
-          { id: 'softball', name: 'Softball', icon: '🥎' },
-          { id: 'football', name: 'Flag Football', icon: '🏈' },
-          { id: 'swimming', name: 'Swimming', icon: '🏊' },
-          { id: 'track', name: 'Track & Field', icon: '🏃' },
-          { id: 'tennis', name: 'Tennis', icon: '🎾' },
-          { id: 'golf', name: 'Golf', icon: '⛳' },
-          { id: 'cheer', name: 'Cheerleading', icon: '📣' },
-          { id: 'gymnastics', name: 'Gymnastics', icon: '🤸' },
-        ]
+        const allSports = ALL_SPORTS.map(s => ({ id: s.code, name: s.name, icon: s.emoji }))
         const allPrograms = [
           { id: 'league', name: 'Leagues / Seasons', icon: 'trophy', desc: 'Multi-week competitive or recreational programs' },
           { id: 'camp', name: 'Camps', icon: '🏕️', desc: 'Short-term intensive programs (usually 1 week)' },

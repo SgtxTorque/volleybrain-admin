@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useJourney, JOURNEY_STEPS } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
+import { ALL_SPORTS } from '../../components/ui/SportGridSelector'
 
 // ─── Design tokens (Lynx Brand Book) ───
 const BRAND = {
@@ -297,16 +298,10 @@ export function SetupWizard({ onComplete, onBack }) {
         },
       }).eq('id', createdOrgId)
 
-      // Sport metadata for org-scoped sport records
-      const SPORT_META = {
-        volleyball:  { icon: '\ud83c\udfd0', color: '#FFB800', color2: '#FFA000', accent: '#FFF8E1' },
-        basketball:  { icon: '\ud83c\udfc0', color: '#EF6C00', color2: '#E65100', accent: '#FFF3E0' },
-        soccer:      { icon: '\u26bd',       color: '#2E7D32', color2: '#1B5E20', accent: '#E8F5E9' },
-        baseball:    { icon: '\u26be',       color: '#C62828', color2: '#B71C1C', accent: '#FFEBEE' },
-        softball:    { icon: '\ud83e\udd4e', color: '#E91E63', color2: '#C2185B', accent: '#FCE4EC' },
-        football:    { icon: '\ud83c\udfc8', color: '#6A1B9A', color2: '#4A148C', accent: '#F3E5F5' },
-        lacrosse:    { icon: '\ud83e\udd4d', color: '#00838F', color2: '#006064', accent: '#E0F7FA' },
-      }
+      // Build sport metadata from shared ALL_SPORTS constant
+      const SPORT_META = Object.fromEntries(
+        ALL_SPORTS.map(s => [s.code, { icon: s.emoji, color: s.color, color2: s.color, accent: '#ECEFF1' }])
+      )
 
       // Create a starter program — ALWAYS, regardless of sport selection
       if (selectedSport === 'other') {
@@ -734,14 +729,8 @@ export function SetupWizard({ onComplete, onBack }) {
 
               <div className="grid grid-cols-2 gap-3 mb-6">
                 {[
-                  { id: 'volleyball', emoji: '\ud83c\udfd0', name: 'Volleyball', color: '#FFB800' },
-                  { id: 'basketball', emoji: '\ud83c\udfc0', name: 'Basketball', color: '#EF6C00' },
-                  { id: 'soccer',     emoji: '\u26bd',       name: 'Soccer',     color: '#2E7D32' },
-                  { id: 'baseball',   emoji: '\u26be',       name: 'Baseball',   color: '#C62828' },
-                  { id: 'softball',   emoji: '\ud83e\udd4e', name: 'Softball',   color: '#E91E63' },
-                  { id: 'football',   emoji: '\ud83c\udfc8', name: 'Football',   color: '#6A1B9A' },
-                  { id: 'lacrosse',   emoji: '\ud83e\udd4d', name: 'Lacrosse',   color: '#00838F' },
-                  { id: 'other',      emoji: '\ud83c\udfaf', name: 'Other / Multiple', color: '#546E7A' },
+                  ...ALL_SPORTS.map(s => ({ id: s.code, emoji: s.emoji, name: s.name, color: s.color })),
+                  { id: 'other', emoji: '🎯', name: 'Other / Multiple', color: '#546E7A' },
                 ].map(sport => (
                   <button
                     key={sport.id}

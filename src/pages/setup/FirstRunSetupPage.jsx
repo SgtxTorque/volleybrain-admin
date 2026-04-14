@@ -17,6 +17,7 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useCoachMarks } from '../../contexts/CoachMarkContext'
 import { supabase } from '../../lib/supabase'
 import { SetupSectionContent } from '../settings/SetupSectionContent'
+import { ALL_SPORTS } from '../../components/ui/SportGridSelector'
 import { awardXP } from '../../lib/xp-award-service'
 import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 
@@ -287,15 +288,9 @@ export default function FirstRunSetupPage({ showToast }) {
 
       // ── Auto-create programs for each enabled sport (only on sports step) ──
       if (sectionKey === 'sports' && Array.isArray(data.enabledSports)) {
-        const SPORT_META = {
-          volleyball:  { code: 'volleyball',  icon: '🏐', color: '#FFB800', color2: '#FFA000', accent: '#FFF8E1' },
-          basketball:  { code: 'basketball',  icon: '🏀', color: '#EF6C00', color2: '#E65100', accent: '#FFF3E0' },
-          soccer:      { code: 'soccer',      icon: '⚽', color: '#2E7D32', color2: '#1B5E20', accent: '#E8F5E9' },
-          baseball:    { code: 'baseball',    icon: '⚾', color: '#C62828', color2: '#B71C1C', accent: '#FFEBEE' },
-          softball:    { code: 'softball',    icon: '🥎', color: '#E91E63', color2: '#C2185B', accent: '#FCE4EC' },
-          football:    { code: 'football',    icon: '🏈', color: '#6A1B9A', color2: '#4A148C', accent: '#F3E5F5' },
-          lacrosse:    { code: 'lacrosse',    icon: '🥍', color: '#00838F', color2: '#006064', accent: '#E0F7FA' },
-        }
+        const SPORT_META = Object.fromEntries(
+          ALL_SPORTS.map(s => [s.code, { code: s.code, icon: s.emoji, color: s.color, color2: s.color, accent: '#ECEFF1' }])
+        )
 
         try {
           const { data: existingPrograms } = await supabase
