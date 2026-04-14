@@ -297,6 +297,17 @@ export function SetupWizard({ onComplete, onBack }) {
         },
       }).eq('id', createdOrgId)
 
+      // Sport metadata for org-scoped sport records
+      const SPORT_META = {
+        volleyball:  { icon: '\ud83c\udfd0', color: '#FFB800' },
+        basketball:  { icon: '\ud83c\udfc0', color: '#EF6C00' },
+        soccer:      { icon: '\u26bd',       color: '#2E7D32' },
+        baseball:    { icon: '\u26be',       color: '#C62828' },
+        softball:    { icon: '\ud83e\udd4e', color: '#E91E63' },
+        football:    { icon: '\ud83c\udfc8', color: '#6A1B9A' },
+        lacrosse:    { icon: '\ud83e\udd4d', color: '#00838F' },
+      }
+
       // Create a starter program — ALWAYS, regardless of sport selection
       if (selectedSport === 'other') {
         // "Other" path — create program with custom name (default to "General")
@@ -309,18 +320,41 @@ export function SetupWizard({ onComplete, onBack }) {
           display_order: 0,
         })
       } else {
-        // Standard sport — look up sport record
-        const { data: sportRecord } = await supabase
+        const sportName = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1)
+        const meta = SPORT_META[selectedSport] || {}
+
+        // Check if this org already has a sport record for this sport
+        const { data: existingOrgSport } = await supabase
           .from('sports')
           .select('id, name')
+          .eq('organization_id', createdOrgId)
           .ilike('name', selectedSport)
           .maybeSingle()
 
-        // Create program even if sport record not found (fallback)
+        let sportId = existingOrgSport?.id || null
+
+        // Create org-scoped sport record if none exists
+        if (!sportId) {
+          const { data: newSport } = await supabase
+            .from('sports')
+            .insert({
+              organization_id: createdOrgId,
+              name: sportName,
+              icon: meta.icon || null,
+              color_primary: meta.color || null,
+              is_active: true,
+              sort_order: 0,
+            })
+            .select('id')
+            .single()
+          sportId = newSport?.id || null
+        }
+
+        // Create program linked to the org-scoped sport
         await supabase.from('programs').insert({
           organization_id: createdOrgId,
-          sport_id: sportRecord?.id || null,
-          name: sportRecord?.name || selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1),
+          sport_id: sportId,
+          name: sportName,
           is_active: true,
           display_order: 0,
         })
