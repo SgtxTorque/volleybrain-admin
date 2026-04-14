@@ -672,7 +672,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             // Player info
             first_name: child.first_name,
             last_name: child.last_name,
-            date_of_birth: child.birth_date || null,
+            birth_date: child.birth_date || null,
             grade: gradeValue,
             gender: child.gender || null,
             school: child.school || null,

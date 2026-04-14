@@ -16,8 +16,8 @@ async function backfillPlayerDOB(dryRun = true) {
   // 1. Get all players missing DOB
   const { data: players, error: pErr } = await supabase
     .from('players')
-    .select('id, first_name, last_name, date_of_birth, gender, season_id')
-    .is('date_of_birth', null)
+    .select('id, first_name, last_name, birth_date, gender, season_id')
+    .is('birth_date', null)
 
   if (pErr) { console.error('Error fetching players:', pErr); return }
   console.log(`Found ${players?.length || 0} players with missing DOB\n`)
@@ -53,16 +53,16 @@ async function backfillPlayerDOB(dryRun = true) {
     // Extract DOB from registration_data
     // Could be at regData.player.birth_date, regData.birth_date, or nested in children array
     let dob = regData.player?.birth_date
-      || regData.player?.date_of_birth
+      || regData.player?.birth_date
       || regData.birth_date
-      || regData.date_of_birth
+      || regData.birth_date
       || null
 
     // Check children array if present
     if (!dob && regData.children && Array.isArray(regData.children)) {
       for (const child of regData.children) {
         if (child.first_name?.toLowerCase() === player.first_name?.toLowerCase()) {
-          dob = child.birth_date || child.date_of_birth || null
+          dob = child.birth_date || child.birth_date || null
           break
         }
       }
@@ -89,7 +89,7 @@ async function backfillPlayerDOB(dryRun = true) {
 
     const updates = {}
     if (dob) {
-      updates.date_of_birth = dob
+      updates.birth_date = dob
       console.log(`  ${dryRun ? 'WOULD SET' : 'SETTING'} DOB: ${player.first_name} ${player.last_name} → ${dob}`)
       fixedDOB++
     }
