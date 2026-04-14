@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { Plus, Edit, Trash2, Layers } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import ProgramFormModal from './ProgramFormModal'
+import { ALL_SPORTS } from '../../components/ui/SportGridSelector'
 
 export function ProgramsPage({ showToast }) {
   const { organization } = useAuth()
@@ -46,9 +47,53 @@ export function ProgramsPage({ showToast }) {
 
   async function handleSave(form, editing) {
     const maxOrder = programs.reduce((max, p) => Math.max(max, p.display_order || 0), 0)
+
+    // Auto-create sport record if sport_id is a code placeholder (e.g. "__code:volleyball")
+    let resolvedSportId = form.sport_id || null
+    if (typeof resolvedSportId === 'string' && resolvedSportId.startsWith('__code:')) {
+      const sportCode = resolvedSportId.replace('__code:', '')
+      const meta = ALL_SPORTS.find(s => s.code === sportCode)
+      if (meta) {
+        // Check if org already has this sport record
+        const { data: existing } = await supabase
+          .from('sports')
+          .select('id')
+          .eq('organization_id', organization.id)
+          .eq('code', sportCode)
+          .maybeSingle()
+
+        if (existing) {
+          resolvedSportId = existing.id
+        } else {
+          const { data: newSport, error: sportErr } = await supabase
+            .from('sports')
+            .insert({
+              organization_id: organization.id,
+              code: meta.code,
+              name: meta.name,
+              icon: meta.emoji,
+              color_primary: meta.color,
+              color_secondary: meta.color,
+              color_accent: '#ECEFF1',
+              is_active: true,
+              sort_order: 0,
+            })
+            .select('id')
+            .single()
+          if (sportErr) {
+            showToast(`Error creating sport: ${sportErr.message}`, 'error')
+            return
+          }
+          resolvedSportId = newSport.id
+        }
+      } else {
+        resolvedSportId = null
+      }
+    }
+
     const cleaned = {
       name: form.name.trim(),
-      sport_id: form.sport_id || null,
+      sport_id: resolvedSportId,
       icon: form.icon || null,
       description: form.description?.trim() || null,
       is_active: form.is_active,
