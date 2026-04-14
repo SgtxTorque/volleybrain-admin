@@ -142,16 +142,15 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     // Calculate sibling discount per month if applicable
     const perMonthSiblingResult = applySiblingDiscount(monthlyFee, 'Monthly')
     const monthlyWithDiscount = perMonthSiblingResult.amount
-    const monthlyDiscountPerMonth = perMonthSiblingResult.discountApplied / monthsInSeason
     
     // Determine start month from season start_date or default to current month
     const seasonStart = season.start_date ? parseLocalDate(season.start_date) : new Date()
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                         'July', 'August', 'September', 'October', 'November', 'December']
     
-    // Calculate installment amounts with remainder handling
-    const baseInstallment = Math.floor(monthlyWithDiscount * 100 / monthsInSeason) / 100
-    const remainder = Math.round((monthlyWithDiscount - baseInstallment * monthsInSeason) * 100) / 100
+    // Each monthly installment IS the per-month fee (after discount).
+    // fee_monthly is the per-month rate entered by admin, NOT a total to divide.
+    const installmentAmount = monthlyWithDiscount
 
     // Generate individual monthly fees
     for (let i = 0; i < monthsInSeason; i++) {
@@ -162,9 +161,6 @@ export function calculateFeesForPlayer(player, season, options = {}) {
 
       // Set due date to 1st of that month
       const dueDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
-
-      // First installment absorbs the remainder so total is exact
-      const installmentAmount = (i === 0) ? baseInstallment + remainder : baseInstallment
 
       let feeName = `${monthName} Monthly`
       let description = `Monthly dues for ${monthName} ${year}`
