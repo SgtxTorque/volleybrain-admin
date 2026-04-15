@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
-import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { PlayerCardExpanded } from '../../components/players'
@@ -47,8 +46,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const { profile, user, isAdmin } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
-  const { orgLogo, orgName, hasCustomBranding } = useOrgBranding()
-
   // ── Core data (preserved exactly) ──
   const [team, setTeam] = useState(null)
   const [roster, setRoster] = useState([])
