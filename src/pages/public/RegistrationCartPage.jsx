@@ -384,7 +384,7 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
 }
 
 // ─── Cart Success Screen ──────────────────────────────────────────────────
-function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee, inviteUrl }) {
+function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee, inviteUrl, existingAccountDetected }) {
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const totalRegs = registrationIds.length
 
@@ -441,19 +441,28 @@ function CartSuccessScreen({ children, childProgramMap, selectedPrograms, regist
           </p>
         )}
 
-        {/* Create account CTA */}
-        <div className="p-4 rounded-xl bg-[#10284C] text-white text-left mb-4">
-          <p className="font-bold text-sm mb-1">Create Your Parent Account</p>
-          <p className="text-xs text-white/70 mb-3">
-            Track registrations, view schedules, and manage payments — all in one place.
-          </p>
-          <a
-            href={inviteUrl || "/"}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#10284C] text-sm font-bold hover:bg-slate-100 transition-colors"
-          >
-            Create Account <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
+        {/* Account CTA */}
+        {existingAccountDetected ? (
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-left mb-4">
+            <p className="font-semibold text-amber-800 text-sm mb-2">You already have an account</p>
+            <p className="text-amber-700 text-xs mb-3">Sign in with your existing email and password.</p>
+            <a href="/login" className="inline-flex items-center justify-center w-full px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">Sign In →</a>
+            <a href="/login" className="inline-flex items-center justify-center w-full px-5 py-2 mt-2 rounded-[14px] border border-slate-300 text-slate-600 text-sm hover:bg-slate-50">Forgot Password?</a>
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-[#10284C] text-white text-left mb-4">
+            <p className="font-bold text-sm mb-1">Create Your Parent Account</p>
+            <p className="text-xs text-white/70 mb-3">
+              Track registrations, view schedules, and manage payments — all in one place.
+            </p>
+            <a
+              href={inviteUrl || "/"}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#10284C] text-sm font-bold hover:bg-slate-100 transition-colors"
+            >
+              Create Account <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        )}
 
         {/* Org contact */}
         {organization?.contact_email && (
@@ -1171,6 +1180,7 @@ export function RegistrationCartPage() {
   const [submitted, setSubmitted] = useState(false)
   const [registrationIds, setRegistrationIds] = useState([])
   const [savedInviteUrl, setSavedInviteUrl] = useState(null)
+  const [existingAccountDetected, setExistingAccountDetected] = useState(false)
 
   // App state
   const [organization, setOrganization] = useState(null)
@@ -1321,7 +1331,9 @@ export function RegistrationCartPage() {
       try {
         if (parentEmail && organization?.id) {
           const existingProfile = await checkExistingAccount(parentEmail)
-          if (!existingProfile) {
+          if (existingProfile) {
+            setExistingAccountDetected(true)
+          } else {
             // Will fill playerIds after they're created — metadata updated later
             const invite = await createInvitation({
               organizationId: organization.id,
@@ -1780,6 +1792,7 @@ export function RegistrationCartPage() {
           organization={organization}
           totalFee={cartTotal}
           inviteUrl={savedInviteUrl}
+          existingAccountDetected={existingAccountDetected}
         />
       </>
     )

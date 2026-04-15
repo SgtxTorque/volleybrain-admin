@@ -223,7 +223,7 @@ function FeePreviewCard({ season, feePerChild, childrenCount, totalFee, hasDisco
 }
 
 // ─── Success / confirmation screen ────────────────────────────────────────
-function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [], inviteUrl, authCreated, parentEmail }) {
+function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [], inviteUrl, authCreated, existingAccountDetected, parentEmail }) {
   const count = childrenCount + (currentChildName ? 1 : 0)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const [hasSession, setHasSession] = useState(false)
@@ -297,6 +297,21 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
                 Sign In to Your Dashboard
               </a>
             </>
+          ) : existingAccountDetected ? (
+            <div className="mt-4 p-5 bg-amber-50 border border-amber-200 rounded-[14px] text-left">
+              <h3 className="font-semibold text-amber-800 text-sm mb-2">You already have an account</h3>
+              <p className="text-amber-700 text-r-xs mb-4">
+                It looks like you've registered before. Sign in with your existing email and password to view your dashboard.
+              </p>
+              <div className="flex flex-col gap-2">
+                <a href="/login" className="inline-flex items-center justify-center px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">
+                  Sign In →
+                </a>
+                <a href="/login" className="inline-flex items-center justify-center px-5 py-2.5 rounded-[14px] border border-slate-300 text-slate-600 font-medium text-sm hover:bg-slate-50">
+                  Forgot Password?
+                </a>
+              </div>
+            </div>
           ) : (
             <>
               <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">

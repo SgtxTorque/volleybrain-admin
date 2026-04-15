@@ -54,6 +54,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [confirmPassword, setConfirmPassword] = useState('')
   const [existingAccount, setExistingAccount] = useState(null) // non-null if parent already has auth
   const [authCreated, setAuthCreated] = useState(false)
+  const [existingAccountDetected, setExistingAccountDetected] = useState(false)
 
   // Draft restore state
   const [showDraftRestore, setShowDraftRestore] = useState(false)
@@ -824,7 +825,10 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
           if (authError) {
             if (authError.message?.includes('already registered') || authError.message?.includes('already exists')) {
-              console.log('Auth account already exists for', parentEmail, '— skipping account creation')
+              console.log('Auth account already exists for', parentEmail)
+              // Auth account exists but profile may not — parent should sign in with existing credentials
+              // or use forgot password if they don't remember their password
+              setExistingAccountDetected(true)
             } else {
               console.error('Auth account creation failed:', authError.message)
             }
@@ -1030,6 +1034,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           registrationIds={registrationIds}
           inviteUrl={parentInviteUrl}
           authCreated={authCreated}
+          existingAccountDetected={existingAccountDetected}
           parentEmail={sharedInfo.parent1_email}
         />
       </>
