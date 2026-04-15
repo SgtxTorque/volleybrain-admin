@@ -8,6 +8,7 @@ import { getSportConfig } from '../../constants/sportConfigs'
 import { GameStatsModal } from '../../components/games/GameComponents'
 import { LineupBuilderV2 } from '../../components/games/lineup-v2'
 import { GameDetailModal } from '../../components/games/GameDetailModal'
+import TeamLogo from '../../components/TeamLogo'
 import { GameDayCommandCenter } from './GameDayCommandCenter'
 import GameCard from './GameCard'
 import GamePrepCompletionModal from './GamePrepCompletionModal'
@@ -81,7 +82,7 @@ function GamePrepPage({ showToast }) {
         if (orgSeasonIds.length === 0) return
         const { data } = await supabase
           .from('teams')
-          .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
+          .select('id, name, color, logo_url, abbreviation, season_id, seasons(id, name, sport_id, sports(id, name))')
           .in('season_id', orgSeasonIds)
           .order('name')
         const enriched = (data || []).map(t => ({
@@ -97,7 +98,7 @@ function GamePrepPage({ showToast }) {
       // Coach — load ALL teams across all seasons via team_coaches
       const { data: assignments } = await supabase
         .from('team_coaches')
-        .select('team_id, role, teams(id, name, color, season_id, seasons(id, name, sport_id, sports(id, name)))')
+        .select('team_id, role, teams(id, name, color, logo_url, abbreviation, season_id, seasons(id, name, sport_id, sports(id, name)))')
         .eq('coach_id', coachRecord.id)
 
       const teams = (assignments || [])
@@ -386,10 +387,7 @@ function GamePrepPage({ showToast }) {
                 boxShadow: `0 4px 20px ${team.color}40`
               } : {}}
             >
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: team.color }}
-              />
+              <TeamLogo team={team} size={20} className="flex-shrink-0" />
               {team.name}
               <span className="text-xs opacity-60 ml-1">
                 {team.sport === 'basketball' ? '\u{1F3C0}' :

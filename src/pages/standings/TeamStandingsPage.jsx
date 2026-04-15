@@ -7,6 +7,7 @@ import { Trophy, Calendar, ChevronRight, ChevronDown } from '../../constants/ico
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
+import TeamLogo from '../../components/TeamLogo'
 
 // ============================================
 // TEAM STANDINGS PAGE
@@ -59,7 +60,7 @@ export default function TeamStandingsPage() {
         // Admin fallback — load all teams across all seasons
         const { data } = await supabase
           .from('teams')
-          .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
+          .select('id, name, color, logo_url, abbreviation, season_id, seasons(id, name, sport_id, sports(id, name))')
           .order('name')
         const enriched = (data || []).map(t => ({
           ...t,
@@ -74,7 +75,7 @@ export default function TeamStandingsPage() {
       // Coach — load ALL teams via team_coaches
       const { data: assignments } = await supabase
         .from('team_coaches')
-        .select('team_id, role, teams(id, name, color, season_id, seasons(id, name, sport_id, sports(id, name)))')
+        .select('team_id, role, teams(id, name, color, logo_url, abbreviation, season_id, seasons(id, name, sport_id, sports(id, name)))')
         .eq('coach_id', coachRecord.id)
 
       const teams = (assignments || [])
@@ -205,10 +206,7 @@ export default function TeamStandingsPage() {
         onClick={() => setShowTeamDropdown(!showTeamDropdown)}
         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white hover:border-[#4BB9EC]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]'}`}
       >
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: selectedTeam?.color || '#888' }}
-        />
+        <TeamLogo team={selectedTeam || {}} size={20} className="flex-shrink-0" />
         <span className="text-sm font-medium">
           {selectedTeam?.sport === 'basketball' ? '\u{1F3C0}' : selectedTeam?.sport === 'baseball' ? '\u{26BE}' : selectedTeam?.sport === 'soccer' ? '\u{26BD}' : selectedTeam?.sport === 'football' ? '\u{1F3C8}' : selectedTeam?.sport === 'flag_football' ? '\u{1F3F3}' : selectedTeam?.sport === 'softball' ? '\u{1F94E}' : selectedTeam?.sport === 'hockey' ? '\u{1F3D2}' : '\u{1F3D0}'}{' '}
           {selectedTeam?.name}
@@ -229,10 +227,7 @@ export default function TeamStandingsPage() {
                 team.id === selectedTeam?.id ? (isDark ? 'bg-[#4BB9EC]/10' : 'bg-[#4BB9EC]/10') : ''
               }`}
             >
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: team.color || '#888' }}
-              />
+              <TeamLogo team={team} size={20} className="flex-shrink-0" />
               <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
                 {team.sport === 'basketball' ? '\u{1F3C0}' : team.sport === 'baseball' ? '\u{26BE}' : team.sport === 'soccer' ? '\u{26BD}' : team.sport === 'football' ? '\u{1F3C8}' : team.sport === 'flag_football' ? '\u{1F3F3}' : team.sport === 'softball' ? '\u{1F94E}' : team.sport === 'hockey' ? '\u{1F3D2}' : '\u{1F3D0}'}{' '}
                 {team.name}
