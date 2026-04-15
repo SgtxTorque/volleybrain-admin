@@ -163,6 +163,13 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Consolidated `getContrastText` to single source in `cardColorUtils.js` → No mobile action needed (mobile has its own color utils)
 - WEB: Removed dead `useOrgBranding()` usage from TeamWallPage → No mobile action needed
 
+### April 15, 2026 (Branding Phase 3)
+- WEB: Created `OrgLogo` reusable component (`src/components/OrgLogo.jsx`) with logo → initials fallback chain → Mobile should create equivalent for org identity rendering
+- WEB: Standardized org logo across 7 public page surfaces (registration, invites, directory) using OrgLogo component → Mobile invite/registration screens should use consistent org logo rendering
+- WEB: Registration header now uses dynamic org brand color with contrast-safe text (getContrastText) → Mobile registration should match this behavior
+- WEB: Org logo added to admin sidebar (LynxSidebar) and dashboard HeroCard → Mobile equivalent: org logo in drawer/header
+- WEB: RegistrationCartPage orgLogo source fixed to prefer top-level `organization.logo_url` over nested `settings.branding.logo_url` → Mobile: verify logo source priority
+
 ### April 15, 2026 (Branding Phase 2)
 - WEB: Rolled out `TeamLogo` component across ALL team-identity surfaces — header dropdowns (coach & parent team selectors), calendar views (month/week/day/list), Team Hub selector, Team Wall sidebar, attendance/standings/game prep pages, reports data tables, parent messages, player detail, coach assignment modals, staff portal → MOBILE: If mobile renders team color dots anywhere, swap to equivalent component with logo → initials → dot fallback chain
 - WEB: Updated 14+ Supabase queries to include `logo_url, abbreviation` alongside `id, name, color` → MOBILE: Mobile team queries should also fetch `logo_url` and `abbreviation` for logo rendering
