@@ -3,6 +3,7 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { getEventColor, formatTime, formatTime12 } from './scheduleHelpers'
 import { Clock, MapPin, Trophy, Target, Award, Users, Calendar } from 'lucide-react'
 import EventCard from '../../components/pages/EventCard'
+import TeamLogo from '../../components/TeamLogo'
 
 // Event type color config for The Stack & all views
 const EVENT_COLORS = {
@@ -52,7 +53,8 @@ function EventHoverPopup({ event, position }) {
           {type}
         </span>
         {event.teams?.name && (
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-100 text-sky-700">
+          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-100 text-sky-700">
+            <TeamLogo team={event.teams} size={14} />
             {event.teams.name}
           </span>
         )}
@@ -221,7 +223,8 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
                             onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
                             className={`flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition hover:brightness-110 ${pillBg}`}
                           >
-                            <div className="w-[3px] h-3 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
+                            {event.teams && <TeamLogo team={event.teams} size={12} className="shrink-0" />}
+                            {!event.teams && <div className="w-[3px] h-3 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />}
                             <span className={`text-[10px] font-bold truncate ${pillText}`}>
                               {event.title || event.event_type}
                             </span>
@@ -343,8 +346,8 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
               className={`grid border-b ${isDark ? 'border-white/[0.04]' : 'border-[#E8ECF2]/60'}`}
               style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
               {/* Team label */}
-              <div className={`p-3 flex items-start gap-2 ${isDark ? 'bg-white/[0.02]' : 'bg-[#F5F6F8]'}`}>
-                <div className="w-1 h-8 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: teamRow.color }} />
+              <div className={`p-3 flex items-center gap-2 ${isDark ? 'bg-white/[0.02]' : 'bg-[#F5F6F8]'}`}>
+                <TeamLogo team={teamRow} size={18} className="shrink-0" />
                 <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
                   {teamRow.name}
                 </span>
@@ -480,7 +483,8 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
                   }`}
                   onClick={() => onSelectEvent(event)}
                 >
-                  <div className={`w-1 self-stretch rounded-full shrink-0 ${colors.border}`} />
+                  {event.teams && <TeamLogo team={event.teams} size={14} className="shrink-0" />}
+                  {!event.teams && <div className={`w-1 self-stretch rounded-full shrink-0 ${colors.border}`} />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`text-[10px] font-black uppercase tracking-widest ${
@@ -587,7 +591,8 @@ export function ListView({ events, onSelectEvent, teams, currentDate }) {
                       }`}
                       onClick={() => onSelectEvent(event)}
                     >
-                      <div className={`w-1 self-stretch rounded-full shrink-0 ${colors.border}`} />
+                      {event.teams && <TeamLogo team={event.teams} size={14} className="shrink-0" />}
+                      {!event.teams && <div className={`w-1 self-stretch rounded-full shrink-0 ${colors.border}`} />}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-black uppercase tracking-widest ${
