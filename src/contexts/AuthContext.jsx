@@ -53,8 +53,9 @@ export function AuthProvider({ children }) {
         setLoading(false)
       }
       if (event === 'PASSWORD_RECOVERY') {
-        // User clicked a valid password reset link — redirect to reset form
-        window.location.href = '/reset-password'
+        // Pass any hash params through to the reset page so it can detect errors
+        const hash = window.location.hash
+        window.location.href = '/reset-password' + hash
       }
     })
 

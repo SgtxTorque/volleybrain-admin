@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 
 export default function ResetPasswordPage() {
@@ -7,6 +7,16 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [otpExpired, setOtpExpired] = useState(false)
+
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash.includes('error_code=otp_expired') || hash.includes('error=access_denied') || hash.includes('error_code=otp_disabled')) {
+      setOtpExpired(true)
+      // Clean up the hash so it doesn't persist on refresh
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [])
 
   const handleReset = async (e) => {
     e.preventDefault()
@@ -34,6 +44,26 @@ export default function ResetPasswordPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (otpExpired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-md bg-white rounded-[14px] p-8 border border-slate-200 text-center">
+          <div className="text-4xl mb-4">⏰</div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Reset link expired</h2>
+          <p className="text-slate-500 text-sm mb-6">
+            Password reset links expire after a short time for security. Request a new one and click it right away.
+          </p>
+          <a href="/login" className="inline-flex items-center justify-center w-full px-5 py-3 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">
+            Back to Login →
+          </a>
+          <p className="mt-3 text-xs text-slate-400">
+            Enter your email on the login page and click "Forgot password?" to get a new link.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   if (success) {
