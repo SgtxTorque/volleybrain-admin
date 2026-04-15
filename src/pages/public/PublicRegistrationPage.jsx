@@ -9,6 +9,7 @@ import { EmailService } from '../../lib/email-service'
 import { createInvitation, checkExistingAccount, grantRole } from '../../lib/invite-utils'
 import { AlertCircle, Info } from '../../constants/icons'
 import OrgLogo from '../../components/OrgLogo'
+import { getContrastText } from '../../components/social-cards/cardColorUtils'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import {
@@ -1074,27 +1075,29 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const orgBranding = orgSettings.branding || {}
   const accentColor = orgBranding.primary_color || orgSettings.primary_color || '#4BB9EC'
   const orgTagline = orgBranding.tagline || orgSettings.tagline || ''
+  const headerBgColor = organization?.primary_color || orgBranding.primary_color || orgSettings.primary_color || '#10284C'
+  const headerTextColor = getContrastText(headerBgColor)
 
   // ─── Main render ───────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#F5F6F8]">
       {/* Branded header */}
-      <div className="bg-lynx-navy">
+      <div style={{ backgroundColor: headerBgColor, color: headerTextColor }}>
         <div className="px-4 py-10 text-center max-w-2xl mx-auto">
           <div className="flex justify-center mb-4">
             <OrgLogo org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }} size={72} />
           </div>
-          <h1 className="text-2xl font-black text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+          <h1 className="text-2xl font-black" style={{ fontFamily: 'var(--v2-font)', color: headerTextColor }}>
             {organization?.name || 'Join the Den'}
           </h1>
           {orgTagline && (
-            <p className="text-r-xs text-white/60 mt-1">{orgTagline}</p>
+            <p className="text-r-xs mt-1" style={{ color: `${headerTextColor}99` }}>{orgTagline}</p>
           )}
-          <p className="mt-3 text-r-sm text-white/80">
+          <p className="mt-3 text-r-sm" style={{ color: `${headerTextColor}cc` }}>
             {season?.sports?.icon} {season?.name}
           </p>
           {season?.start_date && (
-            <p className="text-r-xs text-white/50 mt-1">
+            <p className="text-r-xs mt-1" style={{ color: `${headerTextColor}80` }}>
               Starts {parseLocalDate(season.start_date).toLocaleDateString()}
             </p>
           )}

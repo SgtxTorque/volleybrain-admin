@@ -14,6 +14,7 @@ import {
   SharedInfoCard, CustomQuestionsCard,
 } from './RegistrationFormSteps'
 import OrgLogo from '../../components/OrgLogo'
+import { getContrastText } from '../../components/social-cards/cardColorUtils'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2, CheckCircle2, ExternalLink } from 'lucide-react'
 
 const CARD = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
@@ -1236,6 +1237,7 @@ export function RegistrationCartPage() {
   const orgBranding = orgSettings.branding || {}
   const accentColor = orgBranding.primary_color || orgSettings.primary_color || '#4BB9EC'
   const orgLogo = organization?.logo_url || orgBranding.logo_url || orgSettings.logo_url || null
+  const accentTextColor = getContrastText(accentColor)
 
   // ─── Load registration templates for selected programs ───────────────
   useEffect(() => {
@@ -1855,7 +1857,7 @@ export function RegistrationCartPage() {
           {/* Org branding */}
           <div className="flex items-center justify-center gap-3 pt-4 pb-2">
             <OrgLogo org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }} size={28} />
-            <h1 className="text-white font-bold text-base">{organization?.name || 'Registration'}</h1>
+            <h1 className="font-bold text-base" style={{ color: accentTextColor }}>{organization?.name || 'Registration'}</h1>
           </div>
           {/* Step progress */}
           <StepProgress currentStep={currentStep} />
