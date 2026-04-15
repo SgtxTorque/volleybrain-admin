@@ -574,19 +574,39 @@ function ReviewSubmitStep({ children, childProgramMap, selectedPrograms, sharedI
                 </div>
               </div>
               <div className="divide-y divide-slate-100">
-                {group.items.map(({ child, summary, discount }, i) => (
-                  <div key={i} className="px-4 py-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{child.first_name} {child.last_name}</p>
-                      {discount > 0 && (
-                        <p className="text-[10px] text-green-600 font-semibold mt-0.5">
-                          {summary.hasEarlyBird && summary.hasSiblingDiscount ? 'Early Bird + Sibling' :
-                           summary.hasEarlyBird ? 'Early Bird Discount' :
-                           summary.hasSiblingDiscount ? 'Sibling Discount' : 'Discount'} (-${discount.toFixed(2)})
-                        </p>
-                      )}
+                {group.items.map(({ child, summary, discount, fees }, i) => (
+                  <div key={i} className="px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{child.first_name} {child.last_name}</p>
+                        {discount > 0 && (
+                          <p className="text-[10px] text-green-600 font-semibold mt-0.5">
+                            {summary.hasEarlyBird && summary.hasSiblingDiscount ? 'Early Bird + Sibling' :
+                             summary.hasEarlyBird ? 'Early Bird Discount' :
+                             summary.hasSiblingDiscount ? 'Sibling Discount' : 'Discount'} (-${discount.toFixed(2)})
+                          </p>
+                        )}
+                      </div>
+                      <p className="font-bold text-sm text-slate-900">${summary.total.toFixed(2)}</p>
                     </div>
-                    <p className="font-bold text-sm text-slate-900">${summary.total.toFixed(2)}</p>
+                    {fees && fees.length > 0 && (
+                      <details className="mt-2">
+                        <summary className="text-[11px] text-slate-500 cursor-pointer hover:text-slate-700">
+                          View fee breakdown
+                        </summary>
+                        <div className="mt-1 pl-3 border-l-2 border-slate-200">
+                          {fees.map((fee, fi) => {
+                            const isDiscount = fee.amount < 0 || fee.fee_name?.includes('Sibling') || fee.fee_name?.includes('Early Bird')
+                            return (
+                              <div key={fi} className="flex justify-between py-0.5 text-[11px]">
+                                <span className={isDiscount ? 'text-green-600' : 'text-slate-600'}>{fee.fee_name || fee.fee_type || 'Fee'}</span>
+                                <span className={isDiscount ? 'text-green-600 font-medium' : 'text-slate-700'}>${(fee.amount || 0).toFixed(2)}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 ))}
               </div>
@@ -941,7 +961,7 @@ function AssignProgramsStep({ children, selectedPrograms, childProgramMap, setCh
       )
       const summary = getFeeSummary(fees)
       childTotal += summary.total
-      return { sp, summary }
+      return { sp, summary, fees }
     }).filter(Boolean)
     return { child, childIndex, items, total: childTotal, programCount: assignedIds.length }
   })
