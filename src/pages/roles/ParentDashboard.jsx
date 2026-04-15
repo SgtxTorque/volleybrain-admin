@@ -138,6 +138,24 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     else setXpData({ level: 1, currentXp: 0, xpToNext: 1000 })
   }, [activeChildIdx, registrationData.length])
 
+  // Re-run checklist when registrationData changes (e.g. after navigation back with fresh data)
+  useEffect(() => {
+    if (registrationData.length > 0) {
+      parentTutorial?.loadChecklistData?.(registrationData)
+    }
+  }, [registrationData])
+
+  // Re-check checklist when window regains focus (catches photo uploads from profile page)
+  useEffect(() => {
+    function handleFocus() {
+      if (registrationData.length > 0) {
+        parentTutorial?.loadChecklistData?.(registrationData)
+      }
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [parentTutorial, registrationData])
+
   // Load engagement column data when registrationData is available
   useEffect(() => {
     if (registrationData.length === 0 || !profile?.id) return
