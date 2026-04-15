@@ -21,6 +21,7 @@ import {
   Search, Heart, Mail, PlayCircle, ListOrdered, Lock,
   AlertTriangle
 } from 'lucide-react'
+import OrgLogo from '../OrgLogo'
 
 // =============================================================================
 // PROGRESSIVE NAV PREREQUISITES (admin only)
@@ -736,15 +737,21 @@ export default function LynxSidebar({
     >
       {/* ---- Logo ---- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginBottom: 16, paddingLeft: 2 }}>
-        <img src="/lynx-logo.png" alt="Lynx" style={{ height: 28, objectFit: 'contain' }}
-          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex') }} />
-        <div style={{
-          display: 'none', width: 34, height: 34, borderRadius: 10,
-          background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
-          color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
-          alignItems: 'center', justifyContent: 'center',
-          fontWeight: 800, fontSize: 17, flexShrink: 0,
-        }}>L</div>
+        {organization?.logo_url || organization?.name ? (
+          <OrgLogo org={organization} size={34} />
+        ) : (
+          <>
+            <img src="/lynx-logo.png" alt="Lynx" style={{ height: 28, objectFit: 'contain' }}
+              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex') }} />
+            <div style={{
+              display: 'none', width: 34, height: 34, borderRadius: 10,
+              background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+              color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+              alignItems: 'center', justifyContent: 'center',
+              fontWeight: 800, fontSize: 17, flexShrink: 0,
+            }}>L</div>
+          </>
+        )}
       </div>
 
       {/* ---- Nav Items with Section Headers ---- */}

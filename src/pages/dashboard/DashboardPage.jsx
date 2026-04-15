@@ -18,6 +18,7 @@ import {
   V2DashboardLayout,
 } from '../../components/v2'
 import ProgramCard from '../../components/v2/admin/ProgramCard'
+import OrgLogo from '../../components/OrgLogo'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import AdminRegistrationsTab from '../../components/v2/admin/AdminRegistrationsTab'
@@ -1369,7 +1370,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
             <>
               {/* HERO CARD — org-wide stats */}
               <HeroCard
-                orgLine={orgName || organization?.name || 'Your Organization'}
+                orgLine={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><OrgLogo org={organization || {}} size={18} />{orgName || organization?.name || 'Your Organization'}</span>}
                 greeting={
                   !foundationReady
                     ? `Welcome to Lynx, ${profile?.first_name || 'Admin'}! Let's set up your club.`
