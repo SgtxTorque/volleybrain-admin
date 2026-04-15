@@ -163,6 +163,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Consolidated `getContrastText` to single source in `cardColorUtils.js` → No mobile action needed (mobile has its own color utils)
 - WEB: Removed dead `useOrgBranding()` usage from TeamWallPage → No mobile action needed
 
+### April 15, 2026 (Branding Phase 2)
+- WEB: Rolled out `TeamLogo` component across ALL team-identity surfaces — header dropdowns (coach & parent team selectors), calendar views (month/week/day/list), Team Hub selector, Team Wall sidebar, attendance/standings/game prep pages, reports data tables, parent messages, player detail, coach assignment modals, staff portal → MOBILE: If mobile renders team color dots anywhere, swap to equivalent component with logo → initials → dot fallback chain
+- WEB: Updated 14+ Supabase queries to include `logo_url, abbreviation` alongside `id, name, color` → MOBILE: Mobile team queries should also fetch `logo_url` and `abbreviation` for logo rendering
+- WEB: Report data transforms now flatten `team_logo_url` and `team_abbreviation` into row objects → MOBILE: No action (reports are web-only)
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
