@@ -3,10 +3,11 @@
 // Mirrors NewTeamModal structure with pre-populated fields from team prop
 // =============================================================================
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { X } from 'lucide-react'
+import { X, Upload } from 'lucide-react'
+import TeamLogo from '../../components/TeamLogo'
 
 export default function EditTeamModal({ team, onClose, onSave, showToast }) {
   const { isDark } = useTheme()
@@ -27,6 +28,10 @@ export default function EditTeamModal({ team, onClose, onSave, showToast }) {
   })
   const [activeTab, setActiveTab] = useState('basic')
   const [saving, setSaving] = useState(false)
+  const [logoFile, setLogoFile] = useState(null)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const [removeLogo, setRemoveLogo] = useState(false)
+  const logoInputRef = useRef(null)
 
   const ageOptions = [
     '8U', '9U', '10U', '11U', '12U', '13U', '14U', '15U', '16U', '17U', '18U', 'Adult'
@@ -45,27 +50,67 @@ export default function EditTeamModal({ team, onClose, onSave, showToast }) {
     { value: '12th', label: '12th Grade (Senior)' },
   ]
 
+  function handleLogoSelect(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      showToast?.('Logo must be under 2MB', 'error')
+      return
+    }
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+    setRemoveLogo(false)
+  }
+
   async function handleSave() {
     if (!form.name.trim() || saving) return
     setSaving(true)
     try {
+      let logoUrl = undefined // undefined = don't change
+
+      // Upload new logo if selected
+      if (logoFile) {
+        const fileExt = logoFile.name.split('.').pop()
+        const fileName = `team-logo-${Date.now()}.${fileExt}`
+        const { data, error: uploadErr } = await supabase.storage.from('team-assets').upload(fileName, logoFile)
+        if (uploadErr) {
+          // Fallback to data URI
+          const reader = new FileReader()
+          logoUrl = await new Promise((resolve) => {
+            reader.onload = (ev) => resolve(ev.target.result)
+            reader.readAsDataURL(logoFile)
+          })
+        } else {
+          const { data: { publicUrl } } = supabase.storage.from('team-assets').getPublicUrl(fileName)
+          logoUrl = publicUrl
+        }
+      } else if (removeLogo) {
+        logoUrl = null
+      }
+
+      const updatePayload = {
+        name: form.name.trim(),
+        abbreviation: form.abbreviation.trim(),
+        color: form.color,
+        age_group: form.age_group,
+        age_group_type: form.age_group_type,
+        team_type: form.team_type,
+        skill_level: form.skill_level,
+        gender: form.gender,
+        max_roster_size: form.max_roster_size,
+        min_roster_size: form.min_roster_size,
+        roster_open: form.roster_open,
+        description: form.description.trim(),
+        internal_notes: form.internal_notes.trim()
+      }
+
+      if (logoUrl !== undefined) {
+        updatePayload.logo_url = logoUrl
+      }
+
       const { error } = await supabase
         .from('teams')
-        .update({
-          name: form.name.trim(),
-          abbreviation: form.abbreviation.trim(),
-          color: form.color,
-          age_group: form.age_group,
-          age_group_type: form.age_group_type,
-          team_type: form.team_type,
-          skill_level: form.skill_level,
-          gender: form.gender,
-          max_roster_size: form.max_roster_size,
-          min_roster_size: form.min_roster_size,
-          roster_open: form.roster_open,
-          description: form.description.trim(),
-          internal_notes: form.internal_notes.trim()
-        })
+        .update(updatePayload)
         .eq('id', team.id)
 
       if (error) throw error
@@ -166,6 +211,60 @@ export default function EditTeamModal({ team, onClose, onSave, showToast }) {
                       style={{ backgroundColor: c }} />
                   ))}
                 </div>
+              </div>
+
+              {/* Logo Upload */}
+              <div>
+                <label className={`block text-r-sm font-medium ${isDark ? 'text-white' : 'text-lynx-navy'} mb-2`}>Team Logo</label>
+                <div className="flex items-center gap-4">
+                  <TeamLogo
+                    team={{
+                      logo_url: removeLogo ? null : (logoPreview || team.logo_url),
+                      color: form.color,
+                      name: form.name,
+                      abbreviation: form.abbreviation
+                    }}
+                    size={64}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp"
+                      className="hidden"
+                      onChange={handleLogoSelect}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-medium transition ${
+                        isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.08]' : 'bg-slate-100 text-lynx-navy hover:bg-lynx-frost'
+                      }`}
+                    >
+                      <Upload className="w-4 h-4" />
+                      {team.logo_url && !removeLogo ? 'Change Logo' : 'Upload Logo'}
+                    </button>
+                    {(team.logo_url || logoFile) && !removeLogo && (
+                      <button
+                        type="button"
+                        onClick={() => { setRemoveLogo(true); setLogoFile(null); setLogoPreview(null) }}
+                        className="text-r-xs text-red-500 hover:text-red-400 text-left"
+                      >
+                        Remove Logo
+                      </button>
+                    )}
+                    {removeLogo && (
+                      <button
+                        type="button"
+                        onClick={() => setRemoveLogo(false)}
+                        className="text-r-xs text-lynx-sky hover:text-lynx-sky/80 text-left"
+                      >
+                        Undo Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className={`text-r-xs mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>PNG, JPG, or WebP. Max 2MB.</p>
               </div>
 
               <div>
