@@ -143,6 +143,14 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Identity & Branding section completion no longer requires logo_url (logo is optional for identity, still required for branding). Identity section now has a file upload widget instead of a text URL input. → MOBILE: No action (setup is web-only).
 - WEB: Fixed incorrect date_of_birth references to birth_date across 5 files (PlayerProfilePage, ParentRegistrationHub, ReportsPage, dataExportFunctions, ProgramPage). The players table column is birth_date, not date_of_birth. → MOBILE: Verify mobile uses birth_date for players table queries/inserts.
 
+### April 15, 2026 (Session 2)
+- WEB: Registration success screen now detects 'already registered' auth error and shows Sign In + Forgot Password instead of misleading Create Account CTA. → MOBILE: Check if mobile registration has the same silent swallow pattern.
+- WEB: ResetPasswordPage now checks URL hash for expired OTP on mount and shows friendly error. → MOBILE: Mobile has its own auth flow, no action needed.
+- WEB: Both registration success screens now subscribe to onAuthStateChange for session detection. → MOBILE: No action needed.
+- WEB: Dashboard payment buttons swapped — Pay Balance Now goes to full payments page. → MOBILE: Check if mobile dashboard has the same mismatch.
+- WEB: Parent balance split into Due Now (red) vs Upcoming (amber) using due_date field. → MOBILE: Implement same split on mobile parent balance display.
+- WEB: Registration cart now shows expandable fee breakdown per program per child. → MOBILE: Mobile registration should show same breakdown.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
