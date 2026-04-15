@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { X, Download, Check, Image } from '../../constants/icons'
+import { getContrastText, darken, lighten, hexToRgba } from '../../components/social-cards/cardColorUtils'
 
 // ============================================
 // SEASON SCHEDULE POSTER GENERATOR v2
@@ -14,29 +15,6 @@ const POSTER_LAYOUTS = [
   { id: 'story', name: 'Social Story', aspect: 'portrait' },
   { id: 'baruch', name: 'Clean Grid', aspect: 'landscape' },
 ]
-
-function getContrastText(hex) {
-  if (!hex) return '#fff'
-  const c = hex.replace('#', '')
-  const r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16)
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? '#1a1a2e' : '#ffffff'
-}
-function darken(hex, pct = 0.3) {
-  if (!hex) return '#1a1a2e'
-  const c = hex.replace('#', '')
-  return `rgb(${Math.round(parseInt(c.substr(0,2),16)*(1-pct))},${Math.round(parseInt(c.substr(2,2),16)*(1-pct))},${Math.round(parseInt(c.substr(4,2),16)*(1-pct))})`
-}
-function lighten(hex, pct = 0.3) {
-  if (!hex) return '#e2e8f0'
-  const c = hex.replace('#', '')
-  const f = (s) => Math.min(255, Math.round(parseInt(c.substr(s,2),16) + (255 - parseInt(c.substr(s,2),16)) * pct))
-  return `rgb(${f(0)},${f(2)},${f(4)})`
-}
-function hexToRgba(hex, alpha) {
-  if (!hex) return `rgba(100,100,240,${alpha})`
-  const c = hex.replace('#', '')
-  return `rgba(${parseInt(c.substr(0,2),16)},${parseInt(c.substr(2,2),16)},${parseInt(c.substr(4,2),16)},${alpha})`
-}
 
 function SchedulePosterModal({ season, team, organization, events, onClose, showToast }) {
   const tc = useThemeClasses()

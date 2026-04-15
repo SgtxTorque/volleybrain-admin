@@ -2,29 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { X, Download, Share2, Copy } from '../../constants/icons'
+import { getContrastText, darken, hexToRgba } from '../../components/social-cards/cardColorUtils'
 
 // ============================================
 // GAME DAY SHARE CARD v2
 // ============================================
 // Branded "GAME DAY / Come Support Us!" graphics
 // for parents to text, post on social, etc.
-
-function getContrastText(hex) {
-  if (!hex) return '#fff'
-  const c = hex.replace('#', '')
-  const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16)
-  return (0.299*r + 0.587*g + 0.114*b) / 255 > 0.55 ? '#1a1a2e' : '#ffffff'
-}
-function darken(hex, pct=0.3) {
-  if (!hex) return '#1a1a2e'
-  const c = hex.replace('#','')
-  return `rgb(${Math.round(parseInt(c.substr(0,2),16)*(1-pct))},${Math.round(parseInt(c.substr(2,2),16)*(1-pct))},${Math.round(parseInt(c.substr(4,2),16)*(1-pct))})`
-}
-function hexToRgba(hex, a) {
-  if (!hex) return `rgba(100,100,240,${a})`
-  const c = hex.replace('#','')
-  return `rgba(${parseInt(c.substr(0,2),16)},${parseInt(c.substr(2,2),16)},${parseInt(c.substr(4,2),16)},${a})`
-}
 
 const CARD_STYLES = [
   { id: 'bold', name: 'Bold', desc: 'Team colors' },
