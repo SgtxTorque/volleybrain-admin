@@ -949,12 +949,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               }
               primaryAction={
                 paymentSummary.totalDue > 0
-                  ? { label: 'Pay Balance Now →', onClick: () => setShowPaymentModal(true), variant: 'success' }
+                  ? { label: 'Pay Balance Now →', onClick: () => onNavigate?.('payments'), variant: 'success' }
                   : null
               }
               secondaryAction={
                 paymentSummary.totalDue > 0
-                  ? { label: 'View Details', onClick: () => onNavigate?.('payments') }
+                  ? { label: 'View Details', onClick: () => setShowPaymentModal(true) }
                   : null
               }
             />
