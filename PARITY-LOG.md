@@ -130,12 +130,18 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Backfill script created for missing sport records (src/scripts/backfill-sport-records.js). Run manually with service role key.
 
 ### April 14, 2026 (Evening)
-- WEB: Fixed player insert to use date_of_birth instead of birth_date (PublicRegistrationPage, RegistrationCartPage). → MOBILE: Check if mobile registration has the same field name mismatch.
+- WEB: Confirmed player insert correctly uses birth_date (PublicRegistrationPage, RegistrationCartPage). An earlier incorrect change to date_of_birth was reverted. → MOBILE: Verify mobile uses birth_date for the players table (NOT date_of_birth — that column does not exist).
 - WEB: Scoped loadOpenSeasons() on parent dashboard to current organization_id. → MOBILE: Verify mobile parent dashboard also scopes open seasons by org.
 - WEB: Added loading/disabled state to registration approve buttons to prevent double-click. → MOBILE: No action (approval is web-only).
 - WEB: fee-calculator.js now handles 23505 unique constraint violations gracefully. → MOBILE: If mobile ever triggers fee generation, same pattern should be used.
 - WEB: Backfill script for player DOB (src/scripts/backfill-player-dob.js). Run manually.
 - WEB: Dedup script for duplicate payment records (src/scripts/dedup-payment-records.js). Run manually before adding DB constraint.
+
+### April 15, 2026
+- WEB: Registration photo upload now goes to Supabase Storage (media bucket) instead of base64 in JSONB. players.photo_url is populated during registration. → MOBILE: Check if mobile registration has the same base64-only pattern. If so, same fix needed.
+- WEB: Parent Getting Started checklist now re-queries after player data changes so photo upload task completes. → MOBILE: No action (mobile has its own journey system).
+- WEB: Identity & Branding section completion no longer requires logo_url (logo is optional for identity, still required for branding). Identity section now has a file upload widget instead of a text URL input. → MOBILE: No action (setup is web-only).
+- WEB: Fixed incorrect date_of_birth references to birth_date across 5 files (PlayerProfilePage, ParentRegistrationHub, ReportsPage, dataExportFunctions, ProgramPage). The players table column is birth_date, not date_of_birth. → MOBILE: Verify mobile uses birth_date for players table queries/inserts.
 
 ---
 
