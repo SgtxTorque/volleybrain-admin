@@ -61,6 +61,28 @@ function renderField(key, fieldConfig, formState, setFormState, trackFormStart) 
     )
   }
 
+  if (key === 'preferred_number') {
+    return (
+      <div key={key}>
+        <label className={LABEL_CLASSES}>
+          {label} {isRequired && <span className="text-red-500">*</span>}
+        </label>
+        <input
+          type="number"
+          min="0"
+          max="99"
+          placeholder="e.g., 11"
+          value={formState[key] || ''}
+          onChange={e => setFormState({ ...formState, [key]: e.target.value })}
+          onFocus={trackFormStart}
+          required={isRequired}
+          className={INPUT_CLASSES}
+        />
+        <p className="text-xs text-slate-400 mt-1">Optional — we'll do our best to assign your preferred number</p>
+      </div>
+    )
+  }
+
   if (key === 'birth_date') {
     return (
       <div key={key}>

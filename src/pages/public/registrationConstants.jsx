@@ -10,6 +10,7 @@ const DEFAULT_CONFIG = {
     gender: { enabled: true, required: false, label: 'Gender' },
     grade: { enabled: true, required: false, label: 'Grade' },
     school: { enabled: true, required: false, label: 'School' },
+    preferred_number: { enabled: true, required: false, label: 'Preferred Jersey Number' },
   },
   parent_fields: {
     parent1_name: { enabled: true, required: true, label: 'Parent/Guardian Name' },
