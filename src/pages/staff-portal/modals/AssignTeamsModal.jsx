@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useThemeClasses } from '../../../contexts/ThemeContext'
 import { Star } from '../../../constants/icons'
+import TeamLogo from '../../../components/TeamLogo'
 
 export default function AssignTeamsModal({ coach, teams, onSave, onClose }) {
   const tc = useThemeClasses()
@@ -43,7 +44,7 @@ export default function AssignTeamsModal({ coach, teams, onSave, onClose }) {
                   <div key={team.id} className={`p-4 rounded-xl border transition ${isAssigned ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/5' : `${tc.border}`}`}>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={isAssigned} onChange={() => toggleTeam(team.id)} className="w-5 h-5 rounded" />
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: team.color || '#888' }} />
+                      <TeamLogo team={team} size={18} className="flex-shrink-0" />
                       <span className={`${tc.text} font-medium`}>{team.name}</span>
                     </label>
                     {isAssigned && (

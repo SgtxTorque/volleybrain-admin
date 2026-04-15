@@ -24,6 +24,7 @@ import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import EmailCoachesModal from './EmailCoachesModal'
 import InviteCoachModal from './InviteCoachModal'
+import TeamLogo from '../../components/TeamLogo'
 
 const roleLabels = { head: 'Head Coach', assistant: 'Assistant', manager: 'Manager', volunteer: 'Volunteer' }
 const bgCheckLabels = {
@@ -107,7 +108,7 @@ export function CoachesPage({ showToast }) {
   }
 
   async function loadTeams() {
-    let query = supabase.from('teams').select('id, name, color')
+    let query = supabase.from('teams').select('id, name, color, logo_url, abbreviation')
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else if (isAllSeasons(selectedSeason) && selectedSport?.id) {
@@ -1244,7 +1245,7 @@ function AssignTeamsModal({ coach, teams, onSave, onClose, tc }) {
                   <div key={team.id} className={`p-4 rounded-xl border transition ${isAssigned ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/5' : `${tc.border}`}`}>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={isAssigned} onChange={() => toggleTeam(team.id)} className="w-5 h-5 rounded" />
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: team.color || '#888' }} />
+                      <TeamLogo team={team} size={18} className="flex-shrink-0" />
                       <span className={`${tc.text} font-medium`}>{team.name}</span>
                     </label>
                     {isAssigned && (

@@ -168,7 +168,7 @@ export function StaffPortalPage({ showToast, onRefreshRoles }) {
   }
 
   async function loadTeams() {
-    let query = supabase.from('teams').select('id, name, color')
+    let query = supabase.from('teams').select('id, name, color, logo_url, abbreviation')
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else {

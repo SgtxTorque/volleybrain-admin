@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { MessageCircle, Bell, Users, CheckCircle2, AlertCircle, RefreshCw, Megaphone, Calendar, CreditCard } from '../../constants/icons'
+import TeamLogo from '../../components/TeamLogo'
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import { MessageCard, TeamPostCard, ActionCard, EmptyState } from './MessageCards'
@@ -43,7 +44,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
     try {
       const { data: teamPlayers } = await supabase
         .from('team_players')
-        .select('team_id, teams(id, name, color)')
+        .select('team_id, teams(id, name, color, logo_url, abbreviation)')
         .in('player_id', playerIds)
       const uniqueTeams = [...new Map(
         (teamPlayers || []).filter(tp => tp.teams).map(tp => [tp.teams.id, tp.teams])
@@ -284,7 +285,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
                     : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: team.color || '#4BB9EC' }} />
+              <TeamLogo team={team} size={16} className="flex-shrink-0" />
               {team.name}
             </button>
           ))}

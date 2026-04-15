@@ -8,6 +8,7 @@ import {
   TrendingUp, FileText, ChevronRight, RefreshCw, Save, Camera
 } from '../../constants/icons'
 import { formatPhone } from '../../lib/formatters'
+import TeamLogo from '../TeamLogo'
 
 // ============================================
 // CONSTANTS
@@ -606,7 +607,7 @@ export function PlayerCardExpanded({
 
     const { data: teams } = await supabase
       .from('team_players')
-      .select('*, teams(id, name, color, seasons(name))')
+      .select('*, teams(id, name, color, logo_url, abbreviation, seasons(name))')
       .eq('player_id', player.id)
     setTeamAssignments(teams || [])
   }
@@ -948,7 +949,7 @@ export function PlayerCardExpanded({
                       {teamAssignments.map(ta => (
                         <div key={ta.id} className="bg-lynx-midnight rounded-lg p-3 mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: ta.teams?.color || '#EAB308' }} />
+                            <TeamLogo team={ta.teams || {}} size={18} className="flex-shrink-0" />
                             <span className="text-white">{ta.teams?.name}</span>
                           </div>
                           <span className="text-slate-500 text-sm">{ta.teams?.seasons?.name}</span>
