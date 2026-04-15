@@ -151,6 +151,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Parent balance split into Due Now (red) vs Upcoming (amber) using due_date field. → MOBILE: Implement same split on mobile parent balance display.
 - WEB: Registration cart now shows expandable fee breakdown per program per child. → MOBILE: Mobile registration should show same breakdown.
 
+### April 15, 2026 (Session 3)
+- WEB: Enabled preferred_number field in registration form DEFAULT_CONFIG. Maps to players.jersey_pref_1. → MOBILE: If mobile registration exists, add same field.
+- WEB: Added CTA buttons to all transactional email types (payment receipt, team assignment, role elevation, etc.). → MOBILE: No action — emails are web-triggered.
+- WEB: Reports page handles "All Seasons" by querying all org season IDs instead of failing with sentinel value. → MOBILE: No impact — Reports is admin-web only.
+- WEB: delete-user-account Edge Function needs deployment. Code exists, web UI already calls it. → MOBILE: No impact — Platform Admin is web-only.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
