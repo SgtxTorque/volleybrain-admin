@@ -45,7 +45,15 @@ function RegistrationFunnelPage({ showToast }) {
   const [hasFunnelTable, setHasFunnelTable] = useState(false)
 
   useEffect(() => { loadSeasons() }, [organization?.id])
-  useEffect(() => { if (globalSeason?.id && globalSeason.id !== 'all' && !selectedSeasonId) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
+  useEffect(() => {
+    if (globalSeason?.id) {
+      if (globalSeason.id === 'all') {
+        setSelectedSeasonId('all')
+      } else if (!selectedSeasonId) {
+        setSelectedSeasonId(globalSeason.id)
+      }
+    }
+  }, [globalSeason?.id])
   useEffect(() => { if (selectedSeasonId) loadAllData() }, [selectedSeasonId, dateRange])
 
   async function loadSeasons() {
@@ -55,15 +63,24 @@ function RegistrationFunnelPage({ showToast }) {
     setSeasons(data || [])
   }
 
+  function applySeasonFilter(query, seasonId) {
+    if (!seasonId || seasonId === 'all') {
+      if (seasons?.length > 0) {
+        return query.in('season_id', seasons.map(s => s.id))
+      }
+      return query
+    }
+    return query.eq('season_id', seasonId)
+  }
+
   async function loadAllData() {
     setLoading(true)
     try {
-      const seasonFilter = selectedSeasonId
-
       // Load players for this season
-      const { data: p } = await supabase.from('players')
+      let pq = supabase.from('players')
         .select('id, first_name, last_name, parent_name, parent_email, status, created_at')
-        .eq('season_id', seasonFilter).order('created_at', { ascending: false })
+      pq = applySeasonFilter(pq, selectedSeasonId)
+      const { data: p } = await pq.order('created_at', { ascending: false })
       setPlayers(p || [])
 
       // Load registrations for these players
@@ -78,18 +95,19 @@ function RegistrationFunnelPage({ showToast }) {
       setRegistrations(regs)
 
       // Load payments for this season
-      const { data: pay } = await supabase.from('payments')
+      let payq = supabase.from('payments')
         .select('id, player_id, amount, paid, paid_at, created_at')
-        .eq('season_id', seasonFilter)
+      payq = applySeasonFilter(payq, selectedSeasonId)
+      const { data: pay } = await payq
       setPayments(pay || [])
 
       // Try loading funnel events (table may not exist yet)
       try {
-        const { data: fe, error } = await supabase.from('registration_funnel_events')
+        let feq = supabase.from('registration_funnel_events')
           .select('*')
           .eq('organization_id', organization.id)
-          .eq('season_id', seasonFilter)
-          .order('created_at', { ascending: false })
+        feq = applySeasonFilter(feq, selectedSeasonId)
+        const { data: fe, error } = await feq.order('created_at', { ascending: false })
         if (!error) {
           setFunnelEvents(fe || [])
           setHasFunnelTable(true)
@@ -289,6 +307,7 @@ function RegistrationFunnelPage({ showToast }) {
           <select value="" onChange={e => setSelectedSeasonId(e.target.value)}
             className={`mt-4 ${v2Select}`}>
             <option value="">Select Season</option>
+            <option value="all">All Seasons</option>
             {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
@@ -316,6 +335,7 @@ function RegistrationFunnelPage({ showToast }) {
           <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)}
             className={`min-w-[180px] ${v2Select}`}>
             <option value="">Select Season</option>
+            <option value="all">All Seasons</option>
             {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>

@@ -79,7 +79,15 @@ function ReportsPage({ showToast }) {
 
   // ====== LIFECYCLE ======
   useEffect(() => { loadSeasonsAndSports(); loadSavedPresets() }, [organization?.id])
-  useEffect(() => { if (globalSeason?.id && !selectedSeasonId && !isAllSeasons(globalSeason)) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
+  useEffect(() => {
+    if (globalSeason?.id) {
+      if (isAllSeasons(globalSeason)) {
+        setSelectedSeasonId('all')
+      } else if (!selectedSeasonId) {
+        setSelectedSeasonId(globalSeason.id)
+      }
+    }
+  }, [globalSeason?.id])
   useEffect(() => { if (globalSport?.id && selectedSportId === 'all') setSelectedSportId(globalSport.id) }, [globalSport?.id])
   useEffect(() => { if (selectedSeasonId) loadTeams() }, [selectedSeasonId])
   useEffect(() => {
@@ -105,8 +113,24 @@ function ReportsPage({ showToast }) {
     setSports(sp || [])
   }
   async function loadTeams() {
-    const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeasonId).order('name')
-    setTeams(data || [])
+    if (selectedSeasonId === 'all') {
+      const allSeasonIds = seasons.map(s => s.id)
+      if (allSeasonIds.length === 0) { setTeams([]); return }
+      const { data } = await supabase.from('teams').select('id, name, color').in('season_id', allSeasonIds).order('name')
+      setTeams(data || [])
+    } else {
+      const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeasonId).order('name')
+      setTeams(data || [])
+    }
+  }
+  function applySeasonFilter(query, seasonId) {
+    if (!seasonId || seasonId === 'all') {
+      if (seasons?.length > 0) {
+        return query.in('season_id', seasons.map(s => s.id))
+      }
+      return query
+    }
+    return query.eq('season_id', seasonId)
   }
   function loadSavedPresets() {
     const saved = localStorage.getItem(`vb_report_presets_${organization?.id}`)
@@ -153,9 +177,10 @@ function ReportsPage({ showToast }) {
   // ====== REPORT LOADERS ======
 
   async function loadPlayersReport() {
-    const { data, error } = await supabase.from('players')
+    let q = supabase.from('players')
       .select('id, first_name, last_name, email, phone, grade, position, jersey_number, uniform_size_jersey, status, photo_url, parent_name, parent_email, parent_phone, parent_phone_secondary, birth_date, school, medical_notes, allergies, created_at, updated_at')
-      .eq('season_id', selectedSeasonId).order('last_name')
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data, error } = await q.order('last_name')
     if (error) { console.error('Players query error:', error); setData([]); return }
     const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color)').in('player_id', (data || []).map(p => p.id))
     const teamMap = {}
@@ -175,7 +200,9 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadTeamsReport() {
-    const { data, error } = await supabase.from('teams').select('id, name, color, age_group, team_type, skill_level, gender, max_roster_size, min_roster_size, roster_open, created_at, description').eq('season_id', selectedSeasonId).order('name')
+    let q = supabase.from('teams').select('id, name, color, age_group, team_type, skill_level, gender, max_roster_size, min_roster_size, roster_open, created_at, description')
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data, error } = await q.order('name')
     if (error) { setData([]); return }
     const { data: pc } = await supabase.from('team_players').select('team_id').in('team_id', (data || []).map(t => t.id))
     const { data: ca } = await supabase.from('team_coaches').select('team_id, coach_id, role').in('team_id', (data || []).map(t => t.id))
@@ -199,8 +226,12 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadPaymentsReport() {
-    const { data: players } = await supabase.from('players').select('id, first_name, last_name, parent_name, parent_email').eq('season_id', selectedSeasonId).order('last_name')
-    const { data: payments } = await supabase.from('payments').select('id, player_id, amount, paid, paid_at, payment_method, description').eq('season_id', selectedSeasonId)
+    let pq = supabase.from('players').select('id, first_name, last_name, parent_name, parent_email')
+    pq = applySeasonFilter(pq, selectedSeasonId)
+    const { data: players } = await pq.order('last_name')
+    let payq = supabase.from('payments').select('id, player_id, amount, paid, paid_at, payment_method, description')
+    payq = applySeasonFilter(payq, selectedSeasonId)
+    const { data: payments } = await payq
     const pm = {}; (payments || []).forEach(p => { if (!pm[p.player_id]) pm[p.player_id] = []; pm[p.player_id].push(p) })
     const transformed = (players || []).map(p => {
       const pp = pm[p.id] || []; const totalDue = pp.reduce((s, x) => s + (x.amount || 0), 0)
@@ -220,8 +251,12 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadOutstandingReport() {
-    const { data: players } = await supabase.from('players').select('id, first_name, last_name, parent_name, parent_email, parent_phone').eq('season_id', selectedSeasonId)
-    const { data: payments } = await supabase.from('payments').select('id, player_id, amount, paid, description, created_at').eq('season_id', selectedSeasonId)
+    let pq = supabase.from('players').select('id, first_name, last_name, parent_name, parent_email, parent_phone')
+    pq = applySeasonFilter(pq, selectedSeasonId)
+    const { data: players } = await pq
+    let payq = supabase.from('payments').select('id, player_id, amount, paid, description, created_at')
+    payq = applySeasonFilter(payq, selectedSeasonId)
+    const { data: payments } = await payq
     const pm = {}; (payments || []).forEach(p => { if (!pm[p.player_id]) pm[p.player_id] = []; pm[p.player_id].push(p) })
     const transformed = (players || []).map(p => {
       const pp = pm[p.id] || []; const totalDue = pp.reduce((s, x) => s + (x.amount || 0), 0)
@@ -237,9 +272,10 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadScheduleReport() {
-    const { data: events, error } = await supabase.from('schedule_events')
+    let q = supabase.from('schedule_events')
       .select('id, title, event_type, event_date, event_time, location, team_id, teams(name, color)')
-      .eq('season_id', selectedSeasonId).order('event_date', { ascending: false }).limit(200)
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data: events, error } = await q.order('event_date', { ascending: false }).limit(200)
     if (error) { console.error('Schedule error:', error); setData([]); setStats({ total: 0, games: 0, practices: 0, other: 0, labels: ['Total Events', 'Games', 'Practices', 'Other'] }); return }
     const transformed = (events || []).map(e => ({ ...e, team_name: e.teams?.name || 'All Teams', team_color: e.teams?.color || '#666',
       display_type: e.event_type === 'game' ? 'Game' : e.event_type === 'practice' ? 'Practice' : e.event_type || 'Event', display_date: e.event_date, display_time: e.event_time }))
@@ -252,7 +288,9 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadRegistrationsReport() {
-    const { data: players } = await supabase.from('players').select('id, first_name, last_name, parent_name, parent_email, parent_phone, status, created_at').eq('season_id', selectedSeasonId).order('created_at', { ascending: false })
+    let q = supabase.from('players').select('id, first_name, last_name, parent_name, parent_email, parent_phone, status, created_at')
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data: players } = await q.order('created_at', { ascending: false })
     let regMap = {}
     try {
       const { data: regs, error } = await supabase.from('registrations').select('id, player_id, status, submitted_at, approved_at, denied_at, deny_reason').in('player_id', (players || []).map(p => p.id))
@@ -271,7 +309,9 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadFinancialReport() {
-    const { data: payments } = await supabase.from('payments').select('id, amount, paid, paid_at, payment_method, description, created_at, players (first_name, last_name)').eq('season_id', selectedSeasonId).order('created_at', { ascending: false })
+    let q = supabase.from('payments').select('id, amount, paid, paid_at, payment_method, description, created_at, players (first_name, last_name)')
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data: payments } = await q.order('created_at', { ascending: false })
     const transformed = (payments || []).map(p => ({ ...p, player_name: p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown', status: p.paid ? 'Paid' : 'Pending' }))
     let filtered = transformed
     if (filters.dateFrom) filtered = filtered.filter(p => new Date(p.created_at) >= new Date(filters.dateFrom))
@@ -284,7 +324,9 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadJerseysReport() {
-    const { data: players } = await supabase.from('players').select('id, first_name, last_name, jersey_number, uniform_size_jersey').eq('season_id', selectedSeasonId).order('jersey_number', { nullsFirst: false })
+    let q = supabase.from('players').select('id, first_name, last_name, jersey_number, uniform_size_jersey')
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data: players } = await q.order('jersey_number', { nullsFirst: false })
     const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color)').in('player_id', (players || []).map(p => p.id))
     const teamMap = {}; (ta || []).forEach(t => { if (t.teams) teamMap[t.player_id] = t.teams })
     const transformed = (players || []).map(p => ({ ...p, full_name: `${p.first_name} ${p.last_name}`, team_name: teamMap[p.id]?.name || 'Unassigned', team_color: teamMap[p.id]?.color || '#666', has_jersey: !!p.jersey_number, has_size: !!p.uniform_size_jersey }))
@@ -304,16 +346,22 @@ function ReportsPage({ showToast }) {
       ;(assignments || []).forEach(a => { if (!assignMap[a.coach_id]) assignMap[a.coach_id] = []; if (a.teams) assignMap[a.coach_id].push({ ...a.teams, role: a.role }) })
     }
     const transformed = (data || []).map(c => {
-      const ct = assignMap[c.id] || []; const st = ct.filter(t => t.season_id === selectedSeasonId)
+      const ct = assignMap[c.id] || []
+      const allSeasonIds = seasons.map(s => s.id)
+      const st = selectedSeasonId === 'all' ? ct.filter(t => allSeasonIds.includes(t.season_id)) : ct.filter(t => t.season_id === selectedSeasonId)
       return { ...c, full_name: c.profiles?.full_name || 'Unknown', email: c.profiles?.email || '-', team_count: st.length, teams_list: st.map(t => t.name).join(', ') || 'None', role: st[0]?.role || 'coach' }
     })
     setData(transformed)
     const total = transformed.length; const assigned = transformed.filter(c => c.team_count > 0).length
-    setStats({ total, assigned, unassigned: total - assigned, totalTeams: [...new Set(transformed.flatMap(c => (assignMap[c.id] || []).filter(t => t.season_id === selectedSeasonId).map(t => t.id)))].length, labels: ['Total Coaches', 'Assigned', 'Unassigned', 'Teams Covered'] })
+    const allSeasonIds = seasons.map(s => s.id)
+    const seasonFilter = t => selectedSeasonId === 'all' ? allSeasonIds.includes(t.season_id) : t.season_id === selectedSeasonId
+    setStats({ total, assigned, unassigned: total - assigned, totalTeams: [...new Set(transformed.flatMap(c => (assignMap[c.id] || []).filter(seasonFilter).map(t => t.id)))].length, labels: ['Total Coaches', 'Assigned', 'Unassigned', 'Teams Covered'] })
   }
 
   async function loadEmergencyReport() {
-    const { data: players } = await supabase.from('players').select('id, first_name, last_name, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, parent_name, parent_phone, parent_email, medical_notes, allergies').eq('season_id', selectedSeasonId).order('last_name')
+    let q = supabase.from('players').select('id, first_name, last_name, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, parent_name, parent_phone, parent_email, medical_notes, allergies')
+    q = applySeasonFilter(q, selectedSeasonId)
+    const { data: players } = await q.order('last_name')
     const { data: ta } = await supabase.from('team_players').select('player_id, teams (name)').in('player_id', (players || []).map(p => p.id))
     const teamMap = {}; (ta || []).forEach(t => { if (t.teams) teamMap[t.player_id] = t.teams.name })
     const transformed = (players || []).map(p => ({ ...p, full_name: `${p.first_name} ${p.last_name}`, team_name: teamMap[p.id] || 'Unassigned', has_emergency: !!p.emergency_contact_name && !!p.emergency_contact_phone, has_medical: !!p.medical_notes || !!p.allergies }))
@@ -322,10 +370,14 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadSeasonSummaryReport() {
-    const { data: players } = await supabase.from('players').select('id, status').eq('season_id', selectedSeasonId)
-    const { data: teamData } = await supabase.from('teams').select('id').eq('season_id', selectedSeasonId)
-    const { data: payments } = await supabase.from('payments').select('amount, paid').eq('season_id', selectedSeasonId)
-    const { data: events } = await supabase.from('schedule_events').select('id, event_type').eq('season_id', selectedSeasonId)
+    let pq = supabase.from('players').select('id, status'); pq = applySeasonFilter(pq, selectedSeasonId)
+    const { data: players } = await pq
+    let tq = supabase.from('teams').select('id'); tq = applySeasonFilter(tq, selectedSeasonId)
+    const { data: teamData } = await tq
+    let payq = supabase.from('payments').select('amount, paid'); payq = applySeasonFilter(payq, selectedSeasonId)
+    const { data: payments } = await payq
+    let eq = supabase.from('schedule_events').select('id, event_type'); eq = applySeasonFilter(eq, selectedSeasonId)
+    const { data: events } = await eq
     const tp = (players||[]).length; const tt = (teamData||[]).length; const te = (events||[]).length
     const tr = (payments||[]).reduce((s,p) => s + (p.amount||0), 0); const co = (payments||[]).filter(p => p.paid).reduce((s,p) => s + (p.amount||0), 0)
     const cr = tr > 0 ? Math.round((co/tr)*100) : 0; const games = (events||[]).filter(e => e.event_type === 'game').length
@@ -444,6 +496,7 @@ function ReportsPage({ showToast }) {
           )}
           <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`min-w-[180px] ${v2Select}`}>
             <option value="">Select Season</option>
+            <option value="all">All Seasons</option>
             {seasons.filter(s => selectedSportId === 'all' || s.sport_id === selectedSportId).map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '●' : s.status === 'upcoming' ? '○' : '◌'}</option>)}
           </select>
         </div>
