@@ -385,8 +385,22 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
 
 // ─── Cart Success Screen ──────────────────────────────────────────────────
 function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee, inviteUrl, existingAccountDetected }) {
+  const [hasSession, setHasSession] = useState(false)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const totalRegs = registrationIds.length
+
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession()
+      setHasSession(!!session)
+    }
+    checkSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) setHasSession(true)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   // Build per-child program list
   const childSummaries = children.map((child, idx) => {
@@ -442,7 +456,13 @@ function CartSuccessScreen({ children, childProgramMap, selectedPrograms, regist
         )}
 
         {/* Account CTA */}
-        {existingAccountDetected ? (
+        {hasSession ? (
+          <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-left mb-4">
+            <p className="font-semibold text-green-800 text-sm mb-2">You're signed in!</p>
+            <p className="text-green-700 text-xs mb-3">Head to your dashboard to track registration status and manage your team.</p>
+            <a href="/" className="inline-flex items-center justify-center w-full px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">Go to Your Dashboard →</a>
+          </div>
+        ) : existingAccountDetected ? (
           <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-left mb-4">
             <p className="font-semibold text-amber-800 text-sm mb-2">You already have an account</p>
             <p className="text-amber-700 text-xs mb-3">Sign in with your existing email and password.</p>

@@ -234,6 +234,11 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
       setHasSession(!!session)
     }
     checkSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) setHasSession(true)
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
