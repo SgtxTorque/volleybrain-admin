@@ -475,10 +475,15 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       const playerIds = players.map(p => p.id)
       const { data: payments } = await supabase.from('payments').select('*').in('player_id', playerIds)
       if (payments) {
+        const today = new Date().toISOString().split('T')[0]
         const unpaid = payments.filter(p => !p.paid)
-        const totalDue = unpaid.reduce((sum, p) => sum + (p.amount || 0), 0)
-        const totalPaid = payments.filter(p => p.paid).reduce((sum, p) => sum + (p.amount || 0), 0)
-        setPaymentSummary({ totalDue, totalPaid, unpaidItems: unpaid })
+        const pastDue = unpaid.filter(p => !p.due_date || p.due_date <= today)
+        const upcoming = unpaid.filter(p => p.due_date && p.due_date > today)
+        const pastDueTotal = pastDue.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        const upcomingTotal = upcoming.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        const totalDue = pastDueTotal + upcomingTotal
+        const totalPaid = payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        setPaymentSummary({ totalDue, totalPaid, pastDueTotal, upcomingTotal, pastDueCount: pastDue.length, upcomingCount: upcoming.length, unpaidItems: unpaid })
       }
     } catch (err) { console.warn('Error loading payments:', err) }
   }
@@ -938,14 +943,19 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               }
               receivedAmount={`$${Number(paymentSummary.totalPaid || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               receivedLabel="Paid"
-              outstandingAmount={paymentSummary.totalDue > 0 ? `$${Number(paymentSummary.totalDue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : undefined}
-              outstandingLabel="Outstanding"
+              outstandingAmount={paymentSummary.pastDueTotal > 0 ? `$${Number(paymentSummary.pastDueTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : undefined}
+              outstandingLabel="Due Now"
+              breakdown={paymentSummary.upcomingTotal > 0 ? [
+                { label: 'Upcoming', amount: paymentSummary.upcomingTotal, color: '#EAA900' },
+              ] : undefined}
               dueDateText={
                 paymentSummary.totalDue === 0 && paymentSummary.totalPaid > 0
                   ? '✓ All Paid'
-                  : paymentSummary.totalDue > 0
+                  : paymentSummary.pastDueTotal > 0
                     ? 'Balance due — tap below to pay'
-                    : null
+                    : paymentSummary.upcomingTotal > 0
+                      ? 'No balance due now — upcoming fees scheduled'
+                      : null
               }
               primaryAction={
                 paymentSummary.totalDue > 0

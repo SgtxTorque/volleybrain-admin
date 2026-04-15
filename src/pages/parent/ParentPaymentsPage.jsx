@@ -93,10 +93,15 @@ function ParentPaymentsPage({ roleContext, showToast }) {
     setLoading(false)
   }
 
-  const totalDue = payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-  const totalPaid = payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const today = new Date().toISOString().split('T')[0]
   const unpaidPayments = payments.filter(p => !p.paid)
   const paidPayments = payments.filter(p => p.paid)
+  const pastDue = unpaidPayments.filter(p => !p.due_date || p.due_date <= today)
+  const upcoming = unpaidPayments.filter(p => p.due_date && p.due_date > today)
+  const pastDueTotal = pastDue.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const upcomingTotal = upcoming.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const totalDue = pastDueTotal + upcomingTotal
+  const totalPaid = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
 
   const selectedTotal = unpaidPayments
     .filter(p => selectedPayments.has(p.id))
@@ -201,11 +206,18 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       {/* Stat Row */}
       <InnerStatRow stats={[
         {
-          icon: '💰',
-          label: 'Total Owed',
-          value: `$${totalDue.toFixed(2)}`,
-          color: totalDue > 0 ? 'text-red-500' : 'text-emerald-500',
-          sub: unpaidPayments.length > 0 ? `${unpaidPayments.length} unpaid` : 'None outstanding'
+          icon: '🔴',
+          label: 'Due Now',
+          value: `$${pastDueTotal.toFixed(2)}`,
+          color: pastDueTotal > 0 ? 'text-red-500' : 'text-emerald-500',
+          sub: pastDue.length > 0 ? `${pastDue.length} item${pastDue.length !== 1 ? 's' : ''}` : 'All caught up'
+        },
+        {
+          icon: '🟡',
+          label: 'Upcoming',
+          value: `$${upcomingTotal.toFixed(2)}`,
+          color: upcomingTotal > 0 ? 'text-amber-500' : 'text-emerald-500',
+          sub: upcoming.length > 0 ? `${upcoming.length} scheduled` : 'None scheduled'
         },
         {
           icon: '✅',
@@ -213,13 +225,6 @@ function ParentPaymentsPage({ roleContext, showToast }) {
           value: `$${totalPaid.toFixed(2)}`,
           color: 'text-emerald-500',
           sub: `${paidPayments.length} payment${paidPayments.length !== 1 ? 's' : ''}`
-        },
-        {
-          icon: '📊',
-          label: 'Outstanding Balance',
-          value: `$${(totalDue - totalPaid > 0 ? totalDue : 0).toFixed(2)}`,
-          color: totalDue > 0 ? 'text-amber-500' : 'text-emerald-500',
-          sub: totalDue === 0 ? 'All clear' : `${unpaidPayments.length} remaining`
         },
         {
           icon: '📅',
