@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import TeamLogo from '../../components/TeamLogo'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { PlayerCardExpanded } from '../../components/players'
 import { CommentSection } from '../../components/teams/CommentSection'
@@ -445,13 +446,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {/* Team info card */}
           <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
             <div className="flex flex-col items-center gap-3">
-              {team.logo_url ? (
-                <img src={team.logo_url} alt={team.name} className="w-16 h-16 rounded-full object-cover" />
-              ) : (
-                <div className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-white" style={{ background: g, fontSize: 18 }}>
-                  {teamInitials}
-                </div>
-              )}
+              <TeamLogo team={team} size={64} />
               <h2 className={`font-bold text-center ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ fontSize: 20 }}>
                 {team.name}
               </h2>

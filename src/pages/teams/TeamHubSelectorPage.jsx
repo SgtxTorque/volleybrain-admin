@@ -4,6 +4,7 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Search, Users, MessageCircle, Star, ChevronRight } from '../../constants/icons'
+import TeamLogo from '../../components/TeamLogo'
 import PageShell from '../../components/pages/PageShell'
 
 export default function TeamHubSelectorPage({ showToast, navigateToTeamWall }) {
@@ -146,17 +147,7 @@ export default function TeamHubSelectorPage({ showToast, navigateToTeamWall }) {
               className={`${tc.cardBg} ${tc.border} border rounded-[14px] p-5 text-left hover:shadow-lg transition-all group/card`}
             >
               <div className="flex items-center gap-3 mb-3">
-                {/* Team color dot or logo */}
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                  style={{ backgroundColor: team.color || '#4BB9EC' }}
-                >
-                  {team.logo_url ? (
-                    <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-xl" />
-                  ) : (
-                    team.name.substring(0, 2).toUpperCase()
-                  )}
-                </div>
+                <TeamLogo team={team} size={40} />
                 <div className="flex-1 min-w-0">
                   <h3 className={`font-bold ${tc.text} truncate`}>{team.name}</h3>
                   <p className={`text-r-xs ${tc.textMuted}`}>

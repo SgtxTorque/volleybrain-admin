@@ -6,6 +6,7 @@
 import {
   ArrowLeft, Calendar, ChevronRight, MessageCircle, BarChart3, Trophy
 } from '../../constants/icons'
+import TeamLogo from '../../components/TeamLogo'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -47,14 +48,8 @@ export default function TeamWallLeftSidebar({
       {/* Team Hero Header */}
       <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow }}>
         <div className="flex flex-col items-center p-5 gap-3">
-          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center" style={{ border: `3px solid ${borderColor}` }}>
-            {team.logo_url ? (
-              <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{ background: BRAND.ice }}>
-                <span style={{ fontSize: 30, fontWeight: 700, color: BRAND.navy }}>{teamInitials}</span>
-              </div>
-            )}
+          <div className="rounded-full overflow-hidden" style={{ border: `3px solid ${borderColor}` }}>
+            <TeamLogo team={team} size={74} />
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>{team.name}</h1>
           {seasonLabel && <span style={labelStyle}>{sportIcon} {seasonLabel}</span>}
