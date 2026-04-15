@@ -127,6 +127,7 @@ const PlatformDatabaseTools = lazy(() => import('./pages/platform/PlatformDataba
 const PlatformTeam = lazy(() => import('./pages/platform/PlatformTeam'))
 const PlatformIntegrations = lazy(() => import('./pages/platform/PlatformIntegrations'))
 const PlatformMyProfile = lazy(() => import('./pages/platform/PlatformMyProfile'))
+const PlatformBetaFeedback = lazy(() => import('./pages/platform/PlatformBetaFeedback'))
 const PlatformShell = lazy(() => import('./components/platform/PlatformShell'))
 
 // Profile
@@ -1576,6 +1577,7 @@ function MainApp() {
               <Route path="/platform/integrations" element={<PlatformIntegrations showToast={showToast} />} />
               <Route path="/platform/profile" element={<PlatformMyProfile showToast={showToast} />} />
               <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
+              <Route path="/platform/feedback" element={<PlatformBetaFeedback showToast={showToast} />} />
               <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
               <Route path="*" element={<Navigate to="/platform/overview" replace />} />
             </Routes>

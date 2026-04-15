@@ -39,6 +39,9 @@ const SECTION_NAV = {
   features: [
     { id: 'features', label: 'Feature Requests', icon: Building2 },
   ],
+  feedback: [
+    { id: 'feedback', label: 'Beta Feedback', icon: MessageSquare },
+  ],
   compliance: [
     { id: 'compliance', label: 'Compliance', icon: Shield },
   ],

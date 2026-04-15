@@ -13,6 +13,7 @@ const NAV_SECTIONS = [
   { id: 'notifications', label: 'Notifications' },
   { id: 'email', label: 'Email' },
   { id: 'features', label: 'Features' },
+  { id: 'feedback', label: 'Feedback' },
   { id: 'compliance', label: 'Compliance' },
   { id: 'audit', label: 'Audit Log' },
   { id: 'content', label: 'Content' },
