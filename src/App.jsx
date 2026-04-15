@@ -20,6 +20,9 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 // Main App
 import { MainApp } from './MainApp'
 
+// Global widgets
+import BetaFeedbackWidget from './components/BetaFeedbackWidget'
+
 // V2 Design Tokens (namespaced under --v2-*, no collision with existing theme)
 import './styles/v2-tokens.css'
 
@@ -78,19 +81,22 @@ function AuthenticatedApp() {
 
 function AppContent() {
   return (
-    <Routes>
-      {/* Public routes — no auth required */}
-      <Route path="/register/:orgIdOrSlug" element={<RegistrationCartRoute />} />
-      <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
-      <Route path="/invite/coach/:inviteCode" element={<CoachInviteAcceptPage />} />
-      <Route path="/join/coach/:orgId" element={<CoachJoinPage />} />
-      <Route path="/invite/parent/:inviteCode" element={<ParentInviteAcceptPage />} />
-      <Route path="/player-login" element={<PlayerLoginPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <>
+      <Routes>
+        {/* Public routes — no auth required */}
+        <Route path="/register/:orgIdOrSlug" element={<RegistrationCartRoute />} />
+        <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
+        <Route path="/invite/coach/:inviteCode" element={<CoachInviteAcceptPage />} />
+        <Route path="/join/coach/:orgId" element={<CoachJoinPage />} />
+        <Route path="/invite/parent/:inviteCode" element={<ParentInviteAcceptPage />} />
+        <Route path="/player-login" element={<PlayerLoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* All other routes go through the authenticated app */}
-      <Route path="/*" element={<AuthenticatedApp />} />
-    </Routes>
+        {/* All other routes go through the authenticated app */}
+        <Route path="/*" element={<AuthenticatedApp />} />
+      </Routes>
+      <BetaFeedbackWidget />
+    </>
   )
 }
 
