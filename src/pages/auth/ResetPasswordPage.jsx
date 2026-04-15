@@ -39,6 +39,11 @@ export default function ResetPasswordPage() {
 
       if (updateError) throw updateError
       setSuccess(true)
+      // Sign out the recovery session and redirect to login
+      setTimeout(async () => {
+        await supabase.auth.signOut()
+        window.location.href = '/login'
+      }, 3000)
     } catch (err) {
       setError(err.message || 'Failed to reset password. The link may have expired.')
     } finally {
@@ -76,7 +81,8 @@ export default function ResetPasswordPage() {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">Password Updated!</h2>
-          <p className="text-slate-500 mb-6">Your password has been reset successfully.</p>
+          <p className="text-slate-500 mb-2">Your password has been reset successfully.</p>
+          <p className="text-sm text-slate-400 mb-6">Redirecting to sign in...</p>
           <a
             href="/"
             className="inline-flex items-center justify-center px-6 py-3 rounded-[14px] bg-[#10284C] text-white font-semibold hover:brightness-110 transition-all"

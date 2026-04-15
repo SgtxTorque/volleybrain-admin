@@ -52,7 +52,7 @@ export function LoginPage({ initialMode, onBack }) {
   // Check for auth error in URL hash (e.g., expired OTP from password reset link)
   useEffect(() => {
     const hash = window.location.hash
-    if (hash.includes('error_code=otp_expired') || hash.includes('error=access_denied')) {
+    if (hash.includes('error_code=otp_expired') || hash.includes('error=access_denied') || hash.includes('error_code=otp_disabled')) {
       setError('This password reset link has expired. Please request a new one.')
       window.history.replaceState(null, '', window.location.pathname)
     }
@@ -253,7 +253,9 @@ export function LoginPage({ initialMode, onBack }) {
     setError('')
     setMessage('')
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim())
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`
+      })
       if (resetError) throw resetError
       setMessage('Password reset link sent! Check your email.')
     } catch (err) {
@@ -336,6 +338,18 @@ export function LoginPage({ initialMode, onBack }) {
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-400 text-sm">
               {error}
+            </div>
+          )}
+          {error && mode === 'signup' && (error.toLowerCase().includes('already registered') || error.toLowerCase().includes('already exists')) && (
+            <div className="mt-[-16px] mb-6 text-center text-sm">
+              <span className="text-slate-400">Already have an account? </span>
+              <button type="button" onClick={() => { setMode('login'); setError(''); }} className="text-[#4BB9EC] hover:underline font-medium">
+                Sign in instead
+              </button>
+              <span className="text-slate-400 mx-1">or</span>
+              <button type="button" onClick={handleForgotPassword} className="text-[#4BB9EC] hover:underline font-medium">
+                reset your password
+              </button>
             </div>
           )}
           {message && (
