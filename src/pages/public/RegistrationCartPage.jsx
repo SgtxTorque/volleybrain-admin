@@ -13,6 +13,7 @@ import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
   SharedInfoCard, CustomQuestionsCard,
 } from './RegistrationFormSteps'
+import OrgLogo from '../../components/OrgLogo'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2, CheckCircle2, ExternalLink } from 'lucide-react'
 
 const CARD = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
@@ -1234,7 +1235,7 @@ export function RegistrationCartPage() {
   const orgSettings = organization?.settings || {}
   const orgBranding = orgSettings.branding || {}
   const accentColor = orgBranding.primary_color || orgSettings.primary_color || '#4BB9EC'
-  const orgLogo = orgBranding.logo_url || orgSettings.logo_url || null
+  const orgLogo = organization?.logo_url || orgBranding.logo_url || orgSettings.logo_url || null
 
   // ─── Load registration templates for selected programs ───────────────
   useEffect(() => {
@@ -1853,7 +1854,7 @@ export function RegistrationCartPage() {
         <div className="max-w-2xl mx-auto px-4">
           {/* Org branding */}
           <div className="flex items-center justify-center gap-3 pt-4 pb-2">
-            {orgLogo && <img src={orgLogo} alt="" className="w-8 h-8 rounded-full object-cover bg-white" />}
+            <OrgLogo org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }} size={28} />
             <h1 className="text-white font-bold text-base">{organization?.name || 'Registration'}</h1>
           </div>
           {/* Step progress */}

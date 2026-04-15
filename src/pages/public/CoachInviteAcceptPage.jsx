@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import OrgLogo from '../../components/OrgLogo'
 import { acceptInvitation as acceptInvitationRecord } from '../../lib/invite-utils'
 
 const ROLE_LABELS = {
@@ -414,13 +415,9 @@ export default function CoachInviteAcceptPage() {
       {/* Header */}
       <div className="w-full" style={{ background: `linear-gradient(135deg, ${headerColor} 0%, ${headerColor}dd 100%)` }}>
         <div className="max-w-lg mx-auto px-4 py-10 text-center">
-          {orgInfo?.logo_url ? (
-            <img src={orgInfo.logo_url} alt={orgInfo.name} className="h-14 mx-auto mb-4 rounded-xl" />
-          ) : (
-            <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center mx-auto mb-4">
-              <span className="text-white text-2xl font-black">{orgInfo?.name?.[0] || 'L'}</span>
-            </div>
-          )}
+          <div className="flex justify-center mb-4">
+            <OrgLogo org={orgInfo || {}} size={56} />
+          </div>
           <p className="text-white/70 text-sm font-medium uppercase tracking-wider mb-1">
             {orgInfo?.name || 'Lynx'}
           </p>

@@ -8,6 +8,7 @@ import {
 } from '../../constants/icons'
 import { VolleyballIcon } from '../../constants/icons'
 import { formatPhone } from '../../lib/formatters'
+import OrgLogo from '../../components/OrgLogo'
 
 // ═══════════════════════════════════════════════════════════
 // ORG DIRECTORY PAGE — Public Organization Discovery
@@ -114,19 +115,7 @@ function OrgCard({ org, onSelect, isDark, index }) {
     >
       <div className="flex items-start gap-4 mb-4">
         {/* Logo / Avatar */}
-        <div
-          className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold overflow-hidden shrink-0 shadow-lg"
-          style={{
-            background: org.logo_url ? 'transparent' : (s.primary_color || ACCENT),
-            color: '#000',
-          }}
-        >
-          {org.logo_url ? (
-            <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            org.name?.charAt(0)?.toUpperCase() || '?'
-          )}
-        </div>
+        <OrgLogo org={{ logo_url: org.logo_url, name: org.name, primary_color: s.primary_color || ACCENT }} size={56} variant="square" className="shrink-0 shadow-lg" />
 
         <div className="flex-1 min-w-0">
           <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>
@@ -252,19 +241,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
           <div className="px-6 pb-8 space-y-6">
             {/* Org Hero */}
             <div className="od-as flex flex-col items-center text-center pt-4">
-              <div
-                className="w-20 h-20 rounded-xl flex items-center justify-center text-3xl font-bold overflow-hidden shadow-xl mb-4"
-                style={{
-                  background: org.logo_url ? 'transparent' : (s.primary_color || ACCENT),
-                  color: '#000',
-                }}
-              >
-                {org.logo_url ? (
-                  <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  org.name?.charAt(0)?.toUpperCase() || '?'
-                )}
-              </div>
+              <OrgLogo org={{ logo_url: org.logo_url, name: org.name, primary_color: s.primary_color || ACCENT }} size={80} variant="square" className="shadow-xl mb-4" />
               <h2 className={`od-display text-3xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{org.name}</h2>
               {location && (
                 <div className="flex items-center gap-1.5 mt-2">

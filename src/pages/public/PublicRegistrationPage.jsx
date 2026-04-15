@@ -8,6 +8,7 @@ import { parseLocalDate } from '../../lib/date-helpers'
 import { EmailService } from '../../lib/email-service'
 import { createInvitation, checkExistingAccount, grantRole } from '../../lib/invite-utils'
 import { AlertCircle, Info } from '../../constants/icons'
+import OrgLogo from '../../components/OrgLogo'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import {
@@ -1047,10 +1048,9 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     return (
       <div className="min-h-screen bg-[#F5F6F8] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
-          {organization?.logo_url && (
-            <img src={organization.logo_url} alt={organization.name}
-              className="w-16 h-16 mx-auto rounded-2xl mb-4 object-cover border-2 border-white/20 shadow-lg" />
-          )}
+          <div className="flex justify-center mb-4">
+            <OrgLogo org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }} size={56} />
+          </div>
           <h2 className="text-xl font-bold text-[#10284C] text-center mb-2" style={{ fontFamily: 'var(--v2-font)' }}>
             {organization?.name}
           </h2>
@@ -1081,13 +1081,9 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       {/* Branded header */}
       <div className="bg-lynx-navy">
         <div className="px-4 py-10 text-center max-w-2xl mx-auto">
-          {organization?.logo_url && (
-            <img
-              src={organization.logo_url}
-              alt={organization.name}
-              className="w-20 h-20 mx-auto rounded-2xl mb-4 object-cover border-2 border-white/20 shadow-lg"
-            />
-          )}
+          <div className="flex justify-center mb-4">
+            <OrgLogo org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }} size={72} />
+          </div>
           <h1 className="text-2xl font-black text-white" style={{ fontFamily: 'var(--v2-font)' }}>
             {organization?.name || 'Join the Den'}
           </h1>

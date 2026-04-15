@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import OrgLogo from '../../components/OrgLogo'
 
 export default function CoachJoinPage() {
   const { orgId } = useParams()
@@ -93,16 +94,9 @@ export default function CoachJoinPage() {
       <div className="bg-white rounded-[14px] shadow-sm p-8 max-w-md w-full">
         {/* Org branding */}
         <div className="text-center mb-6">
-          {org.logo_url ? (
-            <img src={org.logo_url} alt={org.name} className="h-16 mx-auto mb-3" />
-          ) : (
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 text-white text-2xl font-bold"
-              style={{ backgroundColor: org.primary_color || '#10284C' }}
-            >
-              {org.name?.[0] || 'L'}
-            </div>
-          )}
+          <div className="flex justify-center mb-3">
+            <OrgLogo org={org} size={64} />
+          </div>
           <h2 className="text-xl font-bold text-slate-800">{org.name}</h2>
           <p className="text-slate-500 mt-1">Coach Invitation</p>
         </div>
