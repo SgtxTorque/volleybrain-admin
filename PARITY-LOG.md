@@ -157,6 +157,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Reports page handles "All Seasons" by querying all org season IDs instead of failing with sentinel value. → MOBILE: No impact — Reports is admin-web only.
 - WEB: delete-user-account Edge Function needs deployment. Code exists, web UI already calls it. → MOBILE: No impact — Platform Admin is web-only.
 
+### April 15, 2026 (Branding Phase 1)
+- WEB: Created `TeamLogo` reusable component (`src/components/TeamLogo.jsx`) with logo → initials → color dot → fallback chain → Mobile should create equivalent component for team identity rendering consistency
+- WEB: Added logo upload to `EditTeamModal.jsx` — teams can now change logos after creation → Mobile team edit (if it exists) should also support logo changes
+- WEB: Consolidated `getContrastText` to single source in `cardColorUtils.js` → No mobile action needed (mobile has its own color utils)
+- WEB: Removed dead `useOrgBranding()` usage from TeamWallPage → No mobile action needed
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
