@@ -170,6 +170,14 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Org logo added to admin sidebar (LynxSidebar) and dashboard HeroCard → Mobile equivalent: org logo in drawer/header
 - WEB: RegistrationCartPage orgLogo source fixed to prefer top-level `organization.logo_url` over nested `settings.branding.logo_url` → Mobile: verify logo source priority
 
+### April 15, 2026 (Beta Feedback System)
+- WEB+MOBILE: Created `beta_feedback` table in Supabase (migration file at `supabase/migrations/20260415_beta_feedback.sql`) → Mobile MUST implement a matching feedback widget that writes to this same table with `platform: 'mobile'`
+- WEB: Created `BetaFeedbackWidget` component mounted at app root — floating button + 3-mode modal (reaction, comment, bug) → Mobile needs equivalent widget
+- WEB: Created PA dashboard page at `/platform/feedback` for viewing all feedback across platforms → No mobile action needed (PA is web-only)
+- SHARED: RLS policies on `beta_feedback` allow any authenticated user to insert and read own feedback; platform admins can read/update all feedback
+- SHARED: `beta_feedback.platform` column distinguishes web vs mobile submissions
+- CARLOS ACTION: Run `supabase/migrations/20260415_beta_feedback.sql` in Supabase SQL Editor before testing
+
 ### April 15, 2026 (Branding Phase 2)
 - WEB: Rolled out `TeamLogo` component across ALL team-identity surfaces — header dropdowns (coach & parent team selectors), calendar views (month/week/day/list), Team Hub selector, Team Wall sidebar, attendance/standings/game prep pages, reports data tables, parent messages, player detail, coach assignment modals, staff portal → MOBILE: If mobile renders team color dots anywhere, swap to equivalent component with logo → initials → dot fallback chain
 - WEB: Updated 14+ Supabase queries to include `logo_url, abbreviation` alongside `id, name, color` → MOBILE: Mobile team queries should also fetch `logo_url` and `abbreviation` for logo rendering
