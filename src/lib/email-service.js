@@ -69,6 +69,8 @@ export const EmailService = {
       org_name: organizationName,
       invite_url: inviteUrl || null,
       app_url: window.location.origin,
+      cta_text: 'View Your Registration',
+      cta_url: inviteUrl || `${window.location.origin}/login`,
     }, organizationId, {
       subject: hasInvite
         ? `${playerName} is registered! Create your account`
@@ -92,7 +94,9 @@ export const EmailService = {
       organization_email: organization.settings?.contact_email,
       total_due: totalDue,
       payment_methods: organization.settings?.payment_methods || {},
-      fees: fees.map(f => ({ description: f.description, amount: f.amount }))
+      fees: fees.map(f => ({ description: f.description, amount: f.amount })),
+      cta_text: 'Sign In to Your Dashboard',
+      cta_url: `${window.location.origin}/login`,
     }, organization.id)
   },
 
@@ -109,7 +113,9 @@ export const EmailService = {
       season_name: season.name,
       organization_name: organization.name,
       registration_url: registrationUrl,
-      expires_in: '48 hours'
+      expires_in: '48 hours',
+      cta_text: 'Claim Your Spot',
+      cta_url: registrationUrl || `${window.location.origin}/login`,
     }, organization.id)
   },
 
@@ -125,7 +131,9 @@ export const EmailService = {
       organization_email: organization.settings?.contact_email,
       amount_due: amountDue,
       due_date: dueDate,
-      payment_methods: organization.settings?.payment_methods || {}
+      payment_methods: organization.settings?.payment_methods || {},
+      cta_text: 'View Balance & Pay',
+      cta_url: `${window.location.origin}/parent/payments`,
     }, organization.id)
   },
 
@@ -142,6 +150,8 @@ export const EmailService = {
       transaction_id: transactionId || '',
       org_name: organizationName,
       app_url: window.location.origin,
+      cta_text: 'View Payment History',
+      cta_url: `${window.location.origin}/parent/payments`,
     }, organizationId, {
       subject: "Payment received. You're all set.",
       category: 'transactional',
@@ -160,7 +170,9 @@ export const EmailService = {
       season_name: season.name,
       organization_name: organization.name,
       coach_name: team.coach_name || null,
-      practice_info: team.practice_schedule || null
+      practice_info: team.practice_schedule || null,
+      cta_text: 'View Your Team',
+      cta_url: `${window.location.origin}/parent`,
     }, organization.id)
   },
 
@@ -246,6 +258,8 @@ export const EmailService = {
       new_role: newRole,
       team_name: teamName || null,
       app_url: window.location.origin,
+      cta_text: 'Go to Dashboard',
+      cta_url: `${window.location.origin}/login`,
     }, orgId, {
       subject: `You're now a ${newRole} at ${orgName}!`,
       category: 'transactional',
