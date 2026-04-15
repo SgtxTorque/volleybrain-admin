@@ -116,10 +116,10 @@ function ReportsPage({ showToast }) {
     if (selectedSeasonId === 'all') {
       const allSeasonIds = seasons.map(s => s.id)
       if (allSeasonIds.length === 0) { setTeams([]); return }
-      const { data } = await supabase.from('teams').select('id, name, color').in('season_id', allSeasonIds).order('name')
+      const { data } = await supabase.from('teams').select('id, name, color, logo_url, abbreviation').in('season_id', allSeasonIds).order('name')
       setTeams(data || [])
     } else {
-      const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeasonId).order('name')
+      const { data } = await supabase.from('teams').select('id, name, color, logo_url, abbreviation').eq('season_id', selectedSeasonId).order('name')
       setTeams(data || [])
     }
   }
@@ -182,12 +182,12 @@ function ReportsPage({ showToast }) {
     q = applySeasonFilter(q, selectedSeasonId)
     const { data, error } = await q.order('last_name')
     if (error) { console.error('Players query error:', error); setData([]); return }
-    const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color)').in('player_id', (data || []).map(p => p.id))
+    const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color, logo_url, abbreviation)').in('player_id', (data || []).map(p => p.id))
     const teamMap = {}
     ;(ta || []).forEach(t => { if (!teamMap[t.player_id]) teamMap[t.player_id] = []; if (t.teams) teamMap[t.player_id].push(t.teams) })
     const transformed = (data || []).map(p => ({
       ...p, full_name: `${p.first_name} ${p.last_name}`,
-      team_name: teamMap[p.id]?.[0]?.name || 'Unassigned', team_color: teamMap[p.id]?.[0]?.color || '#666',
+      team_name: teamMap[p.id]?.[0]?.name || 'Unassigned', team_color: teamMap[p.id]?.[0]?.color || '#666', team_logo_url: teamMap[p.id]?.[0]?.logo_url || null, team_abbreviation: teamMap[p.id]?.[0]?.abbreviation || null,
       teams_list: teamMap[p.id]?.map(t => t.name).join(', ') || 'Unassigned',
       age: p.birth_date ? Math.floor((new Date() - new Date(p.birth_date)) / (365.25 * 24 * 60 * 60 * 1000)) : null
     }))
@@ -273,11 +273,11 @@ function ReportsPage({ showToast }) {
 
   async function loadScheduleReport() {
     let q = supabase.from('schedule_events')
-      .select('id, title, event_type, event_date, event_time, location, team_id, teams(name, color)')
+      .select('id, title, event_type, event_date, event_time, location, team_id, teams(name, color, logo_url, abbreviation)')
     q = applySeasonFilter(q, selectedSeasonId)
     const { data: events, error } = await q.order('event_date', { ascending: false }).limit(200)
     if (error) { console.error('Schedule error:', error); setData([]); setStats({ total: 0, games: 0, practices: 0, other: 0, labels: ['Total Events', 'Games', 'Practices', 'Other'] }); return }
-    const transformed = (events || []).map(e => ({ ...e, team_name: e.teams?.name || 'All Teams', team_color: e.teams?.color || '#666',
+    const transformed = (events || []).map(e => ({ ...e, team_name: e.teams?.name || 'All Teams', team_color: e.teams?.color || '#666', team_logo_url: e.teams?.logo_url || null, team_abbreviation: e.teams?.abbreviation || null,
       display_type: e.event_type === 'game' ? 'Game' : e.event_type === 'practice' ? 'Practice' : e.event_type || 'Event', display_date: e.event_date, display_time: e.event_time }))
     let filtered = transformed
     if (filters.team !== 'all') filtered = filtered.filter(e => e.team_id === filters.team)
@@ -327,9 +327,9 @@ function ReportsPage({ showToast }) {
     let q = supabase.from('players').select('id, first_name, last_name, jersey_number, uniform_size_jersey')
     q = applySeasonFilter(q, selectedSeasonId)
     const { data: players } = await q.order('jersey_number', { nullsFirst: false })
-    const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color)').in('player_id', (players || []).map(p => p.id))
+    const { data: ta } = await supabase.from('team_players').select('player_id, teams (id, name, color, logo_url, abbreviation)').in('player_id', (players || []).map(p => p.id))
     const teamMap = {}; (ta || []).forEach(t => { if (t.teams) teamMap[t.player_id] = t.teams })
-    const transformed = (players || []).map(p => ({ ...p, full_name: `${p.first_name} ${p.last_name}`, team_name: teamMap[p.id]?.name || 'Unassigned', team_color: teamMap[p.id]?.color || '#666', has_jersey: !!p.jersey_number, has_size: !!p.uniform_size_jersey }))
+    const transformed = (players || []).map(p => ({ ...p, full_name: `${p.first_name} ${p.last_name}`, team_name: teamMap[p.id]?.name || 'Unassigned', team_color: teamMap[p.id]?.color || '#666', team_logo_url: teamMap[p.id]?.logo_url || null, team_abbreviation: teamMap[p.id]?.abbreviation || null, has_jersey: !!p.jersey_number, has_size: !!p.uniform_size_jersey }))
     let filtered = transformed
     if (filters.team !== 'all') filtered = filtered.filter(p => teamMap[p.id]?.id === filters.team)
     setData(filtered)

@@ -1,4 +1,5 @@
 import { Star, ChevronDown, ChevronUp, Search } from '../../constants/icons'
+import TeamLogo from '../../components/TeamLogo'
 
 // ============================================
 // REPORT CARDS - Sub-components for ReportsPage
@@ -338,7 +339,7 @@ function renderCellValue(row, col, formatValue, isDark) {
   if (col.id === 'team_name' && row.team_color) {
     return (
       <span className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: row.team_color }} />
+        <TeamLogo team={{ color: row.team_color, name: row.team_name, logo_url: row.team_logo_url, abbreviation: row.team_abbreviation }} size={18} className="flex-shrink-0" />
         {row[col.id]}
       </span>
     )
