@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import {
   Globe, Calendar, Users, User, ChevronDown, Check, ArrowRight, Layers
 } from '../../constants/icons'
+import TeamLogo from '../TeamLogo'
 
 // ============================================
 // HEADER PROGRAM SELECTOR (replaces HeaderSportSelector)
@@ -207,7 +208,7 @@ export function HeaderCoachTeamSelector({ teams, onSelectTeam }) {
                 onMouseEnter={e => selectedTeam?.team_id !== tc.team_id && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
                 onMouseLeave={e => selectedTeam?.team_id !== tc.team_id && (e.currentTarget.style.backgroundColor = '')}
               >
-                <span className="w-3 h-3 rounded-full" style={{ background: tc.teams?.color || '#EAB308' }} />
+                <TeamLogo team={tc.teams || {}} size={20} className="flex-shrink-0" />
                 <span className="flex-1 text-left">{tc.teams?.name}</span>
                 {tc.role === 'head' && (
                   <span className="text-xs bg-yellow-500/20 text-yellow-600 px-1.5 py-0.5 rounded">Head</span>
@@ -295,7 +296,7 @@ export function HeaderChildSelector({ children, onSelectChild, navigateToTeamWal
                     className={`w-full flex items-center gap-2 px-3 py-1.5 ml-4 text-xs transition ${tc.hoverBg}`}
                     style={{ color: colors.textSecondary }}
                   >
-                    <span className="w-2 h-2 rounded-full" style={{ background: tp.teams?.color || '#EAB308' }} />
+                    <TeamLogo team={tp.teams || {}} size={16} className="flex-shrink-0" />
                     <span>{tp.teams?.name}</span>
                     <ArrowRight className="w-3 h-3 ml-auto opacity-50" />
                   </button>
