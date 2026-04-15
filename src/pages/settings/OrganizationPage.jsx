@@ -441,8 +441,8 @@ function OrganizationPage({ showToast }) {
       identity: [
         organization?.name,
         rawSettings.short_name,
-        organization?.logo_url,
         rawSettings.primary_color,
+        // logo_url removed — optional for identity completion (checked in branding section instead)
       ],
       contact: [
         rawSettings.contact_name,

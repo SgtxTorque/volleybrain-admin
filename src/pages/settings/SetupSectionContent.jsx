@@ -289,7 +289,48 @@ function SetupSectionContent({
               <SectionInput {...fp} label="Short Name / Abbreviation" field="shortName" placeholder="BHVC" helpText="Used on jerseys and reports" />
             </div>
             <SectionInput {...fp} label="Tagline / Slogan" field="tagline" placeholder="Building Champions On & Off the Court" />
-            <SectionInput {...fp} label="Logo URL" field="logoUrl" placeholder="https://..." helpText="Paste a link to your logo image" />
+            {/* Logo Upload */}
+            <div>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Organization Logo</label>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold overflow-hidden border-2"
+                  style={{
+                    background: localData.logoUrl ? 'transparent' : (localData.primaryColor || '#F97316'),
+                    borderColor: localData.primaryColor || '#F97316',
+                    color: '#fff',
+                  }}
+                >
+                  {localData.logoUrl ? (
+                    <img src={localData.logoUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    localData.name?.charAt(0) || '?'
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition ${tc.card} border ${tc.border} ${tc.hoverBg}`}>
+                    <Upload className="w-4 h-4" />
+                    {localData.logoUrl ? 'Change Logo' : 'Upload Logo'}
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      try {
+                        const ext = file.name.split('.').pop()
+                        const path = `org-branding/${organization.id}_logo_${Date.now()}.${ext}`
+                        const { error: upErr } = await supabase.storage.from('media').upload(path, file)
+                        if (upErr) throw upErr
+                        const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path)
+                        updateField('logoUrl', publicUrl)
+                        showToast('Logo uploaded', 'success')
+                      } catch (err) {
+                        showToast(`Upload failed: ${err.message}`, 'error')
+                      }
+                    }} />
+                  </label>
+                  <p className={`text-xs ${tc.textMuted} mt-1`}>Square image recommended (200x200+)</p>
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Primary Brand Color</label>
