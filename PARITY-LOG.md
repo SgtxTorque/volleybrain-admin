@@ -189,6 +189,15 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Updated 14+ Supabase queries to include `logo_url, abbreviation` alongside `id, name, color` → MOBILE: Mobile team queries should also fetch `logo_url` and `abbreviation` for logo rendering
 - WEB: Report data transforms now flatten `team_logo_url` and `team_abbreviation` into row objects → MOBILE: No action (reports are web-only)
 
+### April 15, 2026 (Registration Operations)
+- WEB+MOBILE: Added `approval_mode` and `approval_gate_fees` columns to `seasons` table (migration at `supabase/migrations/20260415_approval_mode.sql`) → Mobile must read `approval_mode` and adjust registration UX accordingly (e.g., show "payment required" messaging for pay_first seasons)
+- WEB: Created registration transfer feature (TransferModal + registration-transfer.js) → Mobile should display transfer status if a registration was moved, but transfer action is admin-only (web)
+- WEB: Created payment-checker.js utility for checking fee payment status → Mobile can reuse same logic for parent-facing payment status
+- WEB: Added fee deletion (unpaid) and waive (paid) to admin payments page → No mobile action (admin-only feature)
+- WEB: pay_first mode generates fees at registration submit → Mobile registration flow must also generate fees at submit if `season.approval_mode === 'pay_first'`
+- WEB: tryout_first mode generates fees at team assignment → Mobile team management must also trigger fee generation if `season.approval_mode === 'tryout_first'`
+- CARLOS ACTION: Run `supabase/migrations/20260415_approval_mode.sql` in Supabase SQL Editor
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
