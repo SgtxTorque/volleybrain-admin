@@ -8,6 +8,7 @@ import { SeasonProvider, useSeason } from './contexts/SeasonContext'
 import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
 import { OrgBrandingProvider, useOrgBranding } from './contexts/OrgBrandingContext'
 import { supabase } from './lib/supabase'
+import { getPrimaryTeam } from './lib/team-utils'
 import { useAppNavigate, useCurrentPageId, useDocumentTitle } from './hooks/useAppNavigate'
 import { getPathForPage } from './lib/routes'
 import { isFeatureEnabled } from './config/feature-flags'
@@ -1504,7 +1505,7 @@ function MainApp() {
       return
     }
     if (itemId === 'team-hub') {
-      const firstTeamId = roleContext?.children?.[0]?.team_players?.[0]?.team_id
+      const firstTeamId = getPrimaryTeam(roleContext?.children?.[0]?.team_players)?.team_id
       if (firstTeamId) {
         navigate(`/teams/${firstTeamId}`)
         return

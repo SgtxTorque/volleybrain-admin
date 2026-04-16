@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useJourney, JOURNEY_STEPS } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
+import { getPrimaryTeamInfo } from '../../lib/team-utils'
 import { ALL_SPORTS } from '../../components/ui/SportGridSelector'
 
 // ─── Design tokens (Lynx Brand Book) ───
@@ -822,7 +823,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
                   <div className="space-y-3 mb-6">
                     {foundChildren.map(child => {
-                      const teamName = child.team_players?.[0]?.teams?.name
+                      const teamName = getPrimaryTeamInfo(child.team_players)?.name
                       const orgName = child.season?.organizations?.name
                       return (
                         <div key={child.id} style={{
