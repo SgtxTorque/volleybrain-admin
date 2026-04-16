@@ -12,7 +12,7 @@ export const WORKFLOW_STEPS = [
   { id: 'registration', label: 'Open Registration', shortLabel: 'Registration' },
   { id: 'manage-regs', label: 'Manage Registrations', shortLabel: 'Manage' },
   { id: 'payments', label: 'Collect Payments', shortLabel: 'Payments' },
-  { id: 'assign-teams', label: 'Assign Teams', shortLabel: 'Teams' },
+  { id: 'assign-teams', label: 'Assign Players to Teams', shortLabel: 'Teams' },
   { id: 'assign-coaches', label: 'Assign Coaches', shortLabel: 'Coaches' },
   { id: 'positions', label: 'Set Positions', shortLabel: 'Positions' },
   { id: 'schedule', label: 'Create Schedule', shortLabel: 'Schedule' },

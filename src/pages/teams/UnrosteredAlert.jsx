@@ -115,7 +115,7 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
                       : 'bg-lynx-sky/10 border border-lynx-sky/20 text-lynx-sky'
                   }`}
                 >
-                  <option value="">Assign →</option>
+                  <option value="">Assign to Team →</option>
                   {teams.map(t => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}

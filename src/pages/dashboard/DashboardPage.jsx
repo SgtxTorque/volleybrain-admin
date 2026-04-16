@@ -1306,7 +1306,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
       attentionItems.push({ category: 'Unsigned Waivers', count: stats.unsignedWaivers, icon: '\uD83D\uDCDD', onClick: () => onNavigate?.('waivers') })
     }
     if (unrosteredCount > 0) {
-      attentionItems.push({ category: 'Unrostered Players', count: unrosteredCount, icon: '\uD83D\uDC65', onClick: () => onNavigate?.('teams') })
+      attentionItems.push({ category: 'Players Need Team Assignment', count: unrosteredCount, icon: '\uD83D\uDC65', onClick: () => onNavigate?.('teams') })
     }
     if (teamsNoSchedule > 0) {
       attentionItems.push({ category: 'Teams Without Schedule', count: teamsNoSchedule, icon: '\uD83D\uDCC5', onClick: () => onNavigate?.('schedule') })
