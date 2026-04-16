@@ -198,6 +198,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: tryout_first mode generates fees at team assignment → Mobile team management must also trigger fee generation if `season.approval_mode === 'tryout_first'`
 - CARLOS ACTION: Run `supabase/migrations/20260415_approval_mode.sql` in Supabase SQL Editor
 
+### April 15, 2026 (Registration Visual Upgrade)
+- WEB: Fixed banner image rendering on registration pages — added banner to RegistrationCartPage hero (was missing entirely) and defensive URL fallback on PublicRegistrationPage (settings.branding.banner_url / settings.banner_url / banner_url) → Mobile registration pages should also read `settings.branding.banner_url` and render as hero background
+- WEB: Org logo on registration header upgraded from 28–72px to 110–160px responsive with drop-shadow (hero treatment) → Mobile registration should match hero sizing (~120px mobile, ~160px wide)
+- WEB: Enhanced upload size guidance in Organization settings (Identity logo, Branding logo, Banner) with recommended dimensions, max file size, accepted formats, and a banner-content coaching tip → No mobile action
+- WEB: Program cards now visually differentiated in RegistrationCartPage — colored top accent strip, 14×14 sport icon tile with tinted background, colored 3px left border on season rows, SPORT_COLORS + SPORT_ICONS fallback map → Mobile registration cart should apply similar visual treatment for consistency across platforms
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
