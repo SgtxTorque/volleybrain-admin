@@ -44,7 +44,8 @@ function ToastItem({ toast, onClose }) {
   const timerRef = useRef(null)
   const config = TYPE_CONFIG[toast.type] || TYPE_CONFIG.info
   const Icon = config.icon
-  const duration = toast.duration || 4000
+  // Toasts with an action CTA get a longer default so users have time to click
+  const duration = toast.duration || (toast.action ? 8000 : 4000)
 
   injectCSS()
 
@@ -63,6 +64,10 @@ function ToastItem({ toast, onClose }) {
     timerRef.current = setTimeout(handleClose, 1500)
   }
 
+  const handleAction = () => {
+    try { toast.action?.onClick?.() } finally { handleClose() }
+  }
+
   return (
     <div
       onMouseEnter={handleMouseEnter}
@@ -73,7 +78,17 @@ function ToastItem({ toast, onClose }) {
       }}
     >
       <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" />
-      <span className="flex-1 text-sm font-medium leading-snug">{toast.message}</span>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium leading-snug">{toast.message}</div>
+        {toast.action?.label && (
+          <button
+            onClick={handleAction}
+            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-colors"
+          >
+            {toast.action.label}
+          </button>
+        )}
+      </div>
       <button
         onClick={handleClose}
         className="flex-shrink-0 p-0.5 rounded-md hover:bg-white/20 transition-colors"
@@ -111,9 +126,12 @@ export function ToastContainer({ toasts, onRemove }) {
 export function useToast() {
   const [toasts, setToasts] = useState([])
 
-  const showToast = useCallback((message, type = 'success', duration) => {
+  const showToast = useCallback((message, type = 'success', durationOrOptions) => {
     const id = ++toastId
-    setToasts(prev => [...prev, { id, message, type, duration }])
+    const isOptions = durationOrOptions && typeof durationOrOptions === 'object'
+    const duration = isOptions ? durationOrOptions.duration : durationOrOptions
+    const action = isOptions ? durationOrOptions.action : undefined
+    setToasts(prev => [...prev, { id, message, type, duration, action }])
   }, [])
 
   const removeToast = useCallback((id) => {

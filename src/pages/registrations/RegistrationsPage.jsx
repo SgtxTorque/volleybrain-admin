@@ -4,6 +4,7 @@
 // =============================================================================
 
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
@@ -49,6 +50,7 @@ const csvColumns = [
 ]
 
 export function RegistrationsPage({ showToast }) {
+  const navigate = useNavigate()
   const journey = useJourney()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
@@ -56,6 +58,7 @@ export function RegistrationsPage({ showToast }) {
   const { isDark } = useTheme()
 
   const [registrations, setRegistrations] = useState([])
+  const [teams, setTeams] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
@@ -63,6 +66,7 @@ export function RegistrationsPage({ showToast }) {
   const [editMode, setEditMode] = useState(false)
   const [showDenyModal, setShowDenyModal] = useState(null)
   const [trackerSuccessInfo, setTrackerSuccessInfo] = useState(null)
+  const [assigningPlayerId, setAssigningPlayerId] = useState(null)
 
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -81,6 +85,7 @@ export function RegistrationsPage({ showToast }) {
 
   useEffect(() => {
     loadRegistrations()
+    loadTeams()
   }, [selectedSeason?.id, selectedSport?.id])
 
   useEffect(() => {
@@ -89,11 +94,30 @@ export function RegistrationsPage({ showToast }) {
 
   // ========== DATA LOADING ==========
 
+  async function loadTeams() {
+    // Load teams for the current season so Registrations page can offer inline "Assign to Team"
+    if (!selectedSeason?.id || isAllSeasons(selectedSeason)) {
+      setTeams([])
+      return
+    }
+    const { data, error } = await supabase
+      .from('teams')
+      .select('id, name, color, season_id, team_players(player_id)')
+      .eq('season_id', selectedSeason.id)
+      .order('name', { ascending: true })
+    if (error) {
+      console.error('Error loading teams:', error)
+      setTeams([])
+    } else {
+      setTeams(data || [])
+    }
+  }
+
   async function loadRegistrations() {
     setLoading(true)
     let query = supabase
       .from('players')
-      .select('*, registrations(*), seasons:season_id(id, name), payments(amount)')
+      .select('*, registrations(*), seasons:season_id(id, name), payments(amount), team_players(team_id, teams:team_id(id, name, color))')
       .order('created_at', { ascending: false })
 
     if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
@@ -191,7 +215,10 @@ export function RegistrationsPage({ showToast }) {
           await supabase.from('registrations').update({
             status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
           }).eq('id', regId)
-          showToast('Approved! Fees will generate when player is added to a team.', 'success')
+          const playerName = playerData ? `${playerData.first_name} ${playerData.last_name}` : 'Player'
+          showToast(`${playerName} approved! Fees generate on team assignment.`, 'success', {
+            action: { label: 'Assign to Team →', onClick: () => navigate('/teams') },
+          })
           if (playerData && isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
             EmailService.sendApprovalNotification(playerData, selectedSeason, organization, [])
               .then(r => r.success && console.log('Approval notification email queued'))
@@ -232,7 +259,10 @@ export function RegistrationsPage({ showToast }) {
             await supabase.from('registrations').update({
               status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
             }).eq('id', regId)
-            showToast(`Approved! Generated ${result.feesCreated} fees ($${result.totalAmount.toFixed(2)})`, 'success')
+            const pn = `${playerData.first_name} ${playerData.last_name}`
+            showToast(`${pn} approved! ${result.feesCreated} fees generated ($${result.totalAmount.toFixed(2)})`, 'success', {
+              action: { label: 'Assign to Team →', onClick: () => navigate('/teams') },
+            })
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
               const feeSummary = [{ amount: result.totalAmount || 0, description: `Season fees (${result.feesCreated} items)` }]
               EmailService.sendApprovalNotification(playerData, selectedSeason, organization, feeSummary)
@@ -244,10 +274,15 @@ export function RegistrationsPage({ showToast }) {
             await supabase.from('registrations').update({
               status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
             }).eq('id', regId)
+            const pn2 = `${playerData.first_name} ${playerData.last_name}`
             if (result.noFeesConfigured) {
-              showToast('Approved! No fees configured - go to Setup to add fees', 'warning')
+              showToast(`${pn2} approved! No fees configured - go to Setup to add fees`, 'warning', {
+                action: { label: 'Assign to Team →', onClick: () => navigate('/teams') },
+              })
             } else {
-              showToast('Registration approved!', 'success')
+              showToast(`${pn2} approved! Assign to a team →`, 'success', {
+                action: { label: 'Assign to Team →', onClick: () => navigate('/teams') },
+              })
             }
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
               EmailService.sendApprovalNotification(playerData, selectedSeason, organization, [])
@@ -260,7 +295,9 @@ export function RegistrationsPage({ showToast }) {
             return
           }
         } else {
-          showToast('Registration approved!', 'success')
+          showToast('Registration approved! Assign to a team →', 'success', {
+            action: { label: 'Assign to Team →', onClick: () => navigate('/teams') },
+          })
           await supabase.from('registrations').update({
             status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
           }).eq('id', regId)
@@ -335,6 +372,95 @@ export function RegistrationsPage({ showToast }) {
     } catch (err) {
       showToast('Error: ' + err.message, 'error')
       loadRegistrations()
+    }
+  }
+
+  // ========== TEAM ASSIGNMENT (inline from Registrations page) ==========
+
+  async function assignPlayerToTeam(playerId, teamId) {
+    if (!playerId || !teamId) return
+    if (assigningPlayerId === playerId) return
+    setAssigningPlayerId(playerId)
+    try {
+      // 1. Insert team_players
+      const { error: tpErr } = await supabase
+        .from('team_players')
+        .insert({ team_id: teamId, player_id: playerId })
+      if (tpErr) throw tpErr
+
+      // 2. Update registration status to 'rostered'
+      const { data: reg } = await supabase
+        .from('registrations')
+        .select('id')
+        .eq('player_id', playerId)
+        .maybeSingle()
+      if (reg) {
+        await supabase.from('registrations').update({
+          status: 'rostered',
+          rostered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq('id', reg.id)
+      }
+
+      // 3. Update player status to 'rostered'
+      await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
+
+      // 4. TRYOUT_FIRST: generate fees on team assignment
+      if (selectedSeason?.approval_mode === 'tryout_first') {
+        try {
+          const { data: freshPlayer } = await supabase
+            .from('players').select('*').eq('id', playerId).single()
+          if (freshPlayer) {
+            await generateFeesForPlayer(supabase, freshPlayer, selectedSeason, null)
+          }
+        } catch (feeErr) {
+          console.warn('Tryout-first fee generation failed (non-blocking):', feeErr?.message)
+        }
+      }
+
+      // 5. Send team assignment email (non-blocking)
+      try {
+        if (isEmailEnabled(organization, 'team_assignment')) {
+          const { data: playerData } = await supabase
+            .from('players')
+            .select('id, first_name, last_name, parent_email, parent_name')
+            .eq('id', playerId).single()
+          if (playerData?.parent_email) {
+            const team = teams.find(t => t.id === teamId)
+            EmailService.sendTeamAssignment(
+              playerData,
+              { name: team?.name || 'Team', coach_name: null, practice_schedule: null },
+              selectedSeason || { name: '' },
+              organization
+            ).catch(e => console.warn('Team assignment email failed:', e))
+          }
+        }
+      } catch (emailErr) {
+        console.warn('Team assignment email failed (non-blocking):', emailErr)
+      }
+
+      const team = teams.find(t => t.id === teamId)
+      showToast(`Assigned to ${team?.name || 'team'}!`, 'success')
+      journey?.completeStep('add_roster')
+
+      // Optimistic update
+      setRegistrations(prev => prev.map(p =>
+        p.id === playerId
+          ? {
+              ...p,
+              registrations: p.registrations?.map(r => ({ ...r, status: 'rostered' })),
+              team_players: [{ team_id: teamId, teams: { id: teamId, name: team?.name, color: team?.color } }],
+            }
+          : p
+      ))
+      // Refresh teams list so the new roster count reflects
+      loadTeams()
+      loadRegistrations()
+    } catch (err) {
+      console.error('Assignment failed:', err)
+      showToast('Error assigning player: ' + err.message, 'error')
+    } finally {
+      setAssigningPlayerId(null)
     }
   }
 
@@ -438,7 +564,12 @@ export function RegistrationsPage({ showToast }) {
     }
     if (emailsQueued > 0) toastMsg += ` · ${emailsQueued} emails queued`
     if (skippedUnpaid > 0) toastMsg += ` · ${skippedUnpaid} skipped (payment required)`
-    showToast(toastMsg, skippedUnpaid > 0 ? 'warning' : 'success')
+    // Post-approval: if any players were approved, offer a CTA to assign them to teams
+    showToast(toastMsg, skippedUnpaid > 0 ? 'warning' : 'success',
+      approved > 0
+        ? { action: { label: 'Assign to Team →', onClick: () => navigate('/teams') } }
+        : undefined
+    )
     journey?.completeStep('register_players')
     setSelectedIds(new Set())
     setBulkProcessing(false)
@@ -709,6 +840,9 @@ export function RegistrationsPage({ showToast }) {
               approvingIds={approvingIds}
               approvalMode={selectedSeason?.approval_mode || 'open'}
               paymentStatusMap={paymentStatusMap}
+              teams={teams}
+              onAssignToTeam={assignPlayerToTeam}
+              assigningPlayerId={assigningPlayerId}
             />
           </div>
 

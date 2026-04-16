@@ -104,6 +104,9 @@ export default function RegistrationsTable({
   approvingIds,
   approvalMode = 'open',
   paymentStatusMap = {},
+  teams = [],
+  onAssignToTeam,
+  assigningPlayerId,
 }) {
   const { isDark } = useTheme()
   const [expandedRowId, setExpandedRowId] = useState(null)
@@ -248,6 +251,70 @@ export default function RegistrationsTable({
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${statusColor}`}>
                     {statusDisplay}
                   </span>
+
+                  {/* Team assignment: approved = show "Assign to Team" dropdown; rostered = show team name */}
+                  {(reg?.status === 'approved' || reg?.status === 'rostered') && (() => {
+                    // Determine current team from team_players relation
+                    const tp = Array.isArray(player.team_players) ? player.team_players[0] : null
+                    const currentTeamId = tp?.team_id
+                    const currentTeamName = tp?.teams?.name
+                    const currentTeamColor = tp?.teams?.color
+                    const isRostered = reg?.status === 'rostered' || !!currentTeamId
+
+                    if (isRostered && currentTeamName) {
+                      return (
+                        <span
+                          className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-lynx-sky/15 text-lynx-sky whitespace-nowrap"
+                          style={currentTeamColor ? { backgroundColor: `${currentTeamColor}20`, color: currentTeamColor } : undefined}
+                          onClick={e => e.stopPropagation()}
+                          title={`Rostered: ${currentTeamName}`}
+                        >
+                          {currentTeamName}
+                        </span>
+                      )
+                    }
+
+                    // Approved but not on a team — show inline "Assign to Team" dropdown
+                    if (reg?.status === 'approved' && onAssignToTeam && teams.length > 0) {
+                      const isAssigning = assigningPlayerId === player.id
+                      return (
+                        <div className="shrink-0" onClick={e => e.stopPropagation()}>
+                          <select
+                            value=""
+                            disabled={isAssigning}
+                            onChange={e => {
+                              const teamId = e.target.value
+                              if (teamId) {
+                                onAssignToTeam(player.id, teamId)
+                                e.target.value = ''
+                              }
+                            }}
+                            className={`text-[10px] font-bold px-2 py-1 rounded-lg cursor-pointer border ${
+                              isDark
+                                ? 'bg-lynx-sky/10 border-lynx-sky/30 text-lynx-sky hover:bg-lynx-sky/20'
+                                : 'bg-[#4BB9EC]/10 border-[#4BB9EC]/30 text-[#4BB9EC] hover:bg-[#4BB9EC]/20'
+                            } ${isAssigning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <option value="" disabled>
+                              {isAssigning ? 'Assigning...' : 'Assign to Team ▾'}
+                            </option>
+                            {teams.map(t => (
+                              <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )
+                    }
+                    // Approved but no teams exist yet
+                    if (reg?.status === 'approved' && teams.length === 0) {
+                      return (
+                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-white/[0.04] text-slate-500' : 'bg-slate-100 text-slate-400'} whitespace-nowrap`}>
+                          No teams yet
+                        </span>
+                      )
+                    }
+                    return null
+                  })()}
 
                   {/* Quick approve/deny for pending */}
                   {isPending && (() => {
