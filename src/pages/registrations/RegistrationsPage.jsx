@@ -22,6 +22,7 @@ import RegistrationsTable from './RegistrationsTable'
 import RegistrationAnalytics from './RegistrationAnalytics'
 import PlayerDetailModal from './PlayerDetailModal'
 import PlayerDossierPanel from './PlayerDossierPanel'
+import TransferModal from './TransferModal'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
@@ -74,6 +75,9 @@ export function RegistrationsPage({ showToast }) {
 
   // Payment status map for pay_first mode — keyed by player.id
   const [paymentStatusMap, setPaymentStatusMap] = useState({})
+
+  // Transfer modal state
+  const [transferTarget, setTransferTarget] = useState(null) // { player, registration }
 
   useEffect(() => {
     loadRegistrations()
@@ -725,6 +729,7 @@ export function RegistrationsPage({ showToast }) {
                   if (reg) setShowDenyModal({ player: dossierPlayer, reg })
                 }}
                 onEdit={() => { setSelectedPlayer(dossierPlayer); setEditMode(true) }}
+                onTransfer={(p, r) => setTransferTarget({ player: p, registration: r })}
                 isDark={isDark}
                 approvalMode={selectedSeason?.approval_mode || 'open'}
                 paymentStatus={paymentStatusMap[dossierPlayer.id]}
@@ -771,6 +776,22 @@ export function RegistrationsPage({ showToast }) {
           onClose={() => setShowBulkDenyModal(false)}
           onDeny={bulkDeny}
           processing={bulkProcessing}
+        />
+      )}
+
+      {/* Transfer Registration Modal */}
+      {transferTarget && (
+        <TransferModal
+          isOpen={!!transferTarget}
+          onClose={() => setTransferTarget(null)}
+          player={transferTarget.player}
+          registration={transferTarget.registration}
+          organizationId={organization?.id}
+          showToast={showToast}
+          onTransferComplete={() => {
+            setTransferTarget(null)
+            loadRegistrations()
+          }}
         />
       )}
       </div>

@@ -39,7 +39,7 @@ function WaiverRow({ label, signed, isDark }) {
   )
 }
 
-export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, isDark, approvalMode = 'open', paymentStatus }) {
+export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, onTransfer, isDark, approvalMode = 'open', paymentStatus }) {
   if (!player) return null
 
   const reg = registration || player.registrations?.[0]
@@ -225,6 +225,15 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
           }`}>
           <Edit className="w-3.5 h-3.5" /> Edit Player
         </button>
+        {onTransfer && ['pending', 'submitted', 'new', 'approved'].includes(reg?.status) && (
+          <button
+            type="button"
+            onClick={() => onTransfer(player, reg)}
+            className="w-full px-3 py-2 rounded-[14px] text-xs font-bold bg-[#4BB9EC]/10 text-[#4BB9EC] border border-[#4BB9EC]/20 hover:bg-[#4BB9EC]/20 flex items-center justify-center gap-1.5 transition"
+          >
+            Transfer season
+          </button>
+        )}
       </div>
     </div>
   )
