@@ -1538,6 +1538,32 @@ function SetupSectionContent({
                 if (setOrganization) setOrganization(prev => ({ ...prev, logo_url: publicUrl }))
                 if (setSetupData) setSetupData(prev => ({ ...prev, logoUrl: publicUrl }))
               }
+            } else if (field === 'brandingBannerUrl') {
+              // Auto-save banner to organizations.settings.branding.banner_url
+              const currentSettings = organization?.settings || {}
+              const currentBranding = currentSettings.branding || {}
+              const { error: saveErr } = await supabase
+                .from('organizations')
+                .update({
+                  settings: {
+                    ...currentSettings,
+                    branding: { ...currentBranding, banner_url: publicUrl }
+                  }
+                })
+                .eq('id', organization.id)
+              if (saveErr) {
+                showToast('Banner uploaded but failed to save. Please click Save.', 'warning')
+              } else {
+                showToast('Banner saved!', 'success')
+                if (setOrganization) setOrganization(prev => ({
+                  ...prev,
+                  settings: {
+                    ...(prev.settings || {}),
+                    branding: { ...((prev.settings || {}).branding || {}), banner_url: publicUrl }
+                  }
+                }))
+                if (setSetupData) setSetupData(prev => ({ ...prev, brandingBannerUrl: publicUrl }))
+              }
             } else {
               showToast('Image uploaded', 'success')
             }
