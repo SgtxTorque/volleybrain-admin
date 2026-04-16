@@ -22,7 +22,7 @@ const SPORT_OPTIONS = [
   { value: 'swimming', label: 'Swimming', icon: '🏊' },
 ]
 
-const AGE_GROUPS = ['10U', '11U', '12U', '13U', '14U', '15U', '16U', '17U', '18U', 'Open']
+const AGE_GROUPS = ['5U', '6U', '7U', '8U', '9U', '10U', '11U', '12U', '13U', '14U', '15U', '16U', '17U', '18U', 'Adult', 'Open']
 
 const COLOR_PRESETS = [
   '#1E40AF', '#7C3AED', '#DC2626', '#059669', '#D97706',

@@ -609,7 +609,7 @@ function SetupSectionContent({
                 {(() => {
                   const presets = localData.ageSystem === 'grade'
                     ? ['K-2nd', '3rd-5th', '6th-8th', '9th-12th']
-                    : ['8U', '10U', '12U', '14U', '16U', '18U']
+                    : ['6U', '8U', '10U', '12U', '14U', '16U', '18U']
                   const current = localData.ageDivisions || []
                   return (
                     <div className="flex flex-wrap gap-1.5">

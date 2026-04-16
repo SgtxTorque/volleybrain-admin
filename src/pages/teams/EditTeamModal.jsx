@@ -34,10 +34,13 @@ export default function EditTeamModal({ team, onClose, onSave, showToast }) {
   const logoInputRef = useRef(null)
 
   const ageOptions = [
-    '8U', '9U', '10U', '11U', '12U', '13U', '14U', '15U', '16U', '17U', '18U', 'Adult'
+    '5U', '6U', '7U', '8U', '9U', '10U', '11U', '12U', '13U', '14U', '15U', '16U', '17U', '18U', 'Adult'
   ]
 
   const gradeOptions = [
+    { value: 'K', label: 'Kindergarten' },
+    { value: '1st', label: '1st Grade' },
+    { value: '2nd', label: '2nd Grade' },
     { value: '3rd', label: '3rd Grade' },
     { value: '4th', label: '4th Grade' },
     { value: '5th', label: '5th Grade' },
