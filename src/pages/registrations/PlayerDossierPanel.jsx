@@ -47,12 +47,11 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
   const isApproved = reg?.status === 'approved'
   const isRostered = reg?.status === 'rostered'
 
-  // Determine current team assignment (from team_players join)
-  const tp = Array.isArray(player.team_players) ? player.team_players[0] : null
-  const currentTeamId = tp?.team_id
-  const currentTeamName = tp?.teams?.name
-  const currentTeamColor = tp?.teams?.color
-  const hasTeam = !!currentTeamId
+  // Determine ALL current team assignments (multi-team support)
+  const teamPlayers = Array.isArray(player.team_players) ? player.team_players : []
+  const assignedTeamIds = new Set(teamPlayers.map(tp => tp?.team_id).filter(Boolean))
+  const availableTeams = teams.filter(t => !assignedTeamIds.has(t.id))
+  const hasTeam = teamPlayers.length > 0
   const isAssigning = assigningPlayerId === player.id
   const age = calculateAge(player.birth_date || player.dob)
   const dob = (player.birth_date || player.dob)
@@ -230,54 +229,102 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
           )
         })()}
 
-        {/* Approved + has team OR rostered → show team badge */}
-        {(isApproved || isRostered) && hasTeam && (
-          <div
-            className="w-full px-3 py-2.5 rounded-[14px] text-sm font-bold flex items-center justify-center gap-2"
-            style={currentTeamColor
-              ? { backgroundColor: `${currentTeamColor}20`, color: currentTeamColor, border: `1px solid ${currentTeamColor}40` }
-              : { backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', border: '1px solid rgba(34, 197, 94, 0.2)' }}
-          >
-            <Check className="w-4 h-4" />
-            <span>{currentTeamName || 'Rostered'}</span>
-          </div>
-        )}
+        {/* TEAM ASSIGNMENTS — multi-team aware */}
+        {(isApproved || isRostered) && (
+          <>
+            {/* Existing team badges (may be 1 or many) */}
+            {hasTeam && (
+              <div className="flex flex-wrap gap-1.5">
+                {teamPlayers.map(tp => {
+                  if (!tp?.team_id) return null
+                  const name = tp?.teams?.name || 'Team'
+                  const color = tp?.teams?.color
+                  return (
+                    <span
+                      key={tp.team_id}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                      style={color
+                        ? { backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }
+                        : { backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>{name}</span>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
 
-        {/* Approved + no team → primary "Assign to Team" dropdown */}
-        {isApproved && !hasTeam && onAssignToTeam && (
-          teams.length > 0 ? (
-            <div className="relative">
-              <select
-                value=""
-                disabled={isAssigning}
-                onChange={e => {
-                  const teamId = e.target.value
-                  if (teamId) {
-                    onAssignToTeam(player.id, teamId)
-                    e.target.value = ''
-                  }
-                }}
-                className={`w-full appearance-none px-3 py-2.5 rounded-[14px] text-sm font-bold text-white cursor-pointer transition ${
-                  isAssigning ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4BB9EC] hover:brightness-110'
-                }`}
-                style={{ textAlignLast: 'center', paddingRight: '2.25rem' }}
-              >
-                <option value="" disabled style={{ color: '#111' }}>
-                  {isAssigning ? 'Assigning...' : '🏐  Assign to Team ▾'}
-                </option>
-                {teams.map(t => (
-                  <option key={t.id} value={t.id} style={{ color: '#111' }}>{t.name}</option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/80 text-xs font-bold">▾</div>
-            </div>
-          ) : (
-            <div className={`w-full px-3 py-2.5 rounded-[14px] text-xs font-bold text-center ${
-              isDark ? 'bg-white/[0.04] text-slate-500 border border-white/[0.06]' : 'bg-slate-100 text-slate-400 border border-slate-200'
-            }`}>
-              No teams in this season yet — create a team first
-            </div>
-          )
+            {/* Zero teams yet — primary full-width sky-blue dropdown (first assignment prominence) */}
+            {!hasTeam && isApproved && onAssignToTeam && (
+              teams.length > 0 ? (
+                <div className="relative">
+                  <select
+                    value=""
+                    disabled={isAssigning}
+                    onChange={e => {
+                      const teamId = e.target.value
+                      if (teamId) {
+                        onAssignToTeam(player.id, teamId)
+                        e.target.value = ''
+                      }
+                    }}
+                    className={`w-full appearance-none px-3 py-2.5 rounded-[14px] text-sm font-bold text-white cursor-pointer transition ${
+                      isAssigning ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4BB9EC] hover:brightness-110'
+                    }`}
+                    style={{ textAlignLast: 'center', paddingRight: '2.25rem' }}
+                  >
+                    <option value="" disabled style={{ color: '#111' }}>
+                      {isAssigning ? 'Assigning...' : '🏐  Assign to Team ▾'}
+                    </option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.id} style={{ color: '#111' }}>{t.name}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/80 text-xs font-bold">▾</div>
+                </div>
+              ) : (
+                <div className={`w-full px-3 py-2.5 rounded-[14px] text-xs font-bold text-center ${
+                  isDark ? 'bg-white/[0.04] text-slate-500 border border-white/[0.06]' : 'bg-slate-100 text-slate-400 border border-slate-200'
+                }`}>
+                  No teams in this season yet — create a team first
+                </div>
+              )
+            )}
+
+            {/* 1+ teams already assigned — secondary outline "Add to Another Team" dropdown, only if more teams exist */}
+            {hasTeam && onAssignToTeam && availableTeams.length > 0 && (
+              <div className="relative">
+                <select
+                  value=""
+                  disabled={isAssigning}
+                  onChange={e => {
+                    const teamId = e.target.value
+                    if (teamId) {
+                      onAssignToTeam(player.id, teamId)
+                      e.target.value = ''
+                    }
+                  }}
+                  className={`w-full appearance-none px-3 py-2 rounded-[14px] text-xs font-bold cursor-pointer transition ${
+                    isAssigning
+                      ? 'opacity-50 cursor-not-allowed'
+                      : isDark
+                        ? 'bg-[#4BB9EC]/10 text-[#4BB9EC] border border-[#4BB9EC]/30 hover:bg-[#4BB9EC]/20'
+                        : 'bg-[#4BB9EC]/10 text-[#4BB9EC] border border-[#4BB9EC]/30 hover:bg-[#4BB9EC]/20'
+                  }`}
+                  style={{ textAlignLast: 'center', paddingRight: '2.25rem' }}
+                >
+                  <option value="" disabled style={{ color: '#111' }}>
+                    {isAssigning ? 'Assigning...' : '+ Add to Another Team ▾'}
+                  </option>
+                  {availableTeams.map(t => (
+                    <option key={t.id} value={t.id} style={{ color: '#111' }}>{t.name}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#4BB9EC]/80 text-xs font-bold">▾</div>
+              </div>
+            )}
+          </>
         )}
 
         <button onClick={onEdit}
