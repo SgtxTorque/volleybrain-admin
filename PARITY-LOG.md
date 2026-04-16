@@ -211,6 +211,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: assignPlayerToTeam / addPlayerToTeam scoped to season via registrations.season_id (was unscoped .maybeSingle()) and only flips registrations.status from 'approved' → 'rostered' (skips if already rostered). players.status only flips on first-team assignment. → MOBILE: Verify mobile assignment queries are season-scoped and preserve 'rostered' state on subsequent team adds.
 - WEB: RegistrationsTable row and PlayerDossierPanel now show ALL assigned team badges plus a "+ Team ▾" (inline) or "+ Add to Another Team ▾" (dossier) dropdown until the player is on every team in the season. → MOBILE: UI surfaces that show current team assignment should map over team_players rather than reading [0].
 
+### April 16, 2026 (Multi-Team Tier 2 — Read Side)
+- WEB: Created src/lib/team-utils.js — getPrimaryTeam(), getPrimaryTeamInfo(), getAllTeams() helpers for multi-team resolution. → MOBILE: Create equivalent utility. Use is_primary_team to determine which team to show as primary in single-team surfaces.
+- WEB: All team_players queries now include is_primary_team in select (MainApp ×2, ParentDashboard, PlayerProfilePage, ParentRegistrationHub, RegistrationsPage, SetupWizard). → MOBILE: Add is_primary_team to all team_players queries.
+- WEB: ParentDashboard, PlayerProfilePage, MyStuffPage, ParentRegistrationHub, MainApp, SetupWizard all updated to use getPrimaryTeam instead of team_players[0]. → MOBILE: Audit all team_players[0] usage and apply same pattern.
+- WEB: PlayerProfilePage shows ALL teams as pill badges when player is on multiple teams. ParentDashboard kid card shows primary + "+N more" indicator. → MOBILE: Consider similar multi-team display on player profile and parent home.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
