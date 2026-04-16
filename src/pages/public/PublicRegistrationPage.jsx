@@ -1077,13 +1077,25 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const orgTagline = orgBranding.tagline || orgSettings.tagline || ''
   const headerBgColor = organization?.primary_color || orgBranding.primary_color || orgSettings.primary_color || '#10284C'
   const headerTextColor = getContrastText(headerBgColor)
+  const bannerUrl = organization?.settings?.branding?.banner_url || orgBranding.banner_url || null
 
   // ─── Main render ───────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#F5F6F8]">
       {/* Branded header */}
-      <div style={{ backgroundColor: headerBgColor, color: headerTextColor }}>
-        <div className="px-4 py-10 text-center max-w-2xl mx-auto">
+      <div className="relative overflow-hidden" style={{ backgroundColor: headerBgColor, color: headerTextColor }}>
+        {bannerUrl && (
+          <img
+            src={bannerUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        )}
+        {bannerUrl && (
+          <div className="absolute inset-0" style={{ backgroundColor: headerBgColor + 'cc' }} />
+        )}
+        <div className="relative z-10 px-4 py-10 text-center max-w-2xl mx-auto">
           <div className="flex justify-center mb-4">
             <OrgLogo org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }} size={72} />
           </div>
