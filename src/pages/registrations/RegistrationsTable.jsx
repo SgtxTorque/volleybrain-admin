@@ -252,33 +252,47 @@ export default function RegistrationsTable({
                     {statusDisplay}
                   </span>
 
-                  {/* Team assignment: approved = show "Assign to Team" dropdown; rostered = show team name */}
+                  {/* Team assignment: show ALL assigned teams as badges + "+ Team ▾" to add more */}
                   {(reg?.status === 'approved' || reg?.status === 'rostered') && (() => {
-                    // Determine current team from team_players relation
-                    const tp = Array.isArray(player.team_players) ? player.team_players[0] : null
-                    const currentTeamId = tp?.team_id
-                    const currentTeamName = tp?.teams?.name
-                    const currentTeamColor = tp?.teams?.color
-                    const isRostered = reg?.status === 'rostered' || !!currentTeamId
+                    const teamPlayers = Array.isArray(player.team_players) ? player.team_players : []
+                    const teamCount = teamPlayers.length
+                    const assignedTeamIds = new Set(teamPlayers.map(tp => tp?.team_id).filter(Boolean))
+                    const availableTeams = teams.filter(t => !assignedTeamIds.has(t.id))
+                    const isAssigning = assigningPlayerId === player.id
+                    const canAssignMore =
+                      onAssignToTeam && availableTeams.length > 0 &&
+                      (reg?.status === 'approved' || reg?.status === 'rostered')
 
-                    if (isRostered && currentTeamName) {
+                    // If approved but no teams exist at all in this season
+                    if (teamCount === 0 && reg?.status === 'approved' && teams.length === 0) {
                       return (
-                        <span
-                          className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-lynx-sky/15 text-lynx-sky whitespace-nowrap"
-                          style={currentTeamColor ? { backgroundColor: `${currentTeamColor}20`, color: currentTeamColor } : undefined}
-                          onClick={e => e.stopPropagation()}
-                          title={`Rostered: ${currentTeamName}`}
-                        >
-                          {currentTeamName}
+                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-white/[0.04] text-slate-500' : 'bg-slate-100 text-slate-400'} whitespace-nowrap`}>
+                          No teams yet
                         </span>
                       )
                     }
 
-                    // Approved but not on a team — show inline "Assign to Team" dropdown
-                    if (reg?.status === 'approved' && onAssignToTeam && teams.length > 0) {
-                      const isAssigning = assigningPlayerId === player.id
-                      return (
-                        <div className="shrink-0" onClick={e => e.stopPropagation()}>
+                    return (
+                      <div className="shrink-0 flex items-center gap-1 flex-wrap" onClick={e => e.stopPropagation()}>
+                        {/* One badge per assigned team */}
+                        {teamPlayers.map(tp => {
+                          if (!tp?.team_id) return null
+                          const name = tp?.teams?.name || 'Team'
+                          const color = tp?.teams?.color
+                          return (
+                            <span
+                              key={tp.team_id}
+                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-lynx-sky/15 text-lynx-sky whitespace-nowrap"
+                              style={color ? { backgroundColor: `${color}20`, color } : undefined}
+                              title={`Rostered: ${name}`}
+                            >
+                              {name}
+                            </span>
+                          )
+                        })}
+
+                        {/* Add-team dropdown — label changes based on whether any teams are already assigned */}
+                        {canAssignMore && (
                           <select
                             value=""
                             disabled={isAssigning}
@@ -296,24 +310,19 @@ export default function RegistrationsTable({
                             } ${isAssigning ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <option value="" disabled>
-                              {isAssigning ? 'Assigning...' : 'Assign to Team ▾'}
+                              {isAssigning
+                                ? 'Assigning...'
+                                : teamCount === 0
+                                  ? 'Assign to Team ▾'
+                                  : '+ Team ▾'}
                             </option>
-                            {teams.map(t => (
+                            {availableTeams.map(t => (
                               <option key={t.id} value={t.id}>{t.name}</option>
                             ))}
                           </select>
-                        </div>
-                      )
-                    }
-                    // Approved but no teams exist yet
-                    if (reg?.status === 'approved' && teams.length === 0) {
-                      return (
-                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-white/[0.04] text-slate-500' : 'bg-slate-100 text-slate-400'} whitespace-nowrap`}>
-                          No teams yet
-                        </span>
-                      )
-                    }
-                    return null
+                        )}
+                      </div>
+                    )
                   })()}
 
                   {/* Quick approve/deny for pending */}
