@@ -70,7 +70,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
       const allOrgSeasonIds = allOrgSeasons?.map(s => s.id) || []
       let playerQuery = supabase
         .from('players')
-        .select('*, team_players (team_id, teams (name))')
+        .select('*, team_players (team_id, is_primary_team, teams (name))')
         .eq('parent_account_id', user.id)
         .order('created_at', { ascending: false })
       if (allOrgSeasonIds.length > 0) playerQuery = playerQuery.in('season_id', allOrgSeasonIds)

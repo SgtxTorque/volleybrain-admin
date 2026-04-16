@@ -57,7 +57,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
 
       const { data: teamPlayersData } = await supabase
         .from('team_players')
-        .select('id, team_id, jersey_number, teams (id, name, color, season_id, seasons(id, name, start_date, end_date, sports(name, icon)))')
+        .select('id, team_id, is_primary_team, jersey_number, teams (id, name, color, season_id, seasons(id, name, start_date, end_date, sports(name, icon)))')
         .eq('player_id', playerId)
 
       const { data: regData } = await supabase

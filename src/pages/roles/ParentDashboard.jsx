@@ -296,7 +296,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       // Scope children to active organization
       let playersQuery = supabase
         .from('players')
-        .select(`*, team_players(team_id, jersey_number, teams(id, name, color, season_id)),
+        .select(`*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)),
           season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))`)
         .eq('parent_account_id', profile.id)
       if (organization?.id) {

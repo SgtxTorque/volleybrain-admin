@@ -1052,7 +1052,7 @@ function MainApp() {
 
       const { data: children } = orgSeasonIds.length > 0
         ? await supabase
-            .from('players').select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
+            .from('players').select('*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
             .eq('parent_account_id', profile.id)
             .in('season_id', orgSeasonIds)
         : { data: [] }
@@ -1062,7 +1062,7 @@ function MainApp() {
       if (profile?.account_type === 'player_child') {
         const { data: selfPlayer } = await supabase
           .from('players')
-          .select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
+          .select('*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
           .eq('profile_id', profile.id)
           .eq('player_account_enabled', true)
           .maybeSingle()

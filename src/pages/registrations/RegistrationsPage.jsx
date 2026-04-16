@@ -117,7 +117,7 @@ export function RegistrationsPage({ showToast }) {
     setLoading(true)
     let query = supabase
       .from('players')
-      .select('*, registrations(*), seasons:season_id(id, name), payments(amount), team_players(team_id, teams:team_id(id, name, color))')
+      .select('*, registrations(*), seasons:season_id(id, name), payments(amount), team_players(team_id, is_primary_team, jersey_number, teams:team_id(id, name, color))')
       .order('created_at', { ascending: false })
 
     if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
