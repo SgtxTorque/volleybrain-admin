@@ -39,7 +39,7 @@ function WaiverRow({ label, signed, isDark }) {
   )
 }
 
-export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, isDark }) {
+export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, isDark, approvalMode = 'open', paymentStatus }) {
   if (!player) return null
 
   const reg = registration || player.registrations?.[0]
@@ -180,18 +180,45 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
 
       {/* Actions */}
       <div className={`px-5 py-3 border-t shrink-0 space-y-2 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
-        {isPending && (
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={onApprove}
-              className="px-3 py-2 rounded-lg text-xs font-bold bg-[#22C55E] text-white hover:brightness-110 flex items-center justify-center gap-1.5 transition">
-              <Check className="w-3.5 h-3.5" /> Approve
-            </button>
-            <button onClick={onDeny}
-              className="px-3 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 flex items-center justify-center gap-1.5 transition">
-              <X className="w-3.5 h-3.5" /> Deny
-            </button>
-          </div>
-        )}
+        {isPending && (() => {
+          const isPayFirstBlocked = approvalMode === 'pay_first' && paymentStatus && !paymentStatus.gatingFeesPaid
+          return (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => !isPayFirstBlocked && onApprove(false)}
+                  disabled={isPayFirstBlocked}
+                  title={isPayFirstBlocked ? 'Payment required before approval' : 'Approve'}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold text-white flex items-center justify-center gap-1.5 transition ${
+                    isPayFirstBlocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#22C55E] hover:brightness-110'
+                  }`}>
+                  <Check className="w-3.5 h-3.5" /> Approve
+                </button>
+                <button onClick={onDeny}
+                  className="px-3 py-2 rounded-lg text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 flex items-center justify-center gap-1.5 transition">
+                  <X className="w-3.5 h-3.5" /> Deny
+                </button>
+              </div>
+              {isPayFirstBlocked && (
+                <div className="text-xs text-amber-600 mt-1 text-center">
+                  Payment required: ${paymentStatus?.unpaidAmount?.toFixed(2) || '0.00'} outstanding
+                  <button
+                    type="button"
+                    onClick={() => onApprove(true)}
+                    className="block mx-auto mt-1 text-[10px] text-slate-400 hover:text-[#4BB9EC] underline"
+                  >
+                    Force approve (override)
+                  </button>
+                </div>
+              )}
+              {approvalMode === 'tryout_first' && (
+                <p className="text-[10px] text-slate-500 text-center mt-1">
+                  Fees will be generated when the player is rostered on a team.
+                </p>
+              )}
+            </>
+          )
+        })()}
         <button onClick={onEdit}
           className={`w-full px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition ${
             isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-[#F5F6F8] text-[#10284C] hover:bg-slate-200'

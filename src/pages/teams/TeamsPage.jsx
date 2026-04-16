@@ -301,6 +301,32 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
     await autoAddMemberToTeamChannels(teamId, playerId)
 
+    // TRYOUT_FIRST: generate fees when player is rostered onto a team
+    try {
+      const team = teams.find(t => t.id === teamId)
+      const teamSeasonId = team?.season_id || team?.season?.id || selectedSeason?.id
+      if (teamSeasonId) {
+        const { data: seasonData } = await supabase
+          .from('seasons')
+          .select('*')
+          .eq('id', teamSeasonId)
+          .single()
+        if (seasonData?.approval_mode === 'tryout_first') {
+          const { generateFeesForPlayer } = await import('../../lib/fee-calculator')
+          const { data: freshPlayer } = await supabase
+            .from('players')
+            .select('*')
+            .eq('id', playerId)
+            .single()
+          if (freshPlayer) {
+            await generateFeesForPlayer(supabase, freshPlayer, seasonData, showToast)
+          }
+        }
+      }
+    } catch (feeErr) {
+      console.warn('Tryout-first fee generation failed (non-blocking):', feeErr?.message)
+    }
+
     // Send team assignment email to parent (non-blocking)
     try {
       if (isEmailEnabled(organization, 'team_assignment')) {

@@ -102,6 +102,8 @@ export default function RegistrationsTable({
   dossierPlayerId,
   onRowSelect,
   approvingIds,
+  approvalMode = 'open',
+  paymentStatusMap = {},
 }) {
   const { isDark } = useTheme()
   const [expandedRowId, setExpandedRowId] = useState(null)
@@ -248,21 +250,32 @@ export default function RegistrationsTable({
                   </span>
 
                   {/* Quick approve/deny for pending */}
-                  {isPending && (
-                    <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => onApprove(player.id, reg.id)}
-                        disabled={approvingIds?.has(reg.id)}
-                        className={`px-2 py-1 rounded text-[10px] font-bold text-white hover:brightness-110 ${
-                          approvingIds?.has(reg.id) ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#22C55E]'
-                        }`}>
-                        {approvingIds?.has(reg.id) ? '...' : '✓'}
-                      </button>
-                      <button onClick={() => onDeny(player, reg)}
-                        className="px-2 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20">
-                        ✗
-                      </button>
-                    </div>
-                  )}
+                  {isPending && (() => {
+                    const payStatus = paymentStatusMap[player.id]
+                    const isPayFirstBlocked = approvalMode === 'pay_first' && payStatus && !payStatus.gatingFeesPaid
+                    return (
+                      <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        {isPayFirstBlocked && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/12 text-amber-500 whitespace-nowrap">
+                            ${payStatus.unpaidAmount?.toFixed(2) || '0.00'} owed
+                          </span>
+                        )}
+                        <button
+                          onClick={() => !isPayFirstBlocked && onApprove(player.id, reg.id)}
+                          disabled={approvingIds?.has(reg.id) || isPayFirstBlocked}
+                          title={isPayFirstBlocked ? `Payment required before approval` : 'Approve'}
+                          className={`px-2 py-1 rounded text-[10px] font-bold text-white hover:brightness-110 ${
+                            approvingIds?.has(reg.id) || isPayFirstBlocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#22C55E]'
+                          }`}>
+                          {approvingIds?.has(reg.id) ? '...' : '✓'}
+                        </button>
+                        <button onClick={() => onDeny(player, reg)}
+                          className="px-2 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20">
+                          ✗
+                        </button>
+                      </div>
+                    )
+                  })()}
                 </div>
               )
             })}

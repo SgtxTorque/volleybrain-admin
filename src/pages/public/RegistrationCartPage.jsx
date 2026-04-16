@@ -390,6 +390,7 @@ function CartSuccessScreen({ children, childProgramMap, selectedPrograms, regist
   const [hasSession, setHasSession] = useState(false)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const totalRegs = registrationIds.length
+  const hasPayFirst = selectedPrograms.some(sp => sp.season?.approval_mode === 'pay_first')
 
   useEffect(() => {
     async function checkSession() {
@@ -439,12 +440,14 @@ function CartSuccessScreen({ children, childProgramMap, selectedPrograms, regist
 
         {/* Fee note */}
         {totalFee > 0 && (
-          <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 mb-6 text-left">
-            <p className="text-sm text-blue-800 font-medium">
-              Estimated total: <span className="font-bold">${totalFee.toFixed(2)}</span>
+          <div className={`p-3 rounded-xl mb-6 text-left ${hasPayFirst ? 'bg-amber-50 border border-amber-200' : 'bg-blue-50 border border-blue-200'}`}>
+            <p className={`text-sm font-medium ${hasPayFirst ? 'text-amber-900' : 'text-blue-800'}`}>
+              {hasPayFirst ? 'Amount due: ' : 'Estimated total: '}<span className="font-bold">${totalFee.toFixed(2)}</span>
             </p>
-            <p className="text-xs text-blue-600 mt-0.5">
-              Payment details will be sent after registration is approved.
+            <p className={`text-xs mt-0.5 ${hasPayFirst ? 'text-amber-700' : 'text-blue-600'}`}>
+              {hasPayFirst
+                ? 'Payment is required before your registration will be approved. Sign in to pay now.'
+                : 'Payment details will be sent after registration is approved.'}
             </p>
           </div>
         )}
@@ -1555,6 +1558,23 @@ export function RegistrationCartPage() {
             throw regError
           }
           createdRegistrationIds.push(registration.id)
+
+          // PAY_FIRST: generate fees immediately so parent can pay before approval
+          try {
+            if (sp.season?.approval_mode === 'pay_first') {
+              const { generateFeesForPlayer } = await import('../../lib/fee-calculator')
+              const { data: freshPlayer } = await supabase
+                .from('players')
+                .select('*')
+                .eq('id', player.id)
+                .single()
+              if (freshPlayer) {
+                await generateFeesForPlayer(supabase, freshPlayer, sp.season, null)
+              }
+            }
+          } catch (feeErr) {
+            console.warn('Pay-first fee generation failed (non-blocking):', feeErr?.message)
+          }
 
           // Confirmation email with optional magic link (fire and forget)
           try {
