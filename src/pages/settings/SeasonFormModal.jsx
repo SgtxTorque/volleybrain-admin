@@ -45,6 +45,7 @@ export function SeasonFormModal({
             { id: 'basic', label: 'Basic Info' },
             // { id: 'registration', label: 'Registration' }, // Moved to RegistrationSetupModal (Lifecycle Step 2)
             { id: 'fees', label: 'Fees & Pricing' },
+            { id: 'approval', label: 'Approval' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -75,6 +76,11 @@ export function SeasonFormModal({
           {modalTab === 'fees' && (
             <FeesTab form={form} setForm={setForm} totalFee={totalFee} tc={tc} isDark={isDark} />
           )}
+
+          {/* Approval Tab */}
+          {modalTab === 'approval' && (
+            <ApprovalTab form={form} setForm={setForm} tc={tc} isDark={isDark} />
+          )}
         </div>
 
         <div className={`p-6 border-t ${tc.border}`}>
@@ -94,15 +100,15 @@ export function SeasonFormModal({
             <div className="flex gap-3">
               {modalTab !== 'basic' && (
                 <button
-                  onClick={() => setModalTab('basic')}
+                  onClick={() => setModalTab(modalTab === 'approval' ? 'fees' : 'basic')}
                   className={`px-6 py-2 rounded-[14px] border ${tc.border} ${tc.text}`}
                 >
                   Back
                 </button>
               )}
-              {modalTab !== 'fees' ? (
+              {modalTab !== 'approval' ? (
                 <button
-                  onClick={() => setModalTab('fees')}
+                  onClick={() => setModalTab(modalTab === 'basic' ? 'fees' : 'approval')}
                   className="px-6 py-2 rounded-[14px] bg-lynx-navy text-white font-bold hover:brightness-110"
                 >
                   Next
@@ -597,6 +603,98 @@ function FeesTab({ form, setForm, totalFee, tc, isDark }) {
           </p>
         </div>
       </div>
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Approval Tab                                                        */
+/* ------------------------------------------------------------------ */
+function getFeeTypesForSeason(formData) {
+  const types = []
+  if (parseFloat(formData.fee_registration) > 0) types.push({ value: 'registration', label: 'Registration fee' })
+  if (parseFloat(formData.fee_uniform) > 0) types.push({ value: 'uniform', label: 'Uniform fee' })
+  if (parseFloat(formData.fee_monthly) > 0) types.push({ value: 'monthly', label: 'Monthly fee' })
+  if (parseFloat(formData.fee_per_family) > 0) types.push({ value: 'per_family', label: 'Per-family fee' })
+  return types
+}
+
+function ApprovalTab({ form, setForm, tc, isDark }) {
+  const modes = [
+    { value: 'open', label: 'Open', description: 'Approve anytime, fees on approval', color: '#22C55E' },
+    { value: 'pay_first', label: 'Pay first', description: 'Payment required before approval', color: '#F59E0B' },
+    { value: 'tryout_first', label: 'Tryout first', description: 'Approve first, fees after rostered', color: '#EF4444' },
+  ]
+  const currentMode = form.approval_mode || 'open'
+  const gateFees = form.approval_gate_fees || ['registration']
+  const feeTypes = getFeeTypesForSeason(form)
+
+  return (
+    <>
+      <div className={`${tc.cardBgAlt} rounded-[14px] p-4 mb-4`}>
+        <p className={`text-sm ${tc.textSecondary}`}>
+          Choose how registrations are approved and when fees are generated for this season.
+        </p>
+      </div>
+
+      <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3`}>Registration approval</h4>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {modes.map(mode => (
+          <button
+            key={mode.value}
+            type="button"
+            onClick={() => setForm({ ...form, approval_mode: mode.value })}
+            className={`p-4 rounded-[14px] border-2 text-left transition ${
+              currentMode === mode.value
+                ? 'border-[#4BB9EC] bg-[#4BB9EC]/5'
+                : `${isDark ? 'border-white/10 hover:border-white/20' : 'border-slate-200 hover:border-slate-300'}`
+            }`}
+          >
+            <div className="font-bold text-sm" style={{ color: mode.color }}>{mode.label}</div>
+            <div className={`text-xs mt-1 ${tc.textMuted}`}>{mode.description}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Fee gating — shown only in pay_first mode */}
+      {currentMode === 'pay_first' && (
+        <div className={`mt-4 p-4 rounded-[14px] border ${isDark ? 'bg-amber-500/5 border-amber-500/30' : 'bg-amber-50 border-amber-200'}`}>
+          <div className={`text-sm font-bold mb-2 ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+            Which fees must be paid before approval?
+          </div>
+          {feeTypes.length === 0 ? (
+            <p className={`text-xs ${tc.textMuted}`}>
+              No fees configured on this season yet. Add fees on the Fees & Pricing tab to gate approval behind specific fee types.
+            </p>
+          ) : (
+            feeTypes.map(feeType => (
+              <label key={feeType.value} className="flex items-center gap-2 py-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={gateFees.includes(feeType.value)}
+                  onChange={(e) => {
+                    const current = form.approval_gate_fees || []
+                    const updated = e.target.checked
+                      ? [...current, feeType.value]
+                      : current.filter(f => f !== feeType.value)
+                    setForm({ ...form, approval_gate_fees: updated })
+                  }}
+                  className="rounded"
+                />
+                <span className={`text-sm ${tc.textSecondary}`}>{feeType.label}</span>
+              </label>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Help text */}
+      <p className={`text-xs ${tc.textMuted} mt-3`}>
+        {currentMode === 'open' && 'Fees are generated when you approve a registration. No payment is required before approval.'}
+        {currentMode === 'pay_first' && 'Fees are generated when a parent submits their registration. You can only approve after the selected fees are paid. You can always force-approve if needed.'}
+        {currentMode === 'tryout_first' && 'No fees are generated until the player is assigned to a team. Use this for tryout-based programs where parents only pay after making the roster.'}
+      </p>
     </>
   )
 }

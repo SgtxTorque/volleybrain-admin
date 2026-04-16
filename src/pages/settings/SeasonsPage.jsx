@@ -49,7 +49,9 @@ function SeasonsPage({ showToast }) {
     description: '',
     registration_template_id: null,
     registration_config: null,
-    program_id: null
+    program_id: null,
+    approval_mode: 'open',
+    approval_gate_fees: ['registration'],
   })
 
   useEffect(() => {
@@ -104,6 +106,8 @@ function SeasonsPage({ showToast }) {
       registration_template_id: season.registration_template_id || null,
       registration_config: season.registration_config || null,
       program_id: season.program_id || null,
+      approval_mode: season.approval_mode || 'open',
+      approval_gate_fees: season.approval_gate_fees || ['registration'],
     })
     setShowModal(true)
   }
@@ -126,6 +130,35 @@ function SeasonsPage({ showToast }) {
         showToast(`Error updating season: ${error.message}`, 'error')
         return
       }
+
+      // Retroactive sweep: if mode switched TO pay_first, generate fees for pending registrations
+      try {
+        if (form.approval_mode === 'pay_first' && editingSeason.approval_mode !== 'pay_first') {
+          const { data: pendingRegs } = await supabase
+            .from('registrations')
+            .select('id, player_id, players(*)')
+            .eq('season_id', editingSeason.id)
+            .in('status', ['pending', 'submitted'])
+
+          if (pendingRegs?.length) {
+            const { generateFeesForPlayer } = await import('../../lib/fee-calculator')
+            const seasonForFees = { ...editingSeason, ...cleaned, id: editingSeason.id }
+            let genCount = 0
+            for (const reg of pendingRegs) {
+              if (reg.players) {
+                const res = await generateFeesForPlayer(supabase, reg.players, seasonForFees, null)
+                if (res && !res.skipped) genCount += 1
+              }
+            }
+            if (genCount > 0) {
+              showToast(`Fees generated for ${genCount} pending registrations`, 'success')
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Retroactive fee generation error:', err)
+      }
+
       showToast('Season updated!', 'success')
       setShowModal(false)
       loadSeasons()

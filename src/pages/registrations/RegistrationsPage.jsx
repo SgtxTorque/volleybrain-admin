@@ -12,6 +12,7 @@ import { formatPhone } from '../../lib/formatters'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { generateFeesForPlayer } from '../../lib/fee-calculator'
+import { getPlayerPaymentStatus } from '../../lib/payment-checker'
 import { EmailService, isEmailEnabled } from '../../lib/email-service'
 import { exportToCSV } from '../../lib/csv-export'
 import { BarChart3, Table, FileDown, Check } from 'lucide-react'
@@ -21,6 +22,7 @@ import RegistrationsTable from './RegistrationsTable'
 import RegistrationAnalytics from './RegistrationAnalytics'
 import PlayerDetailModal from './PlayerDetailModal'
 import PlayerDossierPanel from './PlayerDossierPanel'
+import TransferModal from './TransferModal'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
 import PageShell from '../../components/pages/PageShell'
 import TrackerReturnBanner from '../../components/ui/TrackerReturnBanner'
@@ -71,6 +73,12 @@ export function RegistrationsPage({ showToast }) {
   // View mode
   const [viewMode, setViewMode] = useState('table')
 
+  // Payment status map for pay_first mode — keyed by player.id
+  const [paymentStatusMap, setPaymentStatusMap] = useState({})
+
+  // Transfer modal state
+  const [transferTarget, setTransferTarget] = useState(null) // { player, registration }
+
   useEffect(() => {
     loadRegistrations()
   }, [selectedSeason?.id, selectedSport?.id])
@@ -118,24 +126,105 @@ export function RegistrationsPage({ showToast }) {
       console.error('Error loading registrations:', error)
     } else {
       setRegistrations(data || [])
+
+      // Pay-first mode: batch-load payment status for each player to gate approval buttons
+      if (selectedSeason?.approval_mode === 'pay_first' && data?.length) {
+        const playerIds = data.map(r => r.id)
+        const { data: payments } = await supabase
+          .from('payments')
+          .select('player_id, amount, paid, fee_type, auto_generated')
+          .in('player_id', playerIds)
+          .eq('season_id', selectedSeason.id)
+          .eq('auto_generated', true)
+
+        const gateFees = selectedSeason.approval_gate_fees || ['registration']
+        const map = {}
+        for (const pid of playerIds) {
+          const playerPayments = (payments || []).filter(p => p.player_id === pid)
+          const gatingPayments = gateFees.length > 0
+            ? playerPayments.filter(p => gateFees.includes(p.fee_type))
+            : playerPayments
+          const unpaid = gatingPayments.filter(p => !p.paid)
+          const unpaidAmount = unpaid.reduce((s, p) => s + parseFloat(p.amount || 0), 0)
+          map[pid] = {
+            gatingFeesPaid: unpaid.length === 0 && gatingPayments.length > 0,
+            unpaidAmount,
+            hasFees: gatingPayments.length > 0,
+          }
+        }
+        setPaymentStatusMap(map)
+      } else {
+        setPaymentStatusMap({})
+      }
     }
     setLoading(false)
   }
 
   // ========== STATUS UPDATES ==========
 
-  async function updateStatus(playerId, regId, newStatus) {
+  async function updateStatus(playerId, regId, newStatus, forceApprove = false) {
     if (newStatus === 'approved' && approvingIds.has(regId)) return
     if (newStatus === 'approved') setApprovingIds(prev => new Set([...prev, regId]))
     try {
       if (newStatus === 'approved' && selectedSeason) {
-        // Generate fees FIRST before updating status
+        const approvalMode = selectedSeason.approval_mode || 'open'
+
+        // PAY_FIRST: Check if gating fees are paid unless admin force-approves
+        if (approvalMode === 'pay_first' && !forceApprove) {
+          const gateFees = selectedSeason.approval_gate_fees || ['registration']
+          const status = await getPlayerPaymentStatus(playerId, selectedSeason.id, gateFees)
+          if (!status.gatingFeesPaid) {
+            showToast(`Payment required: $${status.unpaidAmount.toFixed(2)} outstanding`, 'error')
+            return
+          }
+        }
+
+        // Fetch player data for fee gen / email
         const { data: playerData } = await supabase
           .from('players')
           .select('*, registrations(*)')
           .eq('id', playerId)
           .single()
 
+        // TRYOUT_FIRST: approve without generating fees (fees come at team assignment)
+        if (approvalMode === 'tryout_first') {
+          await supabase.from('registrations').update({
+            status: 'approved', updated_at: new Date().toISOString(), approved_at: new Date().toISOString()
+          }).eq('id', regId)
+          showToast('Approved! Fees will generate when player is added to a team.', 'success')
+          if (playerData && isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
+            EmailService.sendApprovalNotification(playerData, selectedSeason, organization, [])
+              .then(r => r.success && console.log('Approval notification email queued'))
+              .catch(e => console.error('Email queue error:', e))
+          }
+          // Baton pass to parent
+          if (playerData?.parent_account_id) {
+            try {
+              await supabase.from('notifications').insert({
+                user_id: playerData.parent_account_id,
+                organization_id: organization?.id,
+                type: 'registration_approved',
+                title: `Welcome to ${selectedSeason?.name || 'the season'}!`,
+                body: `${playerData.first_name} ${playerData.last_name}'s registration has been approved. Fees will be added after team assignment.`,
+                data: { player_id: playerId, season_id: selectedSeason?.id, action_url: '/dashboard' },
+                read: false,
+              })
+            } catch (notifErr) {
+              console.error('Baton pass failed:', notifErr?.message)
+            }
+          }
+          journey?.completeStep('register_players')
+          setTrackerSuccessInfo('Registration')
+          setRegistrations(prev => prev.map(p =>
+            p.id === playerId
+              ? { ...p, registrations: p.registrations?.map(r => r.id === regId ? { ...r, status: newStatus } : r) }
+              : p
+          ))
+          loadRegistrations()
+          return
+        }
+
+        // OPEN or PAY_FIRST: generate fees then approve
         if (playerData) {
           const result = await generateFeesForPlayer(supabase, playerData, selectedSeason, null)
           if (result.success && !result.skipped) {
@@ -275,14 +364,27 @@ export function RegistrationsPage({ showToast }) {
       setBulkProcessing(false)
       return
     }
-    let approved = 0, feesGenerated = 0, totalFeeAmount = 0, emailsQueued = 0
+
+    const approvalMode = selectedSeason?.approval_mode || 'open'
+    const gateFees = selectedSeason?.approval_gate_fees || ['registration']
+
+    let approved = 0, feesGenerated = 0, totalFeeAmount = 0, emailsQueued = 0, skippedUnpaid = 0
     for (const player of pending) {
       const reg = player.registrations?.[0]
       if (!reg) continue
       try {
-        // Generate fees FIRST before updating status
+        // PAY_FIRST: skip players whose gating fees aren't paid
+        if (approvalMode === 'pay_first' && selectedSeason) {
+          const status = await getPlayerPaymentStatus(player.id, selectedSeason.id, gateFees)
+          if (!status.gatingFeesPaid) {
+            skippedUnpaid++
+            continue
+          }
+        }
+
+        // Generate fees — unless tryout_first, which skips fee gen at approval
         let fees = []
-        if (selectedSeason) {
+        if (selectedSeason && approvalMode !== 'tryout_first') {
           const result = await generateFeesForPlayer(supabase, player, selectedSeason, null)
           if (result.success && !result.skipped) {
             feesGenerated += result.feesCreated
@@ -328,10 +430,15 @@ export function RegistrationsPage({ showToast }) {
         console.error('Error approving player:', player.id, err)
       }
     }
-    showToast(
-      `${label ? label + ' ' : ''}Approved ${approved} registrations! Generated ${feesGenerated} fees ($${totalFeeAmount.toFixed(2)})${emailsQueued > 0 ? ` · ${emailsQueued} emails queued` : ''}`,
-      'success'
-    )
+    let toastMsg = `${label ? label + ' ' : ''}Approved ${approved} registrations!`
+    if (approvalMode !== 'tryout_first') {
+      toastMsg += ` Generated ${feesGenerated} fees ($${totalFeeAmount.toFixed(2)})`
+    } else if (approved > 0) {
+      toastMsg += ' Fees will generate after team assignment.'
+    }
+    if (emailsQueued > 0) toastMsg += ` · ${emailsQueued} emails queued`
+    if (skippedUnpaid > 0) toastMsg += ` · ${skippedUnpaid} skipped (payment required)`
+    showToast(toastMsg, skippedUnpaid > 0 ? 'warning' : 'success')
     journey?.completeStep('register_players')
     setSelectedIds(new Set())
     setBulkProcessing(false)
@@ -600,6 +707,8 @@ export function RegistrationsPage({ showToast }) {
               dossierPlayerId={dossierPlayer?.id}
               onRowSelect={setDossierPlayer}
               approvingIds={approvingIds}
+              approvalMode={selectedSeason?.approval_mode || 'open'}
+              paymentStatusMap={paymentStatusMap}
             />
           </div>
 
@@ -611,16 +720,19 @@ export function RegistrationsPage({ showToast }) {
                 registration={dossierPlayer.registrations?.[0]}
                 payments={dossierPlayer.payments}
                 onClose={() => setDossierPlayer(null)}
-                onApprove={() => {
+                onApprove={(forceApprove) => {
                   const reg = dossierPlayer.registrations?.[0]
-                  if (reg) updateStatus(dossierPlayer.id, reg.id, 'approved')
+                  if (reg) updateStatus(dossierPlayer.id, reg.id, 'approved', !!forceApprove)
                 }}
                 onDeny={() => {
                   const reg = dossierPlayer.registrations?.[0]
                   if (reg) setShowDenyModal({ player: dossierPlayer, reg })
                 }}
                 onEdit={() => { setSelectedPlayer(dossierPlayer); setEditMode(true) }}
+                onTransfer={(p, r) => setTransferTarget({ player: p, registration: r })}
                 isDark={isDark}
+                approvalMode={selectedSeason?.approval_mode || 'open'}
+                paymentStatus={paymentStatusMap[dossierPlayer.id]}
               />
             ) : (
               <div className={`rounded-2xl flex flex-col items-center justify-center sticky top-4 h-[calc(100vh-300px)] ${
@@ -664,6 +776,22 @@ export function RegistrationsPage({ showToast }) {
           onClose={() => setShowBulkDenyModal(false)}
           onDeny={bulkDeny}
           processing={bulkProcessing}
+        />
+      )}
+
+      {/* Transfer Registration Modal */}
+      {transferTarget && (
+        <TransferModal
+          isOpen={!!transferTarget}
+          onClose={() => setTransferTarget(null)}
+          player={transferTarget.player}
+          registration={transferTarget.registration}
+          organizationId={organization?.id}
+          showToast={showToast}
+          onTransferComplete={() => {
+            setTransferTarget(null)
+            loadRegistrations()
+          }}
         />
       )}
       </div>

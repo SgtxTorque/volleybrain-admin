@@ -801,6 +801,23 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           }
         } else if (registration) {
           createdRegistrationIds.push(registration.id)
+
+          // PAY_FIRST: generate fees immediately on registration submit so parent can pay before approval
+          try {
+            if (season?.approval_mode === 'pay_first') {
+              const { generateFeesForPlayer } = await import('../../lib/fee-calculator')
+              const { data: freshPlayer } = await supabase
+                .from('players')
+                .select('*')
+                .eq('id', player.id)
+                .single()
+              if (freshPlayer) {
+                await generateFeesForPlayer(supabase, freshPlayer, season, null)
+              }
+            }
+          } catch (feeErr) {
+            console.warn('Pay-first fee generation failed (non-blocking):', feeErr?.message)
+          }
         }
       }
 
