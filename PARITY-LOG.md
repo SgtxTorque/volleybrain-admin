@@ -204,6 +204,13 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Enhanced upload size guidance in Organization settings (Identity logo, Branding logo, Banner) with recommended dimensions, max file size, accepted formats, and a banner-content coaching tip → No mobile action
 - WEB: Program cards now visually differentiated in RegistrationCartPage — colored top accent strip, 14×14 sport icon tile with tinted background, colored 3px left border on season rows, SPORT_COLORS + SPORT_ICONS fallback map → Mobile registration cart should apply similar visual treatment for consistency across platforms
 
+### April 16, 2026 (Multi-Team Assignment)
+- WEB: Players can now be assigned to multiple teams in the same season. team_players rows are additive, not one-per-player. → MOBILE: If mobile has team assignment UI, verify it doesn't assume single-team. Check for team_players[0] assumptions.
+- WEB: is_primary_team column now populated on team_players insert (first team = true, additional = false). → MOBILE: If mobile reads team_players, can use is_primary_team to determine which team to show as primary.
+- WEB: ManageRosterModal now shows players from other teams as available to add (was filtering out all rostered players). UnrosteredAlert banner still shows only zero-team players. → MOBILE: If mobile has roster management, apply same filter change.
+- WEB: assignPlayerToTeam / addPlayerToTeam scoped to season via registrations.season_id (was unscoped .maybeSingle()) and only flips registrations.status from 'approved' → 'rostered' (skips if already rostered). players.status only flips on first-team assignment. → MOBILE: Verify mobile assignment queries are season-scoped and preserve 'rostered' state on subsequent team adds.
+- WEB: RegistrationsTable row and PlayerDossierPanel now show ALL assigned team badges plus a "+ Team ▾" (inline) or "+ Add to Another Team ▾" (dossier) dropdown until the player is on every team in the season. → MOBILE: UI surfaces that show current team assignment should map over team_players rather than reading [0].
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
