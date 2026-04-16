@@ -22,6 +22,7 @@ export default function FamilyDetailPanel({
   onMarkUnpaid,
   onSendReminder,
   onAddFee,
+  onDeleteFee,
 }) {
   const { isDark } = useTheme()
   const [activeTab, setActiveTab] = useState('overview')
@@ -246,6 +247,26 @@ export default function FamilyDetailPanel({
                         <button onClick={() => onMarkPaid(p)}
                           className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#22C55E] text-white hover:brightness-110 shrink-0 transition">
                           Pay
+                        </button>
+                      )}
+                      {onDeleteFee && !p.paid && (
+                        <button
+                          onClick={() => onDeleteFee(p.id, false)}
+                          title="Delete fee"
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 shrink-0 transition"
+                        >
+                          Delete
+                        </button>
+                      )}
+                      {onDeleteFee && p.paid && (
+                        <button
+                          onClick={() => onDeleteFee(p.id, true)}
+                          title="Waive fee (set to $0)"
+                          className={`px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 transition ${
+                            isDark ? 'bg-white/[0.04] text-slate-500 hover:bg-white/[0.08]' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                          }`}
+                        >
+                          Waive
                         </button>
                       )}
                     </div>

@@ -307,6 +307,42 @@ export function PaymentsPage({ showToast }) {
     loadPayments()
   }
 
+  async function handleDeleteFee(feeId, isPaid) {
+    const fee = payments.find(p => p.id === feeId)
+    if (!fee) return
+    if (isPaid) {
+      const confirmed = window.confirm(
+        'This fee has been paid. It will be marked as "Waived" with a $0 balance. The payment record will be kept for audit purposes. Continue?'
+      )
+      if (!confirmed) return
+      const { error } = await supabase
+        .from('payments')
+        .update({
+          amount: 0,
+          fee_name: (fee.fee_name || fee.fee_type || 'Fee') + ' (Waived)',
+          description: (fee.description || '') + ' [Waived by admin]',
+        })
+        .eq('id', feeId)
+      if (error) {
+        showToast('Failed to waive fee', 'error')
+        return
+      }
+      showToast('Fee waived', 'success')
+    } else {
+      const confirmed = window.confirm('Delete this fee? This cannot be undone.')
+      if (!confirmed) return
+      const { error } = await supabase.from('payments').delete().eq('id', feeId)
+      if (error) {
+        showToast('Failed to delete fee', 'error')
+        return
+      }
+      showToast('Fee deleted', 'success')
+      // Optimistic: remove immediately
+      setPayments(prev => prev.filter(p => p.id !== feeId))
+    }
+    loadPayments()
+  }
+
   async function handleAddPayment(paymentData) {
     try {
       const player = players.find(p => p.id === paymentData.player_id)
@@ -747,6 +783,7 @@ export function PaymentsPage({ showToast }) {
                   onMarkUnpaid={handleMarkUnpaid}
                   onSendReminder={f => setShowReminderModal(f)}
                   onAddFee={() => setShowAddModal(true)}
+                  onDeleteFee={handleDeleteFee}
                 />
               ) : (
                 <div className={`rounded-2xl flex flex-col items-center justify-center sticky top-4 h-[calc(100vh-280px)] ${
@@ -808,6 +845,7 @@ export function PaymentsPage({ showToast }) {
               onMarkUnpaid={handleMarkUnpaid}
               onSendReminder={f => setShowReminderModal(f)}
               onAddFee={() => setShowAddModal(true)}
+              onDeleteFee={handleDeleteFee}
             />
           </div>
         </div>
