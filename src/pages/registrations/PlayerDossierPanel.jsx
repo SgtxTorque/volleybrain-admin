@@ -39,11 +39,21 @@ function WaiverRow({ label, signed, isDark }) {
   )
 }
 
-export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, onTransfer, isDark, approvalMode = 'open', paymentStatus }) {
+export default function PlayerDossierPanel({ player, registration, payments, onClose, onApprove, onDeny, onEdit, onTransfer, isDark, approvalMode = 'open', paymentStatus, teams = [], onAssignToTeam, assigningPlayerId }) {
   if (!player) return null
 
   const reg = registration || player.registrations?.[0]
   const isPending = ['submitted', 'pending', 'new'].includes(reg?.status)
+  const isApproved = reg?.status === 'approved'
+  const isRostered = reg?.status === 'rostered'
+
+  // Determine current team assignment (from team_players join)
+  const tp = Array.isArray(player.team_players) ? player.team_players[0] : null
+  const currentTeamId = tp?.team_id
+  const currentTeamName = tp?.teams?.name
+  const currentTeamColor = tp?.teams?.color
+  const hasTeam = !!currentTeamId
+  const isAssigning = assigningPlayerId === player.id
   const age = calculateAge(player.birth_date || player.dob)
   const dob = (player.birth_date || player.dob)
     ? new Date((player.birth_date || player.dob) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -219,6 +229,57 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
             </>
           )
         })()}
+
+        {/* Approved + has team OR rostered → show team badge */}
+        {(isApproved || isRostered) && hasTeam && (
+          <div
+            className="w-full px-3 py-2.5 rounded-[14px] text-sm font-bold flex items-center justify-center gap-2"
+            style={currentTeamColor
+              ? { backgroundColor: `${currentTeamColor}20`, color: currentTeamColor, border: `1px solid ${currentTeamColor}40` }
+              : { backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+          >
+            <Check className="w-4 h-4" />
+            <span>{currentTeamName || 'Rostered'}</span>
+          </div>
+        )}
+
+        {/* Approved + no team → primary "Assign to Team" dropdown */}
+        {isApproved && !hasTeam && onAssignToTeam && (
+          teams.length > 0 ? (
+            <div className="relative">
+              <select
+                value=""
+                disabled={isAssigning}
+                onChange={e => {
+                  const teamId = e.target.value
+                  if (teamId) {
+                    onAssignToTeam(player.id, teamId)
+                    e.target.value = ''
+                  }
+                }}
+                className={`w-full appearance-none px-3 py-2.5 rounded-[14px] text-sm font-bold text-white cursor-pointer transition ${
+                  isAssigning ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4BB9EC] hover:brightness-110'
+                }`}
+                style={{ textAlignLast: 'center', paddingRight: '2.25rem' }}
+              >
+                <option value="" disabled style={{ color: '#111' }}>
+                  {isAssigning ? 'Assigning...' : '🏐  Assign to Team ▾'}
+                </option>
+                {teams.map(t => (
+                  <option key={t.id} value={t.id} style={{ color: '#111' }}>{t.name}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/80 text-xs font-bold">▾</div>
+            </div>
+          ) : (
+            <div className={`w-full px-3 py-2.5 rounded-[14px] text-xs font-bold text-center ${
+              isDark ? 'bg-white/[0.04] text-slate-500 border border-white/[0.06]' : 'bg-slate-100 text-slate-400 border border-slate-200'
+            }`}>
+              No teams in this season yet — create a team first
+            </div>
+          )
+        )}
+
         <button onClick={onEdit}
           className={`w-full px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition ${
             isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-[#F5F6F8] text-[#10284C] hover:bg-slate-200'

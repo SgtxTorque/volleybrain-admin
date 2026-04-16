@@ -725,6 +725,11 @@ export function RegistrationsPage({ showToast }) {
 
   // Dossier panel state
   const [dossierPlayer, setDossierPlayer] = useState(null)
+  // Always render the dossier panel with the live version from registrations so
+  // status/team changes (approve → assign → rostered) flow through without re-opening.
+  const dossierPlayerLive = dossierPlayer
+    ? (registrations.find(p => p.id === dossierPlayer.id) || dossierPlayer)
+    : null
 
   // ========== RENDER ==========
 
@@ -848,25 +853,28 @@ export function RegistrationsPage({ showToast }) {
 
           {/* RIGHT: Detail panel — always visible */}
           <div className="flex-1 min-w-0 hidden lg:block">
-            {dossierPlayer ? (
+            {dossierPlayerLive ? (
               <PlayerDossierPanel
-                player={dossierPlayer}
-                registration={dossierPlayer.registrations?.[0]}
-                payments={dossierPlayer.payments}
+                player={dossierPlayerLive}
+                registration={dossierPlayerLive.registrations?.[0]}
+                payments={dossierPlayerLive.payments}
                 onClose={() => setDossierPlayer(null)}
                 onApprove={(forceApprove) => {
-                  const reg = dossierPlayer.registrations?.[0]
-                  if (reg) updateStatus(dossierPlayer.id, reg.id, 'approved', !!forceApprove)
+                  const reg = dossierPlayerLive.registrations?.[0]
+                  if (reg) updateStatus(dossierPlayerLive.id, reg.id, 'approved', !!forceApprove)
                 }}
                 onDeny={() => {
-                  const reg = dossierPlayer.registrations?.[0]
-                  if (reg) setShowDenyModal({ player: dossierPlayer, reg })
+                  const reg = dossierPlayerLive.registrations?.[0]
+                  if (reg) setShowDenyModal({ player: dossierPlayerLive, reg })
                 }}
-                onEdit={() => { setSelectedPlayer(dossierPlayer); setEditMode(true) }}
+                onEdit={() => { setSelectedPlayer(dossierPlayerLive); setEditMode(true) }}
                 onTransfer={(p, r) => setTransferTarget({ player: p, registration: r })}
                 isDark={isDark}
                 approvalMode={selectedSeason?.approval_mode || 'open'}
-                paymentStatus={paymentStatusMap[dossierPlayer.id]}
+                paymentStatus={paymentStatusMap[dossierPlayerLive.id]}
+                teams={teams}
+                onAssignToTeam={assignPlayerToTeam}
+                assigningPlayerId={assigningPlayerId}
               />
             ) : (
               <div className={`rounded-2xl flex flex-col items-center justify-center sticky top-4 h-[calc(100vh-300px)] ${
