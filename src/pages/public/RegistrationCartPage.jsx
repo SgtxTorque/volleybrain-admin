@@ -1674,12 +1674,12 @@ export function RegistrationCartPage() {
           .eq('is_active', true)
           .order('display_order', { ascending: true })
 
-        // 3. Load seasons with open registration
+        // 3. Load seasons with open registration (include 'upcoming' so newly created seasons appear)
         const { data: seasons } = await supabase
           .from('seasons')
           .select('*, sports(name, icon), programs(id, name, icon)')
           .eq('organization_id', orgData.id)
-          .eq('status', 'active')
+          .in('status', ['active', 'upcoming'])
           .order('start_date', { ascending: false })
 
         // 4. Filter to seasons within registration window

@@ -226,12 +226,12 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         seasonData = data
         if (!seasonData) { setError('Season not found'); setLoading(false); return }
       } else {
-        // No seasonId in URL — auto-select active season
+        // No seasonId in URL — auto-select active or upcoming season
         const { data: seasons } = await supabase
           .from('seasons')
           .select('*, sports(name, icon)')
           .eq('organization_id', orgData.id)
-          .eq('status', 'active')
+          .in('status', ['active', 'upcoming'])
           .order('created_at', { ascending: false })
 
         if (seasons?.length === 1) {
