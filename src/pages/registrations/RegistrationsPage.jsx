@@ -382,31 +382,62 @@ export function RegistrationsPage({ showToast }) {
     if (assigningPlayerId === playerId) return
     setAssigningPlayerId(playerId)
     try {
-      // 1. Insert team_players
-      const { error: tpErr } = await supabase
+      // 0. Guard: if this player is already on this specific team, bail out.
+      const { data: existingTP } = await supabase
         .from('team_players')
-        .insert({ team_id: teamId, player_id: playerId })
-      if (tpErr) throw tpErr
-
-      // 2. Update registration status to 'rostered'
-      const { data: reg } = await supabase
-        .from('registrations')
         .select('id')
+        .eq('team_id', teamId)
         .eq('player_id', playerId)
         .maybeSingle()
-      if (reg) {
+      if (existingTP) {
+        const teamName = teams.find(t => t.id === teamId)?.name || 'that team'
+        const existingPlayer = registrations.find(p => p.id === playerId)
+        const playerLabel = existingPlayer
+          ? `${existingPlayer.first_name || ''} ${existingPlayer.last_name || ''}`.trim() || 'Player'
+          : 'Player'
+        showToast(`${playerLabel} is already on ${teamName}`, 'warning')
+        return
+      }
+
+      // 1. Determine whether this is the player's first team — drives is_primary_team
+      //    and whether we flip status fields below. Read from local state to stay
+      //    consistent with what the admin sees in the UI.
+      const existingPlayerRow = registrations.find(p => p.id === playerId)
+      const isFirstTeam = !existingPlayerRow?.team_players || existingPlayerRow.team_players.length === 0
+
+      // 2. Insert team_players (set is_primary_team for first team)
+      const { error: tpErr } = await supabase
+        .from('team_players')
+        .insert({ team_id: teamId, player_id: playerId, is_primary_team: isFirstTeam })
+      if (tpErr) throw tpErr
+
+      // 3. Update registration status to 'rostered' — only on FIRST assignment.
+      //    Scope to current season so a player registered across multiple seasons
+      //    only has the relevant registration touched.
+      let regQuery = supabase
+        .from('registrations')
+        .select('id, status')
+        .eq('player_id', playerId)
+      if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
+        regQuery = regQuery.eq('season_id', selectedSeason.id)
+      }
+      const { data: reg } = await regQuery.maybeSingle()
+      if (reg && reg.status === 'approved') {
         await supabase.from('registrations').update({
           status: 'rostered',
           rostered_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('id', reg.id)
       }
+      // If reg.status is already 'rostered', leave it alone — player is being added to an additional team.
 
-      // 3. Update player status to 'rostered'
-      await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
+      // 4. Update player status to 'rostered' only on first assignment
+      if (isFirstTeam) {
+        await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
+      }
 
-      // 4. TRYOUT_FIRST: generate fees on team assignment
-      if (selectedSeason?.approval_mode === 'tryout_first') {
+      // 5. TRYOUT_FIRST: generate fees on team assignment (first time only)
+      if (isFirstTeam && selectedSeason?.approval_mode === 'tryout_first') {
         try {
           const { data: freshPlayer } = await supabase
             .from('players').select('*').eq('id', playerId).single()
@@ -418,7 +449,8 @@ export function RegistrationsPage({ showToast }) {
         }
       }
 
-      // 5. Send team assignment email (non-blocking)
+      // 6. Send team assignment email (non-blocking) — fire on every assignment
+      //    so parents are notified about each team the player joins.
       try {
         if (isEmailEnabled(organization, 'team_assignment')) {
           const { data: playerData } = await supabase
@@ -443,13 +475,19 @@ export function RegistrationsPage({ showToast }) {
       showToast(`Assigned to ${team?.name || 'team'}!`, 'success')
       journey?.completeStep('add_roster')
 
-      // Optimistic update
+      // Optimistic update: APPEND the new team to team_players (don't replace).
+      // Only flip registration statuses that were 'approved' — never touch already-rostered ones.
       setRegistrations(prev => prev.map(p =>
         p.id === playerId
           ? {
               ...p,
-              registrations: p.registrations?.map(r => ({ ...r, status: 'rostered' })),
-              team_players: [{ team_id: teamId, teams: { id: teamId, name: team?.name, color: team?.color } }],
+              registrations: p.registrations?.map(r =>
+                r.status === 'approved' ? { ...r, status: 'rostered' } : r
+              ),
+              team_players: [
+                ...(p.team_players || []),
+                { team_id: teamId, is_primary_team: isFirstTeam, teams: { id: teamId, name: team?.name, color: team?.color } },
+              ],
             }
           : p
       ))
