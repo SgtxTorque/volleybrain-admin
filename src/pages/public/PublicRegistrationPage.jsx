@@ -1094,12 +1094,16 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const orgTagline = orgBranding.tagline || orgSettings.tagline || ''
   const headerBgColor = organization?.primary_color || orgBranding.primary_color || orgSettings.primary_color || '#10284C'
   const headerTextColor = getContrastText(headerBgColor)
-  const bannerUrl = organization?.settings?.branding?.banner_url || orgBranding.banner_url || null
+  const bannerUrl = organization?.settings?.branding?.banner_url
+    || organization?.settings?.banner_url
+    || orgBranding.banner_url
+    || organization?.banner_url
+    || null
 
   // ─── Main render ───────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#F5F6F8]">
-      {/* Branded header */}
+      {/* Branded header — hero treatment */}
       <div className="relative overflow-hidden" style={{ backgroundColor: headerBgColor, color: headerTextColor }}>
         {bannerUrl && (
           <img
@@ -1110,26 +1114,41 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           />
         )}
         {bannerUrl && (
-          <div className="absolute inset-0" style={{ backgroundColor: headerBgColor + 'cc' }} />
+          <div className="absolute inset-0" style={{ backgroundColor: headerBgColor + 'd9' }} />
         )}
-        <div className="relative z-10 px-4 py-10 text-center max-w-2xl mx-auto">
+        <div className="relative z-10 px-4 py-10 md:py-14 text-center max-w-2xl mx-auto">
           <div className="flex justify-center mb-4">
-            <OrgLogo org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }} size={72} />
+            <div className="hidden md:block">
+              <OrgLogo
+                org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }}
+                size={160}
+                className="drop-shadow-lg"
+              />
+            </div>
+            <div className="md:hidden">
+              <OrgLogo
+                org={{ logo_url: organization?.logo_url, name: organization?.name, primary_color: organization?.primary_color }}
+                size={120}
+                className="drop-shadow-lg"
+              />
+            </div>
           </div>
-          <h1 className="text-2xl font-black" style={{ fontFamily: 'var(--v2-font)', color: headerTextColor }}>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight" style={{ fontFamily: 'var(--v2-font)', color: headerTextColor }}>
             {organization?.name || 'Join the Den'}
           </h1>
           {orgTagline && (
-            <p className="text-r-xs mt-1" style={{ color: `${headerTextColor}99` }}>{orgTagline}</p>
+            <p className="text-sm md:text-base mt-1" style={{ color: `${headerTextColor}b3` }}>{orgTagline}</p>
           )}
-          <p className="mt-3 text-r-sm" style={{ color: `${headerTextColor}cc` }}>
-            {season?.sports?.icon} {season?.name}
-          </p>
-          {season?.start_date && (
-            <p className="text-r-xs mt-1" style={{ color: `${headerTextColor}80` }}>
-              Starts {parseLocalDate(season.start_date).toLocaleDateString()}
+          <div className="mt-6">
+            <p className="text-base md:text-lg font-medium" style={{ color: `${headerTextColor}e6` }}>
+              {season?.sports?.icon} {season?.name}
             </p>
-          )}
+            {season?.start_date && (
+              <p className="text-xs md:text-sm mt-1" style={{ color: `${headerTextColor}99` }}>
+                Starts {parseLocalDate(season.start_date).toLocaleDateString()}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

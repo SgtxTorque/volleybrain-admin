@@ -1241,6 +1241,12 @@ export function RegistrationCartPage() {
   const accentColor = orgBranding.primary_color || orgSettings.primary_color || '#4BB9EC'
   const orgLogo = organization?.logo_url || orgBranding.logo_url || orgSettings.logo_url || null
   const accentTextColor = getContrastText(accentColor)
+  const bannerUrl = organization?.settings?.branding?.banner_url
+    || organization?.settings?.banner_url
+    || orgBranding.banner_url
+    || organization?.banner_url
+    || null
+  const orgTagline = orgBranding.tagline || orgSettings.tagline || ''
 
   // ─── Load registration templates for selected programs ───────────────
   useEffect(() => {
@@ -1871,15 +1877,48 @@ export function RegistrationCartPage() {
         </div>
       )}
 
-      {/* Header bar */}
-      <div className={`sticky ${isPreview ? 'top-[36px]' : 'top-0'} z-40`} style={{ backgroundColor: accentColor }}>
-        <div className="max-w-2xl mx-auto px-4">
-          {/* Org branding */}
-          <div className="flex items-center justify-center gap-3 pt-4 pb-2">
-            <OrgLogo org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }} size={28} />
-            <h1 className="font-bold text-base" style={{ color: accentTextColor }}>{organization?.name || 'Registration'}</h1>
+      {/* Branded hero header — banner + logo + org name */}
+      <div className="relative overflow-hidden" style={{ backgroundColor: accentColor, color: accentTextColor }}>
+        {bannerUrl && (
+          <img
+            src={bannerUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        )}
+        {bannerUrl && (
+          <div className="absolute inset-0" style={{ backgroundColor: accentColor + 'd9' }} />
+        )}
+        <div className="relative z-10 max-w-2xl mx-auto px-4 py-8 md:py-12 text-center">
+          <div className="flex justify-center mb-3">
+            <div className="hidden md:block">
+              <OrgLogo
+                org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }}
+                size={140}
+                className="drop-shadow-lg"
+              />
+            </div>
+            <div className="md:hidden">
+              <OrgLogo
+                org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }}
+                size={110}
+                className="drop-shadow-lg"
+              />
+            </div>
           </div>
-          {/* Step progress */}
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: accentTextColor, fontFamily: 'var(--v2-font)' }}>
+            {organization?.name || 'Registration'}
+          </h1>
+          {orgTagline && (
+            <p className="text-xs md:text-sm mt-1" style={{ color: `${accentTextColor}b3` }}>{orgTagline}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky step progress */}
+      <div className={`sticky ${isPreview ? 'top-[36px]' : 'top-0'} z-40 border-b border-slate-200`} style={{ backgroundColor: accentColor }}>
+        <div className="max-w-2xl mx-auto px-4 py-2">
           <StepProgress currentStep={currentStep} />
         </div>
       </div>
