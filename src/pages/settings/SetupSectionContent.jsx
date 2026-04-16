@@ -309,8 +309,12 @@ function SetupSectionContent({
                   )}
                 </div>
                 <div className="flex-1">
-                  <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition ${tc.card} border ${tc.border} ${tc.hoverBg}`}>
-                    <Upload className="w-4 h-4" />
+                  <label className={`inline-flex items-center gap-2 px-6 py-3 rounded-[14px] text-sm font-medium cursor-pointer transition ${
+                    localData.logoUrl
+                      ? 'bg-white border border-slate-300 text-slate-600 hover:border-[#4BB9EC] hover:text-[#4BB9EC]'
+                      : 'bg-slate-50 border-2 border-dashed border-slate-300 text-slate-600 hover:border-[#4BB9EC] hover:bg-blue-50 hover:text-[#4BB9EC]'
+                  }`}>
+                    <Upload className="w-5 h-5" />
                     {localData.logoUrl ? 'Change Logo' : 'Upload Logo'}
                     <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                       const file = e.target.files?.[0]
@@ -1597,9 +1601,13 @@ function SetupSectionContent({
                   )}
                 </div>
                 <div className="flex-1">
-                  <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition ${tc.card} border ${tc.border} ${tc.hoverBg}`}>
-                    <Upload className="w-4 h-4" />
-                    Upload Logo
+                  <label className={`inline-flex items-center gap-2 px-6 py-3 rounded-[14px] text-sm font-medium cursor-pointer transition ${
+                    localData.logoUrl
+                      ? 'bg-white border border-slate-300 text-slate-600 hover:border-[#4BB9EC] hover:text-[#4BB9EC]'
+                      : 'bg-slate-50 border-2 border-dashed border-slate-300 text-slate-600 hover:border-[#4BB9EC] hover:bg-blue-50 hover:text-[#4BB9EC]'
+                  }`}>
+                    <Upload className="w-5 h-5" />
+                    {localData.logoUrl ? 'Change Logo' : 'Upload Logo'}
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'logoUrl')} />
                   </label>
                   <div className={`mt-2 text-xs ${tc.textMuted} space-y-0.5`}>
@@ -1679,8 +1687,12 @@ function SetupSectionContent({
                   </button>
                 </div>
               )}
-              <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition ${tc.card} border ${tc.border} ${tc.hoverBg}`}>
-                <Image className="w-4 h-4" />
+              <label className={`inline-flex items-center gap-2 px-6 py-3 rounded-[14px] text-sm font-medium cursor-pointer transition ${
+                localData.brandingBannerUrl
+                  ? 'bg-white border border-slate-300 text-slate-600 hover:border-[#4BB9EC] hover:text-[#4BB9EC]'
+                  : 'bg-slate-50 border-2 border-dashed border-slate-300 text-slate-600 hover:border-[#4BB9EC] hover:bg-blue-50 hover:text-[#4BB9EC]'
+              }`}>
+                <Image className="w-5 h-5" />
                 {localData.brandingBannerUrl ? 'Replace Banner' : 'Upload Banner'}
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'brandingBannerUrl')} />
               </label>
