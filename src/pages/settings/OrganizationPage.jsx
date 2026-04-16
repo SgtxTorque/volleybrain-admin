@@ -987,6 +987,7 @@ function OrganizationPage({ showToast }) {
                 sectionKey={expandedSection}
                 setupData={setupData}
                 setSetupData={setSetupData}
+                setOrganization={setOrganization}
                 onSave={(data) => saveSection(expandedSection, data)}
                 saving={saving}
                 showToast={showToast}
@@ -1073,6 +1074,7 @@ function OrganizationPage({ showToast }) {
               sectionKey={expandedSection}
               setupData={setupData}
               setSetupData={setSetupData}
+              setOrganization={setOrganization}
               onSave={(data) => saveSection(expandedSection, data)}
               saving={saving}
               showToast={showToast}

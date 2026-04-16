@@ -205,6 +205,7 @@ function SetupSectionContent({
   sectionKey,
   setupData,
   setSetupData,
+  setOrganization,
   onSave,
   saving,
   showToast,
@@ -328,6 +329,9 @@ function SetupSectionContent({
                           showToast('Logo uploaded but failed to save. Please click Save.', 'error')
                         } else {
                           showToast('Logo saved!', 'success')
+                          // Sync React state so SPA navigation shows the new logo
+                          if (setOrganization) setOrganization(prev => ({ ...prev, logo_url: publicUrl }))
+                          if (setSetupData) setSetupData(prev => ({ ...prev, logoUrl: publicUrl }))
                         }
                       } catch (err) {
                         showToast(`Upload failed: ${err.message}`, 'error')
@@ -1530,6 +1534,9 @@ function SetupSectionContent({
                 showToast('Logo uploaded but failed to save. Please click Save.', 'error')
               } else {
                 showToast('Logo saved!', 'success')
+                // Sync React state so SPA navigation shows the new logo
+                if (setOrganization) setOrganization(prev => ({ ...prev, logo_url: publicUrl }))
+                if (setSetupData) setSetupData(prev => ({ ...prev, logoUrl: publicUrl }))
               }
             } else {
               showToast('Image uploaded', 'success')
