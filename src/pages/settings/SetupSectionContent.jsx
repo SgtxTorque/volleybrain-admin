@@ -321,7 +321,14 @@ function SetupSectionContent({
                         if (upErr) throw upErr
                         const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path)
                         updateField('logoUrl', publicUrl)
-                        showToast('Logo uploaded', 'success')
+                        // Auto-save logo_url to DB immediately
+                        const { error: saveErr } = await supabase.from('organizations').update({ logo_url: publicUrl }).eq('id', organization.id)
+                        if (saveErr) {
+                          console.error('Failed to save logo URL:', saveErr)
+                          showToast('Logo uploaded but failed to save. Please click Save.', 'error')
+                        } else {
+                          showToast('Logo saved!', 'success')
+                        }
                       } catch (err) {
                         showToast(`Upload failed: ${err.message}`, 'error')
                       }
@@ -1511,7 +1518,18 @@ function SetupSectionContent({
             if (upErr) throw upErr
             const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path)
             updateField(field, publicUrl)
-            showToast('Image uploaded', 'success')
+            // Auto-save logo_url to DB immediately when uploading org logo
+            if (field === 'logoUrl') {
+              const { error: saveErr } = await supabase.from('organizations').update({ logo_url: publicUrl }).eq('id', organization.id)
+              if (saveErr) {
+                console.error('Failed to save logo URL:', saveErr)
+                showToast('Logo uploaded but failed to save. Please click Save.', 'error')
+              } else {
+                showToast('Logo saved!', 'success')
+              }
+            } else {
+              showToast('Image uploaded', 'success')
+            }
           } catch (err) {
             showToast(`Upload failed: ${err.message}`, 'error')
           }

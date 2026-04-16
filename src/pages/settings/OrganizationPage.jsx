@@ -413,12 +413,18 @@ function OrganizationPage({ showToast }) {
           updatePayload = { settings: { ...currentSettings, ...data } }
       }
 
-      await supabase.from('organizations').update(updatePayload).eq('id', organization.id)
-      
+      const { error } = await supabase.from('organizations').update(updatePayload).eq('id', organization.id)
+      if (error) {
+        console.error('Failed to save organization settings:', error)
+        showToast('Failed to save. Please try again.', 'error')
+        setSaving(false)
+        return
+      }
+
       // Update local state
       setOrganization({ ...organization, ...updatePayload, settings: { ...currentSettings, ...updatePayload.settings } })
       setSetupData(prev => ({ ...prev, ...data }))
-      
+
       showToast('Saved!', 'success')
     } catch (err) {
       console.error('Save error:', err)
