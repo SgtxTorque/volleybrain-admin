@@ -589,10 +589,16 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
           })()}
         </div>
 
-        {/* Alert Pills Row */}
+        {/* Unrostered players alert — expandable with per-player "Assign to Team" dropdown */}
+        <UnrosteredAlert
+          players={unrosteredPlayers}
+          teams={teams}
+          onAssign={addPlayerToTeam}
+        />
+
+        {/* Alert Pills Row (non-unrostered alerts only — unrostered is handled above) */}
         {(() => {
           const alerts = [
-            unrosteredPlayers.length > 0 && { label: `${unrosteredPlayers.length} unrostered players`, color: 'amber', icon: '👥' },
             teamsOverCap > 0 && { label: `${teamsOverCap} teams over cap`, color: 'red', icon: '⚠️' },
           ].filter(Boolean)
           if (alerts.length === 0) return null
@@ -715,38 +721,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
           </div>
         )}
 
-        {/* Unrostered Queue Strip */}
-        {unrosteredPlayers.length > 0 && (
-          <div className={`flex items-center gap-4 p-4 rounded-xl ${
-            isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
-          }`}>
-            <span className={`font-bold text-sm ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
-              Unrostered Queue: {unrosteredPlayers.length} athlete{unrosteredPlayers.length !== 1 ? 's' : ''} pending
-            </span>
-            <div className="flex -space-x-1.5">
-              {unrosteredPlayers.slice(0, 5).map(p => (
-                <div key={p.id} className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
-                  isDark ? 'border-[#132240] bg-white/[0.06] text-slate-300' : 'border-white bg-slate-100 text-slate-600'
-                }`}>
-                  {(p.first_name || '?').charAt(0)}{(p.last_name || '').charAt(0)}
-                </div>
-              ))}
-              {unrosteredPlayers.length > 5 && (
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
-                  isDark ? 'border-[#132240] bg-amber-500/20 text-amber-400' : 'border-white bg-amber-100 text-amber-600'
-                }`}>
-                  +{unrosteredPlayers.length - 5}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => onNavigate?.('registrations')}
-              className="ml-auto text-xs font-bold text-[#4BB9EC] hover:underline"
-            >
-              Manage All →
-            </button>
-          </div>
-        )}
+        {/* Unrostered Queue Strip removed — replaced by top-of-page UnrosteredAlert with per-player assign dropdown */}
       </div>
 
       {/* Modals — overlay detail panel for smaller screens */}
