@@ -11,6 +11,7 @@ import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
+import { getPrimaryTeam, getPrimaryTeamInfo, getAllTeams } from '../../lib/team-utils'
 import { OrphanPlayerBanner } from '../parent/ClaimAccountPage'
 import { usePriorityItems } from '../../components/parent/PriorityCardsEngine'
 import { ActionItemsSidebar, QuickRsvpModal } from '../../components/parent/ActionItemsSidebar'
@@ -307,13 +308,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
       if (players && players.length > 0) {
         const regData = players.map(p => {
-          const teamPlayer = p.team_players?.[0]
+          const teamPlayer = getPrimaryTeam(p.team_players)
           return { ...p, team: teamPlayer?.teams, jersey_number: teamPlayer?.jersey_number || p.jersey_number,
             registrationStatus: teamPlayer ? 'active' : 'pending' }
         })
         setRegistrationData(regData)
         await loadChildEvals(regData)
-        const tIds = [...new Set(regData.map(p => p.team?.id).filter(Boolean))]
+        // Include ALL of each player's teams so multi-team kids' data loads for every team
+        const tIds = [...new Set(regData.flatMap(p => (p.team_players || []).map(tp => tp.team_id)).filter(Boolean))]
         setTeamIds(tIds)
         const currentSeasonId = regData[0]?.season?.id
         if (currentSeasonId) setSeasonId(currentSeasonId)
@@ -335,11 +337,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   async function loadParentData() {
     try {
       const children = roleContext.children || []
-      const regData = children.map(c => ({
-        ...c, team: c.team_players?.[0]?.teams,
-        jersey_number: c.team_players?.[0]?.jersey_number || c.jersey_number,
-        registrationStatus: c.team_players?.[0] ? 'active' : 'pending',
-      }))
+      const regData = children.map(c => {
+        const teamPlayer = getPrimaryTeam(c.team_players)
+        return {
+          ...c, team: teamPlayer?.teams,
+          jersey_number: teamPlayer?.jersey_number || c.jersey_number,
+          registrationStatus: teamPlayer ? 'active' : 'pending',
+        }
+      })
       setRegistrationData(regData)
       await loadChildEvals(regData)
       const tIds = [...new Set(children.flatMap(c => c.team_players?.map(tp => tp.team_id) || []).filter(Boolean))]
@@ -672,29 +677,37 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   ]
 
   // Map registrationData to KidCards format
-  const kidCardsData = registrationData.map((child, idx) => ({
-    id: child.id,
-    firstName: child.first_name || '',
-    lastName: child.last_name || '',
-    teamName: child.team?.name || child.team_players?.[0]?.teams?.name || '',
-    sportName: child.season?.sports?.name || '',
-    seasonName: child.season?.name || '',
-    photoUrl: child.photo_url || null,
-    registrationStatus: child.registrationStatus || 'active',
-    teamId: child.team?.id || child.team_players?.[0]?.team_id || null,
-    avatarGradient: `linear-gradient(135deg, ${child.team?.color || '#4BB9EC'}, ${child.team?.color || '#4BB9EC'}88)`,
-    initials: `${(child.first_name || '')[0] || ''}${(child.last_name || '')[0] || ''}`.toUpperCase(),
-    overallRating: child.overallRating || null,
-    record: idx === activeChildIdx ? `${teamRecord.wins}-${teamRecord.losses}` : '—',
-    nextEvent: activeChildEvents[0] ? new Date(activeChildEvents[0].event_date).toLocaleDateString('en-US', { weekday: 'short' }) : '—',
-    badgeOrStreak: childAchievements.length > 0 && idx === activeChildIdx
-      ? `🏅 ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}`
-      : null,
-    coachUserId: teamCoachMap[child.team?.id || child.team_players?.[0]?.team_id]?.userId || null,
-    coachName: teamCoachMap[child.team?.id || child.team_players?.[0]?.team_id]?.name || null,
-    playerAccountEnabled: !!child.player_account_enabled,
-    playerUsername: child.player_username || null,
-  }))
+  const kidCardsData = registrationData.map((child, idx) => {
+    const primaryTeamInfo = getPrimaryTeamInfo(child.team_players)
+    const allTeams = getAllTeams(child.team_players)
+    const primaryTeamId = child.team?.id || getPrimaryTeam(child.team_players)?.team_id || null
+    const primaryName = child.team?.name || primaryTeamInfo?.name || ''
+    const extraCount = Math.max(0, allTeams.length - 1)
+    const teamName = primaryName && extraCount > 0 ? `${primaryName} +${extraCount} more` : primaryName
+    return {
+      id: child.id,
+      firstName: child.first_name || '',
+      lastName: child.last_name || '',
+      teamName,
+      sportName: child.season?.sports?.name || '',
+      seasonName: child.season?.name || '',
+      photoUrl: child.photo_url || null,
+      registrationStatus: child.registrationStatus || 'active',
+      teamId: primaryTeamId,
+      avatarGradient: `linear-gradient(135deg, ${child.team?.color || '#4BB9EC'}, ${child.team?.color || '#4BB9EC'}88)`,
+      initials: `${(child.first_name || '')[0] || ''}${(child.last_name || '')[0] || ''}`.toUpperCase(),
+      overallRating: child.overallRating || null,
+      record: idx === activeChildIdx ? `${teamRecord.wins}-${teamRecord.losses}` : '—',
+      nextEvent: activeChildEvents[0] ? new Date(activeChildEvents[0].event_date).toLocaleDateString('en-US', { weekday: 'short' }) : '—',
+      badgeOrStreak: childAchievements.length > 0 && idx === activeChildIdx
+        ? `🏅 ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}`
+        : null,
+      coachUserId: teamCoachMap[primaryTeamId]?.userId || null,
+      coachName: teamCoachMap[primaryTeamId]?.name || null,
+      playerAccountEnabled: !!child.player_account_enabled,
+      playerUsername: child.player_username || null,
+    }
+  })
 
   // Map priority items for attention strip (use all children so count matches sidebar)
   const allActionItems = priorityEngine?.items || []
@@ -857,7 +870,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   events={upcomingEvents}
                   children={registrationData.map(c => ({
                     ...c,
-                    team: c.team || c.team_players?.[0]?.teams,
+                    team: c.team || getPrimaryTeamInfo(c.team_players),
                   }))}
                   onRsvp={(evt) => setQuickRsvpEvent(evt)}
                   onEventClick={(evt) => setSelectedEventDetail(evt)}
