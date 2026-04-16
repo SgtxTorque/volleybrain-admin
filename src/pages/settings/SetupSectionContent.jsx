@@ -334,7 +334,11 @@ function SetupSectionContent({
                       }
                     }} />
                   </label>
-                  <p className={`text-xs ${tc.textMuted} mt-1`}>Square image recommended (200x200+)</p>
+                  <div className={`mt-2 text-xs ${tc.textMuted} space-y-0.5`}>
+                    <div className={`font-semibold ${tc.textSecondary}`}>📐 Recommended: 400×400 (square)</div>
+                    <div>Minimum: 200×200 · Max file size: 2MB</div>
+                    <div>Formats: PNG (transparent background recommended), JPG, WebP</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1565,7 +1569,11 @@ function SetupSectionContent({
                     Upload Logo
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'logoUrl')} />
                   </label>
-                  <p className={`text-xs ${tc.textMuted} mt-1`}>Square image recommended (200x200+)</p>
+                  <div className={`mt-2 text-xs ${tc.textMuted} space-y-0.5`}>
+                    <div className={`font-semibold ${tc.textSecondary}`}>📐 Recommended: 400×400 (square)</div>
+                    <div>Minimum: 200×200 · Max file size: 2MB</div>
+                    <div>Formats: PNG (transparent background recommended), JPG, WebP</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1643,7 +1651,14 @@ function SetupSectionContent({
                 {localData.brandingBannerUrl ? 'Replace Banner' : 'Upload Banner'}
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'brandingBannerUrl')} />
               </label>
-              <p className={`text-xs ${tc.textMuted} mt-1`}>Wide image recommended (1200x400+). Shows on team wall and registration.</p>
+              <div className={`mt-2 text-xs ${tc.textMuted} space-y-0.5`}>
+                <div className={`font-semibold ${tc.textSecondary}`}>📐 Recommended: 1600×500 (landscape, ~3.2:1 ratio)</div>
+                <div>Minimum: 1200×400 · Max file size: 5MB</div>
+                <div>Formats: JPG, PNG, WebP — photos work great</div>
+                <div className={`mt-1.5 ${tc.textMuted} italic`}>
+                  💡 Tip: Don't bake your org name into the banner — it's overlaid dynamically on the registration page. Pick a photo that represents your club (players in action, venue, team spirit).
+                </div>
+              </div>
             </div>
 
             {/* App Background */}

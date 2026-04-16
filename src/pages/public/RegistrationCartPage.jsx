@@ -19,6 +19,50 @@ import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileT
 
 const CARD = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
 
+// ─── Sport color + icon fallback maps (used when program.sport lacks data) ──
+const SPORT_COLORS = {
+  'Volleyball': '#A855F7',
+  'Basketball': '#F97316',
+  'Soccer': '#22C55E',
+  'Football': '#8B4513',
+  'Baseball': '#EF4444',
+  'Softball': '#EAB308',
+  'Hockey': '#3B82F6',
+  'Tennis': '#84CC16',
+  'Lacrosse': '#10B981',
+  'Swimming': '#06B6D4',
+  'Track': '#F59E0B',
+  'Cheer': '#EC4899',
+  'Wrestling': '#64748B',
+  'General': '#6366F1',
+  'Other': '#6B7280',
+}
+
+const SPORT_ICONS = {
+  'Volleyball': '🏐',
+  'Basketball': '🏀',
+  'Soccer': '⚽',
+  'Football': '🏈',
+  'Baseball': '⚾',
+  'Softball': '🥎',
+  'Hockey': '🏒',
+  'Tennis': '🎾',
+  'Lacrosse': '🥍',
+  'Swimming': '🏊',
+  'Track': '🏃',
+  'Cheer': '📣',
+  'Wrestling': '🤼',
+  'General': '📋',
+  'Other': '🏆',
+}
+
+function getProgramVisual(program, fallbackColor) {
+  const sportName = program?.sport?.name || program?.name || 'Other'
+  const color = program?.color || program?.sport?.color_primary || SPORT_COLORS[sportName] || fallbackColor || SPORT_COLORS.Other
+  const icon = program?.icon || program?.sport?.icon || SPORT_ICONS[sportName] || SPORT_ICONS.Other
+  return { color, icon }
+}
+
 // ─── Step Progress Indicator ──────────────────────────────────────────────
 const STEPS = [
   { num: 1, label: 'Programs', icon: ShoppingCart },
@@ -63,8 +107,7 @@ function StepProgress({ currentStep }) {
 
 // ─── Program Card (selectable) ────────────────────────────────────────────
 function ProgramCard({ program, season, isSelected, onToggle, accentColor }) {
-  const sportIcon = program.sport?.icon || program.icon || '🏆'
-  const sportColor = program.sport?.color_primary || accentColor
+  const { color: sportColor, icon: sportIcon } = getProgramVisual(program, accentColor)
   const fee = calculateFeePerChild(season)
   const isFull = season._isFull && !season.waitlist_enabled
   const isWaitlist = season._isFull && season.waitlist_enabled
@@ -76,70 +119,80 @@ function ProgramCard({ program, season, isSelected, onToggle, accentColor }) {
       type="button"
       disabled={isFull}
       onClick={onToggle}
-      className={`${CARD} w-full text-left p-4 transition-all ${
-        isFull ? 'opacity-50 cursor-not-allowed' :
-        isSelected ? 'ring-2 ring-offset-1 bg-blue-50/50' :
-        'hover:border-slate-300 hover:shadow-md cursor-pointer'
+      className={`bg-white rounded-[14px] border overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] w-full text-left transition-all ${
+        isFull ? 'opacity-50 cursor-not-allowed border-[#E8ECF2]' :
+        isSelected ? 'shadow-md cursor-pointer' :
+        'border-[#E8ECF2] hover:shadow-md cursor-pointer'
       }`}
-      style={isSelected ? { ringColor: sportColor, borderColor: sportColor } : {}}
+      style={{
+        borderColor: isSelected ? sportColor : undefined,
+        borderWidth: isSelected ? 2 : 1,
+      }}
     >
-      <div className="flex items-start gap-3">
-        {/* Sport icon */}
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-          style={{ backgroundColor: `${sportColor}15` }}>
-          {sportIcon}
-        </div>
+      {/* Colored top accent strip */}
+      <div className="h-2 w-full" style={{ backgroundColor: sportColor }} />
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold text-slate-900 text-sm truncate">{program.name}</h3>
-            {isSelected && (
-              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: sportColor }}>
-                <Check className="w-3 h-3 text-white" />
-              </div>
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          {/* Large sport icon with colored bg */}
+          <div
+            className="w-14 h-14 rounded-[14px] flex items-center justify-center text-3xl flex-shrink-0"
+            style={{ backgroundColor: `${sportColor}1a` }}
+          >
+            {sportIcon}
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 text-base truncate">{program.name}</h3>
+              {isSelected && (
+                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: sportColor }}>
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">{season.name}</p>
+            {season.start_date && (
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {new Date(season.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {season.end_date && ` – ${new Date(season.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+              </p>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">{season.name}</p>
-          {season.start_date && (
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              {new Date(season.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              {season.end_date && ` – ${new Date(season.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-            </p>
+
+          {/* Fee */}
+          <div className="text-right flex-shrink-0">
+            <p className="text-base font-bold text-slate-900">${fee.toFixed(0)}</p>
+            <p className="text-[10px] text-slate-400">per player</p>
+          </div>
+        </div>
+
+        {/* Status badges */}
+        <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+          {isFull && (
+            <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-wide">Full</span>
+          )}
+          {isWaitlist && (
+            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">Waitlist Available</span>
+          )}
+          {!isFull && !isWaitlist && spotsLeft != null && spotsLeft <= 10 && (
+            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">
+              {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} left
+            </span>
+          )}
+          {closesIn != null && closesIn <= 7 && closesIn > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[10px] font-bold uppercase tracking-wide">
+              Closes in {closesIn} day{closesIn !== 1 ? 's' : ''}!
+            </span>
+          )}
+          {season.early_bird_deadline && new Date(season.early_bird_deadline) > new Date() && (
+            <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wide">
+              Early Bird
+            </span>
           )}
         </div>
-
-        {/* Fee */}
-        <div className="text-right flex-shrink-0">
-          <p className="text-sm font-bold text-slate-900">${fee.toFixed(0)}</p>
-          <p className="text-[10px] text-slate-400">per player</p>
-        </div>
-      </div>
-
-      {/* Status badges */}
-      <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-        {isFull && (
-          <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-wide">Full</span>
-        )}
-        {isWaitlist && (
-          <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">Waitlist Available</span>
-        )}
-        {!isFull && !isWaitlist && spotsLeft != null && spotsLeft <= 10 && (
-          <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">
-            {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} left
-          </span>
-        )}
-        {closesIn != null && closesIn <= 7 && closesIn > 0 && (
-          <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[10px] font-bold uppercase tracking-wide">
-            Closes in {closesIn} day{closesIn !== 1 ? 's' : ''}!
-          </span>
-        )}
-        {season.early_bird_deadline && new Date(season.early_bird_deadline) > new Date() && (
-          <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wide">
-            Early Bird
-          </span>
-        )}
       </div>
     </button>
   )
@@ -147,66 +200,85 @@ function ProgramCard({ program, season, isSelected, onToggle, accentColor }) {
 
 // ─── Multi-Season Selector (for programs with multiple open seasons) ──────
 function MultiSeasonProgramCard({ program, seasons, selectedSeasonId, onSelectSeason, onDeselect, accentColor }) {
-  const sportIcon = program.sport?.icon || program.icon || '🏆'
-  const sportColor = program.sport?.color_primary || accentColor
+  const { color: sportColor, icon: sportIcon } = getProgramVisual(program, accentColor)
   const isSelected = !!selectedSeasonId
 
   return (
-    <div className={`${CARD} w-full text-left p-4 transition-all ${
-      isSelected ? 'ring-2 ring-offset-1 bg-blue-50/50' : ''
-    }`}
-    style={isSelected ? { borderColor: sportColor } : {}}>
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-          style={{ backgroundColor: `${sportColor}15` }}>
-          {sportIcon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold text-slate-900 text-sm">{program.name}</h3>
-            {isSelected && (
-              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: sportColor }}>
-                <Check className="w-3 h-3 text-white" />
-              </div>
-            )}
+    <div
+      className="bg-white rounded-[14px] border overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] w-full text-left transition-all"
+      style={{
+        borderColor: isSelected ? sportColor : '#E8ECF2',
+        borderWidth: isSelected ? 2 : 1,
+      }}
+    >
+      {/* Colored top accent strip */}
+      <div className="h-2 w-full" style={{ backgroundColor: sportColor }} />
+
+      <div className="p-4">
+        <div className="flex items-start gap-3 mb-3">
+          <div
+            className="w-14 h-14 rounded-[14px] flex items-center justify-center text-3xl flex-shrink-0"
+            style={{ backgroundColor: `${sportColor}1a` }}
+          >
+            {sportIcon}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">Choose a season:</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 text-base">{program.name}</h3>
+              {isSelected && (
+                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: sportColor }}>
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {seasons.length} season{seasons.length !== 1 ? 's' : ''} available — choose one:
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="space-y-2">
-        {seasons.map(season => {
-          const fee = calculateFeePerChild(season)
-          const isFull = season._isFull && !season.waitlist_enabled
-          const isThisSelected = selectedSeasonId === season.id
-          return (
-            <button
-              key={season.id}
-              type="button"
-              disabled={isFull}
-              onClick={() => isThisSelected ? onDeselect() : onSelectSeason(season)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-left transition-all ${
-                isFull ? 'opacity-50 cursor-not-allowed border-slate-200' :
-                isThisSelected ? 'border-blue-300 bg-blue-50' :
-                'border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <div>
-                <p className="text-xs font-semibold text-slate-800">{season.name}</p>
-                {season.start_date && (
-                  <p className="text-[10px] text-slate-400">
-                    {new Date(season.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    {season.end_date && ` – ${new Date(season.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-                  </p>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-bold text-slate-700">${fee.toFixed(0)}</p>
-                {isFull && <p className="text-[10px] text-red-500 font-bold">Full</p>}
-              </div>
-            </button>
-          )
-        })}
+        <div className="space-y-2">
+          {seasons.map(season => {
+            const fee = calculateFeePerChild(season)
+            const isFull = season._isFull && !season.waitlist_enabled
+            const isThisSelected = selectedSeasonId === season.id
+            return (
+              <button
+                key={season.id}
+                type="button"
+                disabled={isFull}
+                onClick={() => isThisSelected ? onDeselect() : onSelectSeason(season)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[10px] border text-left transition-all ${
+                  isFull ? 'opacity-50 cursor-not-allowed' :
+                  isThisSelected ? '' :
+                  'hover:shadow-sm'
+                }`}
+                style={{
+                  borderLeftWidth: 3,
+                  borderLeftColor: sportColor,
+                  borderTopColor: isThisSelected ? sportColor : '#E8ECF2',
+                  borderRightColor: isThisSelected ? sportColor : '#E8ECF2',
+                  borderBottomColor: isThisSelected ? sportColor : '#E8ECF2',
+                  backgroundColor: isThisSelected ? `${sportColor}0d` : 'white',
+                }}
+              >
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{season.name}</p>
+                  {season.start_date && (
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {new Date(season.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {season.end_date && ` – ${new Date(season.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-slate-700">${fee.toFixed(0)}</p>
+                  {isFull && <p className="text-[10px] text-red-500 font-bold">Full</p>}
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
@@ -1241,6 +1313,12 @@ export function RegistrationCartPage() {
   const accentColor = orgBranding.primary_color || orgSettings.primary_color || '#4BB9EC'
   const orgLogo = organization?.logo_url || orgBranding.logo_url || orgSettings.logo_url || null
   const accentTextColor = getContrastText(accentColor)
+  const bannerUrl = organization?.settings?.branding?.banner_url
+    || organization?.settings?.banner_url
+    || orgBranding.banner_url
+    || organization?.banner_url
+    || null
+  const orgTagline = orgBranding.tagline || orgSettings.tagline || ''
 
   // ─── Load registration templates for selected programs ───────────────
   useEffect(() => {
@@ -1871,15 +1949,48 @@ export function RegistrationCartPage() {
         </div>
       )}
 
-      {/* Header bar */}
-      <div className={`sticky ${isPreview ? 'top-[36px]' : 'top-0'} z-40`} style={{ backgroundColor: accentColor }}>
-        <div className="max-w-2xl mx-auto px-4">
-          {/* Org branding */}
-          <div className="flex items-center justify-center gap-3 pt-4 pb-2">
-            <OrgLogo org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }} size={28} />
-            <h1 className="font-bold text-base" style={{ color: accentTextColor }}>{organization?.name || 'Registration'}</h1>
+      {/* Branded hero header — banner + logo + org name */}
+      <div className="relative overflow-hidden" style={{ backgroundColor: accentColor, color: accentTextColor }}>
+        {bannerUrl && (
+          <img
+            src={bannerUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        )}
+        {bannerUrl && (
+          <div className="absolute inset-0" style={{ backgroundColor: accentColor + 'd9' }} />
+        )}
+        <div className="relative z-10 max-w-2xl mx-auto px-4 py-8 md:py-12 text-center">
+          <div className="flex justify-center mb-3">
+            <div className="hidden md:block">
+              <OrgLogo
+                org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }}
+                size={140}
+                className="drop-shadow-lg"
+              />
+            </div>
+            <div className="md:hidden">
+              <OrgLogo
+                org={{ logo_url: orgLogo, name: organization?.name, primary_color: accentColor }}
+                size={110}
+                className="drop-shadow-lg"
+              />
+            </div>
           </div>
-          {/* Step progress */}
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: accentTextColor, fontFamily: 'var(--v2-font)' }}>
+            {organization?.name || 'Registration'}
+          </h1>
+          {orgTagline && (
+            <p className="text-xs md:text-sm mt-1" style={{ color: `${accentTextColor}b3` }}>{orgTagline}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky step progress */}
+      <div className={`sticky ${isPreview ? 'top-[36px]' : 'top-0'} z-40 border-b border-slate-200`} style={{ backgroundColor: accentColor }}>
+        <div className="max-w-2xl mx-auto px-4 py-2">
           <StepProgress currentStep={currentStep} />
         </div>
       </div>
