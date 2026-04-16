@@ -170,6 +170,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Org logo added to admin sidebar (LynxSidebar) and dashboard HeroCard → Mobile equivalent: org logo in drawer/header
 - WEB: RegistrationCartPage orgLogo source fixed to prefer top-level `organization.logo_url` over nested `settings.branding.logo_url` → Mobile: verify logo source priority
 
+### April 15, 2026 (Marisa Beta Findings)
+- WEB: Expanded age groups to 5U+ and grades to K+ in team creation → Mobile team creation should match these options
+- WEB: Fixed registration cart query to include upcoming seasons with open registration → Mobile registration flows should use same query pattern
+- WEB: Fixed org settings save error handling (was silently failing) → No mobile action needed (org settings is web-only)
+- WEB: Registration header now supports org banner image from settings.branding.banner_url → Mobile registration should also render banner if available
+
 ### April 15, 2026 (Beta Feedback System)
 - WEB+MOBILE: Created `beta_feedback` table in Supabase (migration file at `supabase/migrations/20260415_beta_feedback.sql`) → Mobile MUST implement a matching feedback widget that writes to this same table with `platform: 'mobile'`
 - WEB: Created `BetaFeedbackWidget` component mounted at app root — floating button + 3-mode modal (reaction, comment, bug) → Mobile needs equivalent widget
