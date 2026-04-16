@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { getPrimaryTeam, getPrimaryTeamInfo } from '../../lib/team-utils'
 import { parseLocalDate } from '../../lib/date-helpers'
 import {
   User, DollarSign, FileText, Settings, Users, ChevronRight,
@@ -590,7 +591,8 @@ function LinkedPlayersTab({ roleContext, showToast }) {
   return (
     <div className="space-y-4">
       {children.map(child => {
-        const team = child.team_players?.[0]?.teams
+        const team = getPrimaryTeamInfo(child.team_players)
+        const primaryTeamPlayer = getPrimaryTeam(child.team_players)
         const teamColor = team?.color || '#6366F1'
 
         return (
@@ -617,7 +619,7 @@ function LinkedPlayersTab({ roleContext, showToast }) {
                 <div className="text-r-sm text-slate-400 space-y-0.5">
                   {team && <p className="font-semibold" style={{ color: teamColor }}>{team.name}</p>}
                   {child.position && <p>Position: {child.position}</p>}
-                  {child.jersey_number && <p>Jersey: #{child.jersey_number || child.team_players?.[0]?.jersey_number}</p>}
+                  {child.jersey_number && <p>Jersey: #{child.jersey_number || primaryTeamPlayer?.jersey_number}</p>}
                   {child.grade !== undefined && child.grade !== null && <p>Grade: {child.grade === 0 ? 'K' : child.grade}</p>}
                 </div>
               </div>
@@ -631,11 +633,11 @@ function LinkedPlayersTab({ roleContext, showToast }) {
                   </div>
                 )}
                 <span className={`inline-block mt-2 text-r-xs font-bold px-2 py-0.5 rounded-full ${
-                  child.status === 'approved' || child.team_players?.[0]
+                  child.status === 'approved' || primaryTeamPlayer
                     ? 'bg-emerald-500/15 text-emerald-500'
                     : 'bg-amber-500/15 text-amber-500'
                 }`}>
-                  {child.team_players?.[0] ? 'Active' : child.status || 'Pending'}
+                  {primaryTeamPlayer ? 'Active' : child.status || 'Pending'}
                 </span>
               </div>
             </div>

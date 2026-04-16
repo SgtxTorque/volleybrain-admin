@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { getPrimaryTeam, getAllTeams } from '../../lib/team-utils'
 import { Camera } from 'lucide-react'
 import { getUniformConfig } from './PlayerProfileConstants'
 import WaiversTab from './PlayerProfileWaivers'
@@ -266,11 +267,14 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
     )
   }
 
-  // === DERIVED ===
-  const primaryTeamPlayer = player.team_players?.[0]
-  const primaryTeam = teams[0]
+  // === DERIVED === (multi-team aware — prefer is_primary_team over array order)
+  const primaryTeamPlayer = getPrimaryTeam(player.team_players)
+  const allTeamsFlat = getAllTeams(player.team_players)
+  // teams[] state is indexed to team_players order, so find the primary by id
+  const primaryTeam = teams.find(t => t?.id === primaryTeamPlayer?.team_id) || teams[0]
   const teamColor = primaryTeam?.color || '#EAB308'
   const assignedJersey = primaryTeamPlayer?.jersey_number
+  const hasMultipleTeams = allTeamsFlat.length > 1
 
   const tabs = [
     { id: 'info', label: 'Registration', icon: '' },
@@ -345,7 +349,26 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
         <div className="rounded-[14px] m-5 mb-0 p-6 overflow-hidden relative" style={{ background: 'linear-gradient(90deg, #0B1628, #162D50)' }}>
           <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
           <div className="relative">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4BB9EC]">{primaryTeam?.name || 'No Team'}</p>
+            {hasMultipleTeams ? (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {allTeamsFlat.map(t => (
+                  <span
+                    key={t.id}
+                    className="text-[10px] font-bold uppercase tracking-[0.15em] px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: t.color ? `${t.color}25` : 'rgba(75, 185, 236, 0.25)',
+                      color: t.color || '#4BB9EC',
+                      border: t.isPrimary ? `1px solid ${t.color || '#4BB9EC'}` : '1px solid transparent',
+                    }}
+                    title={t.isPrimary ? `${t.name} (primary)` : t.name}
+                  >
+                    {t.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4BB9EC]">{primaryTeam?.name || 'No Team'}</p>
+            )}
             <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none mt-1" style={{ letterSpacing: '-0.03em' }}>
               {player.first_name?.toUpperCase()}
             </h1>

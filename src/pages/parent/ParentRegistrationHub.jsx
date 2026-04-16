@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { getPrimaryTeamInfo } from '../../lib/team-utils'
 import { parseLocalDate } from '../../lib/date-helpers'
 import {
   Calendar, Clock, DollarSign, Users, ChevronRight, Check,
@@ -587,7 +588,7 @@ function MyRegistrations({ players, isDark, tc }) {
               <div>
                 <p className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</p>
                 <p className={`text-sm ${tc.textSecondary}`}>
-                  {player.team_players?.[0]?.teams?.name || 'Unassigned'}
+                  {getPrimaryTeamInfo(player.team_players)?.name || 'Unassigned'}
                   {player.position && ` -- ${player.position}`}
                 </p>
               </div>
