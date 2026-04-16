@@ -51,6 +51,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('')
   const [editingTeam, setEditingTeam] = useState(null)
   const [rosterTeam, setRosterTeam] = useState(null)
+  const [availableForRoster, setAvailableForRoster] = useState([])
   const [coachAssignTeam, setCoachAssignTeam] = useState(null)
   const [detailTeam, setDetailTeam] = useState(null)
   const [coaches, setCoaches] = useState([])
@@ -63,6 +64,16 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
       loadCoaches()
     }
   }, [selectedSeason?.id, selectedSport?.id])
+
+  // When a team's roster modal opens (or the team changes), load the available-for-team list.
+  // Available = approved/rostered in the current season scope AND not already on THIS team.
+  useEffect(() => {
+    if (rosterTeam?.id) {
+      loadAvailableForTeam(rosterTeam.id)
+    } else {
+      setAvailableForRoster([])
+    }
+  }, [rosterTeam?.id])
 
   // ------ Supabase queries (preserved from original) ------
 
@@ -123,6 +134,43 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     } catch (err) {
       console.error('Error syncing rostered status:', err)
     }
+  }
+
+  // Loads players who are approved or rostered in the current season scope
+  // but NOT already on the specified team. Powers the ManageRosterModal's
+  // "Add Players" list so admins can add cross-team players for multi-team assignment.
+  async function loadAvailableForTeam(teamId) {
+    if (!selectedSeason?.id || !teamId) { setAvailableForRoster([]); return }
+    const sportSeasonIds = (isAllSeasons(selectedSeason) && selectedSport?.id)
+      ? (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+      : null
+    let playersQuery = supabase
+      .from('players')
+      .select('id, first_name, last_name, position, jersey_number, photo_url, grade, registrations(status)')
+    if (!isAllSeasons(selectedSeason)) {
+      playersQuery = playersQuery.eq('season_id', selectedSeason.id)
+    } else if (sportSeasonIds && sportSeasonIds.length === 0) {
+      setAvailableForRoster([])
+      return
+    } else if (sportSeasonIds) {
+      playersQuery = playersQuery.in('season_id', sportSeasonIds)
+    } else {
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) { setAvailableForRoster([]); return }
+      playersQuery = playersQuery.in('season_id', orgSeasonIds)
+    }
+    const { data: allPlayers } = await playersQuery
+    const approvedPlayers = (allPlayers || []).filter(p => {
+      const status = p.registrations?.[0]?.status
+      return ['approved', 'rostered', 'active'].includes(status)
+    })
+    // Exclude players already on THIS team (not all rostered players)
+    const { data: thisTeamRows } = await supabase
+      .from('team_players')
+      .select('player_id')
+      .eq('team_id', teamId)
+    const onThisTeam = new Set((thisTeamRows || []).map(r => r.player_id))
+    setAvailableForRoster(approvedPlayers.filter(p => !onThisTeam.has(p.id)))
   }
 
   async function loadUnrosteredPlayers() {
@@ -284,47 +332,79 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
   }
 
   async function addPlayerToTeam(teamId, playerId) {
-    await supabase.from('team_players').insert({ team_id: teamId, player_id: playerId })
-    const { data: reg } = await supabase
-      .from('registrations')
+    // 2a. Guard duplicate (team_id, player_id)
+    const { data: existingTP } = await supabase
+      .from('team_players')
       .select('id')
+      .eq('team_id', teamId)
       .eq('player_id', playerId)
       .maybeSingle()
-    if (reg) {
+    if (existingTP) {
+      const teamName = teams.find(t => t.id === teamId)?.name || 'that team'
+      showToast?.(`Player is already on ${teamName}`, 'warning')
+      return
+    }
+
+    // Determine whether this is the player's first team (for is_primary_team + status flips)
+    const { data: existingTeamPlayersForPlayer } = await supabase
+      .from('team_players')
+      .select('id')
+      .eq('player_id', playerId)
+    const isFirstTeam = !existingTeamPlayersForPlayer || existingTeamPlayersForPlayer.length === 0
+
+    // 2d. Set is_primary_team on insert
+    await supabase.from('team_players').insert({
+      team_id: teamId,
+      player_id: playerId,
+      is_primary_team: isFirstTeam,
+    })
+
+    // 2b. Season-scoped reg lookup, only flip if currently 'approved'
+    let regQuery = supabase.from('registrations').select('id, status').eq('player_id', playerId)
+    if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
+      regQuery = regQuery.eq('season_id', selectedSeason.id)
+    }
+    const { data: reg } = await regQuery.maybeSingle()
+    if (reg && reg.status === 'approved') {
       await supabase.from('registrations').update({
         status: 'rostered',
         rostered_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }).eq('id', reg.id)
     }
-    // Sync players.status to match registrations.status
-    await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
+
+    // 2c. Only flip players.status on first team assignment
+    if (isFirstTeam) {
+      await supabase.from('players').update({ status: 'rostered' }).eq('id', playerId)
+    }
     await autoAddMemberToTeamChannels(teamId, playerId)
 
-    // TRYOUT_FIRST: generate fees when player is rostered onto a team
-    try {
-      const team = teams.find(t => t.id === teamId)
-      const teamSeasonId = team?.season_id || team?.season?.id || selectedSeason?.id
-      if (teamSeasonId) {
-        const { data: seasonData } = await supabase
-          .from('seasons')
-          .select('*')
-          .eq('id', teamSeasonId)
-          .single()
-        if (seasonData?.approval_mode === 'tryout_first') {
-          const { generateFeesForPlayer } = await import('../../lib/fee-calculator')
-          const { data: freshPlayer } = await supabase
-            .from('players')
+    // TRYOUT_FIRST: generate fees only on FIRST team assignment
+    if (isFirstTeam) {
+      try {
+        const team = teams.find(t => t.id === teamId)
+        const teamSeasonId = team?.season_id || team?.season?.id || selectedSeason?.id
+        if (teamSeasonId) {
+          const { data: seasonData } = await supabase
+            .from('seasons')
             .select('*')
-            .eq('id', playerId)
+            .eq('id', teamSeasonId)
             .single()
-          if (freshPlayer) {
-            await generateFeesForPlayer(supabase, freshPlayer, seasonData, showToast)
+          if (seasonData?.approval_mode === 'tryout_first') {
+            const { generateFeesForPlayer } = await import('../../lib/fee-calculator')
+            const { data: freshPlayer } = await supabase
+              .from('players')
+              .select('*')
+              .eq('id', playerId)
+              .single()
+            if (freshPlayer) {
+              await generateFeesForPlayer(supabase, freshPlayer, seasonData, showToast)
+            }
           }
         }
+      } catch (feeErr) {
+        console.warn('Tryout-first fee generation failed (non-blocking):', feeErr?.message)
       }
-    } catch (feeErr) {
-      console.warn('Tryout-first fee generation failed (non-blocking):', feeErr?.message)
     }
 
     // Send team assignment email to parent (non-blocking)
@@ -771,13 +851,15 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
       {rosterTeam && (
         <ManageRosterModal
           team={rosterTeam}
-          unrosteredPlayers={unrosteredPlayers}
-          onClose={() => setRosterTeam(null)}
+          unrosteredPlayers={availableForRoster}
+          onClose={() => { setRosterTeam(null); setAvailableForRoster([]) }}
           onAddPlayer={async (teamId, playerId) => {
             await addPlayerToTeam(teamId, playerId)
             // Refresh roster team with fresh data
             const { data: fresh } = await supabase.from('teams').select('*, team_players(*, players(*))').eq('id', teamId).single()
             if (fresh) setRosterTeam(fresh)
+            // Refresh available-for-this-team list
+            await loadAvailableForTeam(teamId)
           }}
           onRemovePlayer={async (teamId, playerId) => {
             await supabase.from('team_players').delete().eq('team_id', teamId).eq('player_id', playerId)
@@ -791,6 +873,8 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
             // Refresh roster team with fresh data
             const { data: fresh } = await supabase.from('teams').select('*, team_players(*, players(*))').eq('id', teamId).single()
             if (fresh) setRosterTeam(fresh)
+            // Refresh available-for-this-team list
+            await loadAvailableForTeam(teamId)
           }}
           showToast={showToast}
         />
