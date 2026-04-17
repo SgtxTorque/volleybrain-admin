@@ -176,6 +176,7 @@ export default function ProgramPage({ showToast }) {
   const [payments, setPayments] = useState([])
   const [events, setEvents] = useState([])
   const [waiverSignatures, setWaiverSignatures] = useState([])
+  const [jerseyAssignedCount, setJerseyAssignedCount] = useState(0)
 
   // Selected season in carousel (null = show all program seasons)
   const [selectedProgramSeason, setSelectedProgramSeason] = useState(null)
@@ -295,6 +296,19 @@ export default function ProgramPage({ showToast }) {
       setPayments(paymentsRes.data || [])
       setEvents(eventsRes.data || [])
       setWaiverSignatures(waiversRes.data || [])
+
+      // Jersey assigned count for lifecycle tracker
+      const teamIds = (teamsRes.data || []).map(t => t.id)
+      if (teamIds.length > 0) {
+        const { count } = await supabase
+          .from('team_players')
+          .select('*', { count: 'exact', head: true })
+          .in('team_id', teamIds)
+          .not('jersey_number', 'is', null)
+        setJerseyAssignedCount(count || 0)
+      } else {
+        setJerseyAssignedCount(0)
+      }
     } catch (err) {
       console.error('ProgramPage load error:', err)
       setError(err.message || 'Failed to load program data')
@@ -908,6 +922,7 @@ export default function ProgramPage({ showToast }) {
                       eventsCount={tabEvents.length}
                       registrationsCount={tabRegistrations.length}
                       approvedRegsCount={tabRegistrations.filter(r => r.status === 'approved' || r.status === 'rostered').length}
+                      jerseyAssignedCount={jerseyAssignedCount}
                       paymentsCollected={tabPayments.filter(p => p.paid).reduce((sum, p) => sum + (Number(p.amount) || 0), 0)}
                       paymentsExpected={tabPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)}
                       hasRegistrationTemplate={Boolean((selectedProgramSeason || programSeasons[0])?.registration_template_id)}
