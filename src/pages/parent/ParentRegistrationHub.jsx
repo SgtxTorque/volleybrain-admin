@@ -588,7 +588,7 @@ function MyRegistrations({ players, isDark, tc }) {
               <div>
                 <p className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</p>
                 <p className={`text-sm ${tc.textSecondary}`}>
-                  {getPrimaryTeamInfo(player.team_players)?.name || 'Unassigned'}
+                  {getPrimaryTeamInfo(player.team_players)?.name || 'Awaiting placement'}
                   {player.position && ` -- ${player.position}`}
                 </p>
               </div>

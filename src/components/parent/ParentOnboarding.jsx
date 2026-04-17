@@ -34,7 +34,7 @@ export function SpotlightOverlay() {
       <div 
         className="fixed inset-0 z-[9998]"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={() => skipTutorial?.()}
       />
 
       {/* Always-visible close button */}
@@ -48,6 +48,7 @@ export function SpotlightOverlay() {
 
       {/* Centered Content Card */}
       <div
+        onClick={(e) => e.stopPropagation()}
         className="fixed z-[10000] rounded-xl shadow-2xl overflow-hidden"
         style={{
           top: '50%',
@@ -127,13 +128,13 @@ export function SpotlightOverlay() {
             </div>
 
             <div className="flex items-center gap-3">
-              {!isComplete && !isWelcome && (
+              {!isComplete && (
                 <button
                   onClick={skipTutorial}
                   className="px-4 py-3 rounded-xl text-sm font-medium transition hover:opacity-80"
                   style={{ color: isDark ? '#94a3b8' : '#64748b' }}
                 >
-                  Skip Tour
+                  Skip tour
                 </button>
               )}
               

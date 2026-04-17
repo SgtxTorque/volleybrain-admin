@@ -929,7 +929,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 drifting={parentPulseData.drifting}
                 inactive={parentPulseData.inactive}
                 title="My Kids"
-                labels={{ active: 'On Team', drifting: 'New', inactive: 'Inactive' }}
+                labels={{ active: 'On Team', drifting: 'Awaiting placement', inactive: 'Inactive' }}
               />
             </div>
             </div>

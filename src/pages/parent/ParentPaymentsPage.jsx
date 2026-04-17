@@ -17,6 +17,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
   const { isDark } = useTheme()
 
   const [payments, setPayments] = useState([])
+  const [pendingRegistrations, setPendingRegistrations] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedPayments, setSelectedPayments] = useState(new Set())
   const [processing, setProcessing] = useState(false)
@@ -89,6 +90,14 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       }))
 
       setPayments(enrichedPayments)
+
+      // Check for pending/approved registrations that don't have fees yet
+      const { data: regData } = await supabase
+        .from('registrations')
+        .select('id, status, player_id, players(first_name, last_name)')
+        .in('player_id', playerIds)
+        .in('status', ['pending', 'submitted', 'approved'])
+      setPendingRegistrations(regData || [])
     } catch (err) { console.error('Error loading payments:', err) }
     setLoading(false)
   }
@@ -234,6 +243,21 @@ function ParentPaymentsPage({ roleContext, showToast }) {
           sub: nextDueDate ? new Date(nextDueDate).toLocaleDateString('en-US', { year: 'numeric' }) : 'No upcoming dues'
         }
       ]} />
+
+      {/* Pending registrations — fees not yet generated */}
+      {pendingRegistrations.length > 0 && payments.length === 0 && (
+        <div className={`p-4 rounded-[14px] border flex items-start gap-3 ${
+          isDark ? 'bg-sky-500/10 border-sky-500/30 text-sky-300' : 'bg-sky-50 border-sky-200 text-sky-800'
+        }`}>
+          <Clock className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold">Pending registration{pendingRegistrations.length > 1 ? 's' : ''}</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-sky-400' : 'text-sky-600'}`}>
+              Fees will appear here after admin approval and team placement.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Stripe Return Banners */}
