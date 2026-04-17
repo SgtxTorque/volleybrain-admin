@@ -74,6 +74,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showScheduleCard, setShowScheduleCard] = useState(false)
   const [showResultsCard, setShowResultsCard] = useState(null)
   const [showVolunteerAutoAssign, setShowVolunteerAutoAssign] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(null) // { type: 'single'|'series', id, futureOnly?, currentEventDate?, message, eventTitle? }
   // allUpcomingGames removed — upcoming strip removed per redesign
 
   // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
@@ -324,12 +325,35 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     } catch (err) { showToast('Error: ' + err.message, 'error'); return false }
   }
 
-  async function deleteEvent(eventId) {
-    if (!confirm('Delete this event?')) return
+  function deleteEvent(eventId) {
+    const evt = events.find(e => e.id === eventId)
+    setDeleteConfirm({
+      type: 'single',
+      id: eventId,
+      message: 'Delete this event?',
+      eventTitle: evt?.title || evt?.event_type || 'Event',
+      eventDate: evt?.event_date || ''
+    })
+  }
+
+  async function executeDelete() {
+    if (!deleteConfirm) return
+    const { type, id, futureOnly, currentEventDate } = deleteConfirm
+    setDeleteConfirm(null)
     try {
-      const { error } = await supabase.from('schedule_events').delete().eq('id', eventId)
-      if (error) throw error
-      showToast('Event deleted', 'success')
+      if (type === 'single') {
+        const { error } = await supabase.from('schedule_events').delete().eq('id', id)
+        if (error) throw error
+        showToast('Event deleted', 'success')
+      } else {
+        let query = supabase.from('schedule_events').delete().eq('series_id', id)
+        if (futureOnly && currentEventDate) {
+          query = query.gte('event_date', currentEventDate)
+        }
+        const { error } = await query
+        if (error) throw error
+        showToast('Series events deleted', 'success')
+      }
       setSelectedEvent(null)
       loadEvents()
     } catch (err) { showToast('Error: ' + err.message, 'error') }
@@ -347,22 +371,19 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     } catch (err) { showToast('Error: ' + err.message, 'error'); return false }
   }
 
-  async function deleteSeriesEvents(seriesId, futureOnly, currentEventDate) {
+  function deleteSeriesEvents(seriesId, futureOnly, currentEventDate) {
     const msg = futureOnly
       ? 'Delete all future events in this series?'
       : 'Delete ALL events in this series?'
-    if (!confirm(msg)) return
-    try {
-      let query = supabase.from('schedule_events').delete().eq('series_id', seriesId)
-      if (futureOnly && currentEventDate) {
-        query = query.gte('event_date', currentEventDate)
-      }
-      const { error } = await query
-      if (error) throw error
-      showToast('Series events deleted', 'success')
-      setSelectedEvent(null)
-      loadEvents()
-    } catch (err) { showToast('Error: ' + err.message, 'error') }
+    setDeleteConfirm({
+      type: 'series',
+      id: seriesId,
+      futureOnly,
+      currentEventDate,
+      message: msg,
+      eventTitle: 'Series',
+      eventDate: currentEventDate || ''
+    })
   }
 
   // Filtering
@@ -600,6 +621,31 @@ function SchedulePage({ showToast, activeView, roleContext }) {
           roleContext={roleContext}
           onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }}
           onShareResults={(evt) => { setSelectedEvent(null); setShowResultsCard(evt) }} parentTutorial={parentTutorial} />
+      )}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className={`${isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-slate-200'} border rounded-xl w-full max-w-sm p-6 space-y-4`}>
+            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Confirm Delete</h3>
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {deleteConfirm.message}
+            </p>
+            {deleteConfirm.eventTitle && (
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                {deleteConfirm.eventTitle}{deleteConfirm.eventDate ? ` — ${deleteConfirm.eventDate}` : ''}
+              </p>
+            )}
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setDeleteConfirm(null)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                Cancel
+              </button>
+              <button onClick={executeDelete}
+                className="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {showPosterModal && (
         <SchedulePosterModal season={selectedSeason} team={selectedTeam !== 'all' ? teams.find(t => t.id === selectedTeam) : teams[0]}
