@@ -103,6 +103,11 @@ function ReportsPage({ showToast }) {
     if (!organization?.id) return
     const { data: sd } = await supabase.from('seasons').select('id, name, status, start_date, sport_id').eq('organization_id', organization.id).order('start_date', { ascending: false })
     setSeasons(sd || [])
+    // Auto-select first active season if no season selected yet
+    if (!selectedSeasonId && !globalSeason?.id && sd?.length > 0) {
+      const active = sd.find(s => s.status === 'active') || sd[0]
+      setSelectedSeasonId(active.id)
+    }
     const { data: sp } = await supabase.from('sports').select('id, name, icon').eq('organization_id', organization.id).order('name')
     setSports(sp || [])
   }
