@@ -160,7 +160,7 @@ export const EmailService = {
   },
 
   // Send team assignment notification
-  async sendTeamAssignment(player, team, season, organization) {
+  async sendTeamAssignment(player, team, season, organization, jerseyNumber = null) {
     const email = player.parent_email
     if (!email) return { success: false, error: 'No parent email' }
 
@@ -171,6 +171,7 @@ export const EmailService = {
       organization_name: organization.name,
       coach_name: team.coach_name || null,
       practice_info: team.practice_schedule || null,
+      jersey_number: jerseyNumber || null,
       cta_text: 'View Your Team',
       cta_url: `${window.location.origin}/parent`,
     }, organization.id)
@@ -345,6 +346,7 @@ export const EmailService = {
           <h2>Team Assignment</h2>
           <p><strong>${data.player_name}</strong> has been assigned to <strong>${data.team_name}</strong> for ${data.season_name}!</p>
           ${data.coach_name ? `<p>Coach: ${data.coach_name}</p>` : ''}
+          ${data.jersey_number ? `<p style="margin: 8px 0; font-size: 15px;"><strong>Jersey Number:</strong> #${data.jersey_number}</p>` : ''}
           ${data.practice_info ? `<p>Practice Schedule: ${data.practice_info}</p>` : ''}
           <p>More details will be shared soon. We're excited to have ${data.player_name} on the team!</p>
           <p>Thank you,<br>${data.organization_name}</p>
