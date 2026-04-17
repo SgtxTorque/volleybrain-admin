@@ -177,7 +177,7 @@ function ReportsPage({ showToast }) {
 
   async function loadPlayersReport() {
     let q = supabase.from('players')
-      .select('id, first_name, last_name, email, phone, grade, position, jersey_number, uniform_size_jersey, status, photo_url, parent_name, parent_email, parent_phone, parent_phone_secondary, birth_date, school, medical_notes, allergies, created_at, updated_at')
+      .select('id, first_name, last_name, grade, position, jersey_number, uniform_size_jersey, status, photo_url, parent_name, parent_email, parent_phone, parent_2_phone, birth_date, school, medical_notes, allergies, created_at, updated_at')
     q = applySeasonFilter(q, selectedSeasonId)
     const { data, error } = await q.order('last_name')
     if (error) { console.error('Players query error:', error); setData([]); return }
@@ -358,7 +358,7 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadEmergencyReport() {
-    let q = supabase.from('players').select('id, first_name, last_name, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, parent_name, parent_phone, parent_email, medical_notes, allergies')
+    let q = supabase.from('players').select('id, first_name, last_name, emergency_contact_name, emergency_contact_phone, emergency_contact_relation, parent_name, parent_phone, parent_email, medical_notes, allergies')
     q = applySeasonFilter(q, selectedSeasonId)
     const { data: players } = await q.order('last_name')
     const { data: ta } = await supabase.from('team_players').select('player_id, teams (name)').in('player_id', (players || []).map(p => p.id))
