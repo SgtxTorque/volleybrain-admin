@@ -493,16 +493,6 @@ export default function ProgramPage({ showToast }) {
     }},
   )
 
-  // Auto-switch to setup tab on first load when setup is incomplete
-  useEffect(() => {
-    if (!loading && !setupTabInitialized && setupIncomplete) {
-      setActiveTab('setup')
-      setSetupTabInitialized(true)
-    } else if (!loading && !setupTabInitialized) {
-      setSetupTabInitialized(true)
-    }
-  }, [loading, setupTabInitialized, setupIncomplete])
-
   // --- Season Modal Helpers ---
   function openSeasonModal() {
     const os = organization?.settings || {}
@@ -745,6 +735,16 @@ export default function ProgramPage({ showToast }) {
   const setupComplete = ADMIN_STEPS.filter(s => s.completionCheck(trackerData)).length
   const setupTotal = ADMIN_STEPS.length
   const setupIncomplete = isAdmin && setupComplete < setupTotal
+
+  // Auto-switch to setup tab on first load when setup is incomplete
+  useEffect(() => {
+    if (!loading && !setupTabInitialized && setupIncomplete) {
+      setActiveTab('setup')
+      setSetupTabInitialized(true)
+    } else if (!loading && !setupTabInitialized) {
+      setSetupTabInitialized(true)
+    }
+  }, [loading, setupTabInitialized, setupIncomplete])
 
   // Filtered stats for tabs
   const tabRegStats = {
