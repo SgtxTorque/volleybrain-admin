@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 
-function AddEventModal({ teams, venues, onClose, onCreate }) {
+function AddEventModal({ teams, venues, onClose, onCreate, activeView }) {
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [form, setForm] = useState({
-    team_id: '',
+    team_id: activeView !== 'admin' && teams.length === 1 ? teams[0].id : '',
     event_type: 'practice',
     title: '',
     description: '',
@@ -83,7 +83,7 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Team (optional)</label>
               <select value={form.team_id} onChange={e => setForm({...form, team_id: e.target.value})}
                 className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm`}>
-                <option value="">All Teams / Org-wide</option>
+                {activeView === 'admin' && <option value="">All Teams / Org-wide</option>}
                 {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>

@@ -51,6 +51,8 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const isParentView = activeView === 'parent'
   const isPlayerView = activeView === 'player'
   const parentChildIds = roleContext?.children?.map(c => c.id) || []
+  const coachTeamIds = roleContext?.coachInfo?.team_coaches?.map(tc => tc.team_id) || []
+  const teamsForCreation = activeView === 'admin' ? teams : teams.filter(t => coachTeamIds.includes(t.id))
 
   useEffect(() => {
     if (isParentView) parentTutorial?.completeStep?.('view_schedule')
@@ -584,7 +586,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       </div>
 
       {/* Modals */}
-      {showAddEvent && <AddEventModal teams={teams} venues={venues} onClose={() => setShowAddEvent(false)} onCreate={createEvent} />}
+      {showAddEvent && <AddEventModal teams={teamsForCreation} venues={venues} onClose={() => setShowAddEvent(false)} onCreate={createEvent} activeView={activeView} />}
       {showBulkPractice && <BulkPracticeModal teams={teams} venues={venues} onClose={() => setShowBulkPractice(false)} onCreate={createBulkEvents} />}
       {showBulkGames && <BulkGamesModal teams={teams} venues={venues} onClose={() => setShowBulkGames(false)} onCreate={createBulkEvents} />}
       {showBulkWizard && <BulkEventWizard teams={teams} venues={venues} onClose={() => setShowBulkWizard(false)} onCreate={createBulkEvents} showToast={showToast} />}
