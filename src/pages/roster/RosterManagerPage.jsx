@@ -6,6 +6,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Users, ChevronDown, Check, ClipboardList } from 'lucide-react'
@@ -20,6 +21,7 @@ import PageShell from '../../components/pages/PageShell'
 export default function RosterManagerPage({ showToast, roleContext, onNavigate }) {
   const { user, organization } = useAuth()
   const { selectedSeason } = useSeason()
+  const { selectedSport } = useSport()
   const { isDark } = useTheme()
 
   const [loading, setLoading] = useState(true)
@@ -392,6 +394,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
           editingPosition={editingPosition} setEditingPosition={setEditingPosition}
           saveJersey={saveJersey} savePosition={savePosition}
           onPlayerSelect={setSelectedPlayer} onEvaluate={() => setViewMode('evaluate')} loading={loading}
+          sport={selectedSport?.name}
         />
       )}
 

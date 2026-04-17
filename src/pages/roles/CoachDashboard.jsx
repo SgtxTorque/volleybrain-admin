@@ -229,7 +229,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const [nextBadgeProgress, setNextBadgeProgress] = useState(null)
   const [activeTab, setActiveTab] = useState('roster')
 
-  const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
+  const coachName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
 
   // Derive coach-scoped seasons from their teams' season_ids

@@ -6,7 +6,15 @@ import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { Search, ArrowUpDown, ChevronUp, ChevronDown, MoreHorizontal, Users } from 'lucide-react'
 
-const POSITIONS = ['OH', 'S', 'MB', 'OPP', 'L', 'DS', 'RS']
+const POSITION_SETS = {
+  volleyball: ['OH', 'S', 'MB', 'OPP', 'L', 'DS', 'RS'],
+  basketball: ['PG', 'SG', 'SF', 'PF', 'C'],
+  soccer:     ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'],
+  baseball:   ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'],
+  softball:   ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'],
+  football:   ['QB', 'RB', 'WR', 'TE', 'OL', 'DL', 'LB', 'CB', 'S', 'K'],
+  lacrosse:   ['A', 'M', 'D', 'G'],
+}
 
 const POSITION_COLORS = {
   'OH': { bg: 'bg-sky-500/15', text: 'text-sky-500' },
@@ -16,6 +24,11 @@ const POSITION_COLORS = {
   'L':  { bg: 'bg-purple-500/15', text: 'text-purple-500' },
   'DS': { bg: 'bg-red-500/15', text: 'text-red-500' },
   'RS': { bg: 'bg-amber-500/15', text: 'text-amber-500' },
+}
+
+function getPositionsForSport(sportName) {
+  if (!sportName) return POSITION_SETS.volleyball
+  return POSITION_SETS[sportName.toLowerCase()] || POSITION_SETS.volleyball
 }
 
 function PositionBadge({ position }) {
@@ -87,9 +100,11 @@ export default function RosterTable({
   onPlayerSelect,
   onEvaluate,
   loading,
+  sport,
 }) {
   const { isDark } = useTheme()
   const [posFilter, setPosFilter] = useState('All')
+  const POSITIONS = getPositionsForSport(sport)
 
   const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
   const borderColor = isDark ? 'border-white/[0.06]' : 'border-slate-200'

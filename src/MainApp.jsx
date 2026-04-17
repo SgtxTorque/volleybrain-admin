@@ -820,6 +820,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/chats/:channelId" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager', 'parent']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
+      <Route path="/announcements" element={<Navigate to="/blasts" replace />} />
       <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/email" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><EmailPage showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
@@ -1633,7 +1634,7 @@ function MainApp() {
         {notifDropdownOpen && (
           <>
             <div className="fixed inset-0 z-[998]" onClick={() => setNotifDropdownOpen(false)} />
-            <div className="fixed top-14 z-[999]" style={{ left: 'calc(var(--v2-sidebar-width, 64px) + 8px)' }}>
+            <div className="fixed top-14 z-[999]" style={{ right: 80 }}>
               <NotificationDropdown
                 tc={tc}
                 organization={organization}

@@ -33,7 +33,7 @@ const ADMIN_NAV_PREREQS = {
   'scheduling':    { needs: 'season', tooltip: 'Create a season to schedule events' },
   'practice':      { needs: 'season', tooltip: 'Create a season to plan practices' },
   'game':          { needs: 'season', tooltip: 'Create a season to access game day' },
-  'money':         { needs: 'orgSetup', tooltip: 'Finish club setup to unlock payments' },
+  // 'money' prereq removed — Payments page is accessible without setup_complete
   'insights':      { needs: 'season', tooltip: 'Reports appear once you have a season' },
 }
 
