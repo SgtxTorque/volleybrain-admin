@@ -1660,7 +1660,10 @@ function MainApp() {
               roleLabel={`Lynx ${activeView === 'team_manager' ? 'Team Manager' : activeView.charAt(0).toUpperCase() + activeView.slice(1)}`}
               navLinks={[
                 { label: resolvePageLabel(page), pageId: page, isActive: true, onClick: () => {} },
-                ...(getContextualNav()[page] || []).map(linkId => ({
+                ...(getContextualNav()[page] || []).filter(linkId => {
+                  const flagMap = { gameprep: 'gamePrep', standings: 'standings', leaderboards: 'leaderboards', achievements: 'achievements', drills: 'drillLibrary', 'practice-plans': 'drillLibrary', archives: 'archives' }
+                  return !flagMap[linkId] || isFeatureEnabled(flagMap[linkId])
+                }).map(linkId => ({
                   label: resolvePageLabel(linkId),
                   pageId: linkId,
                   isActive: false,
