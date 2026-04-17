@@ -544,6 +544,10 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
   // ------ Derived stats ------
   const totalRegistered = teams.reduce((sum, t) => sum + (t.team_players?.length || 0), 0) + unrosteredPlayers.length
   const rosteredPlayers = teams.reduce((sum, t) => sum + (t.team_players?.length || 0), 0)
+  // Unique player count — dedup players on multiple teams
+  const uniquePlayerIds = new Set()
+  teams.forEach(t => (t.team_players || []).forEach(tp => { if (tp.player_id) uniquePlayerIds.add(tp.player_id) }))
+  const uniquePlayerCount = uniquePlayerIds.size
   const totalMaxRoster = teams.reduce((sum, t) => sum + (t.max_roster_size || 12), 0)
   const avgHealth = teams.length > 0
     ? Math.round(teams.reduce((sum, t) => {
@@ -624,7 +628,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
     <PageShell
       breadcrumb="Club Management"
       title="Team Management"
-      subtitle={`${selectedSeason.name} · ${teams.length} team${teams.length !== 1 ? 's' : ''} · ${totalRegistered} player${totalRegistered !== 1 ? 's' : ''}`}
+      subtitle={`${selectedSeason.name} · ${teams.length} team${teams.length !== 1 ? 's' : ''} · ${uniquePlayerCount} player${uniquePlayerCount !== 1 ? 's' : ''}${uniquePlayerCount !== rosteredPlayers ? ` · ${rosteredPlayers} roster spot${rosteredPlayers !== 1 ? 's' : ''}` : ''}`}
       actions={
         <>
           <button
@@ -783,8 +787,11 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
             isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
           }`} style={{ fontFamily: 'var(--v2-font)' }}>
             <div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Total Players</span>
-              <div className={`text-2xl font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{rosteredPlayers}</div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{uniquePlayerCount !== rosteredPlayers ? 'Unique Players' : 'Total Players'}</span>
+              <div className={`text-2xl font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{uniquePlayerCount}</div>
+              {uniquePlayerCount !== rosteredPlayers && (
+                <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{rosteredPlayers} roster spots</span>
+              )}
             </div>
             <div>
               <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Registration Rate</span>
