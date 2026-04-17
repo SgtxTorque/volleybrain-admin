@@ -30,6 +30,7 @@ import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCa
 import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
 import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 import RegLinkModal from '../../components/ui/RegLinkModal'
+import { getJerseyTasksCount } from '../jerseys'
 
 // Old inline widgets (DashCard, CardHeader, DonutChart, SeasonCard, etc.) removed in v2 swap
 
@@ -366,6 +367,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [attentionExpanded, setAttentionExpanded] = useState(false)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [jerseyTasksCount, setJerseyTasksCount] = useState(0)
 
   // Raw data for per-program card computation (Phase 3.2)
   const [allTeamsRaw, setAllTeamsRaw] = useState([])
@@ -925,6 +927,12 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         unpaidCount: unpaidPayments.length,
       })
 
+      // Fetch jersey tasks count for attention item
+      try {
+        const jCount = await getJerseyTasksCount(seasonId)
+        setJerseyTasksCount(actualRosteredCount > 0 ? jCount : 0)
+      } catch { setJerseyTasksCount(0) }
+
       // Generate monthly payment data for chart (real data based on payments)
       const now = new Date()
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -1307,6 +1315,9 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
     }
     if (unrosteredCount > 0) {
       attentionItems.push({ category: 'Players Need Team Assignment', count: unrosteredCount, icon: '\uD83D\uDC65', onClick: () => onNavigate?.('teams') })
+    }
+    if (jerseyTasksCount > 0 && (stats.rosteredPlayers || 0) > 0) {
+      attentionItems.push({ category: 'Players Need Jersey Numbers', count: jerseyTasksCount, icon: '\uD83D\uDC55', onClick: () => onNavigate?.('jerseys') })
     }
     if (teamsNoSchedule > 0) {
       attentionItems.push({ category: 'Teams Without Schedule', count: teamsNoSchedule, icon: '\uD83D\uDCC5', onClick: () => onNavigate?.('schedule') })
