@@ -21,12 +21,20 @@ const TYPE_CONFIG = {
   other:      { icon: Calendar, label: 'Event',     bg: 'bg-slate-100', text: 'text-slate-700', accent: '#94A3B8' },
 }
 
-function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, onUpdateSeries, onDeleteSeries, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, onShareResults, parentTutorial }) {
+function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, onUpdateSeries, onDeleteSeries, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, onShareResults, parentTutorial, roleContext }) {
   const { isAdmin: hasAdminRole, profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const isAdminView = activeView ? (activeView === 'admin' || activeView === 'coach' || activeView === 'team_manager') : hasAdminRole
   const isParentView = activeView === 'parent'
+
+  // Write control: coaches can only edit/delete events for teams they coach
+  const isAdmin = activeView === 'admin'
+  const coachTeamIds = roleContext?.coachInfo?.team_coaches?.map(tc => tc.team_id) || []
+  const isCoachForThisTeam = (activeView === 'coach' || activeView === 'team_manager')
+    && event?.team_id
+    && coachTeamIds.includes(event.team_id)
+  const canEditEvent = isAdmin || isCoachForThisTeam
 
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditing, setIsEditing] = useState(false)
@@ -381,11 +389,11 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                               {vol ? (
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-emerald-500 font-semibold">{vol.profiles?.full_name}</span>
-                                  {isAdminView && (
+                                  {canEditEvent && (
                                     <button onClick={() => removeVolunteer(vol.id)} className="text-red-400 text-xs hover:underline">Remove</button>
                                   )}
                                 </div>
-                              ) : isAdminView ? (
+                              ) : canEditEvent ? (
                                 <button onClick={() => setVolunteerAssignModal({ role, position: pos })}
                                   className="text-xs font-bold text-[#4BB9EC] hover:underline">+ Assign</button>
                               ) : (
@@ -491,7 +499,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
 
         {/* ── FOOTER ── */}
         <div className={`px-5 py-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex justify-between shrink-0`}>
-          {isAdminView && (
+          {canEditEvent && (
           <div className="relative">
             {event.series_id && onDeleteSeries ? (
               <>
@@ -570,7 +578,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                   className={`px-4 py-2 rounded-lg text-xs font-bold border transition ${isDark ? 'border-white/[0.08] text-slate-300 hover:bg-white/[0.04]' : 'border-[#E8ECF2] text-slate-600 hover:bg-slate-50'}`}>
                   Close
                 </button>
-                {isAdminView && (
+                {canEditEvent && (
                   <button onClick={() => setIsEditing(true)}
                     className="px-4 py-2 rounded-lg text-xs font-bold bg-[#4BB9EC]/10 text-[#4BB9EC] hover:bg-[#4BB9EC]/20 transition flex items-center gap-1.5">
                     <Edit className="w-3 h-3" /> Edit
@@ -585,7 +593,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
       {/* Sub-modals */}
       {selectedPlayer && (
         <PlayerCardExpanded player={selectedPlayer} visible={!!selectedPlayer} onClose={() => setSelectedPlayer(null)}
-          context="roster" viewerRole="admin" seasonId={selectedSeason?.id} sport={selectedSeason?.sports?.name || ''} isOwnChild={false} />
+          context="roster" viewerRole={activeView || 'admin'} seasonId={selectedSeason?.id} sport={selectedSeason?.sports?.name || ''} isOwnChild={false} />
       )}
       {selectedCoach && <CoachDetailModal coach={selectedCoach} onClose={() => setSelectedCoach(null)} />}
 

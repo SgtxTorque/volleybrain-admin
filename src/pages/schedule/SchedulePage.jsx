@@ -595,6 +595,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         <EventDetailModal event={selectedEvent} teams={teams} venues={venues} onClose={() => setSelectedEvent(null)} onUpdate={updateEvent} onDelete={deleteEvent}
           onUpdateSeries={updateSeriesEvents} onDeleteSeries={deleteSeriesEvents}
           activeView={activeView} selectedSeason={selectedSeason} parentChildIds={parentChildIds} showToast={showToast}
+          roleContext={roleContext}
           onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }}
           onShareResults={(evt) => { setSelectedEvent(null); setShowResultsCard(evt) }} parentTutorial={parentTutorial} />
       )}
