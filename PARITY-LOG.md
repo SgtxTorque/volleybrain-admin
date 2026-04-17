@@ -222,6 +222,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Dashboard now shows "X players need a jersey number assigned" attention item using getJerseyTasksCount(). → MOBILE: Consider showing same count on mobile admin/coach dashboard.
 - WEB: Team assignment email template now accepts optional jersey_number field. → MOBILE: No action (emails are web-triggered).
 
+### April 17, 2026 (Quick Fixes Bundle)
+- WEB: Parent Uniform tab now shows one jersey card per team for multi-team players. → MOBILE: Apply same multi-card treatment on mobile player profile uniform section.
+- WEB: Feature-flagged items (Game Prep, Standings, Leaderboards) now hidden from contextual top-nav, not just sidebar. → MOBILE: Verify same consistency on mobile nav.
+- WEB: Position filters on Roster Manager now sport-aware (volleyball/basketball/soccer/etc from program context). → MOBILE: If mobile has position filters, read sport from program context.
+- WEB: Teams page player count now distinguishes unique players vs roster slots. → MOBILE: If mobile shows team player counts, apply same dedup logic.
+
 ### April 17, 2026 (Schedule Write Controls)
 - WEB: Event Edit/Delete buttons now gated to team ownership — coaches can view all org events but only modify events for teams they coach. → MOBILE: If mobile coaches can edit/delete events, apply same team ownership check.
 - WEB: Event creation dropdown for coaches now shows only their assigned teams, no "All Teams / Org-wide" option. → MOBILE: If mobile has coach event creation, scope team picker similarly.
