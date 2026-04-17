@@ -222,6 +222,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Dashboard now shows "X players need a jersey number assigned" attention item using getJerseyTasksCount(). → MOBILE: Consider showing same count on mobile admin/coach dashboard.
 - WEB: Team assignment email template now accepts optional jersey_number field. → MOBILE: No action (emails are web-triggered).
 
+### April 17, 2026 (Schedule Write Controls)
+- WEB: Event Edit/Delete buttons now gated to team ownership — coaches can view all org events but only modify events for teams they coach. → MOBILE: If mobile coaches can edit/delete events, apply same team ownership check.
+- WEB: Event creation dropdown for coaches now shows only their assigned teams, no "All Teams / Org-wide" option. → MOBILE: If mobile has coach event creation, scope team picker similarly.
+- WEB: Attendance write (RSVP/mark present) now gated to coach's teams. View remains open. → MOBILE: Apply same guard on mobile attendance marking.
+- WEB: Replaced native window.confirm() on event delete with custom in-app confirmation modal. → MOBILE: No action (mobile has its own UI patterns).
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
