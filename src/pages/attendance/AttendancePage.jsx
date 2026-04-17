@@ -20,8 +20,9 @@ function formatTime12(timeStr) {
   } catch { return timeStr }
 }
 
-function AttendancePage({ showToast }) {
+function AttendancePage({ showToast, activeView, roleContext }) {
   const { organization, user } = useAuth()
+  const coachTeamIds = roleContext?.coachInfo?.team_coaches?.map(tc => tc.team_id) || []
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
   const { isDark } = useTheme()
@@ -169,6 +170,11 @@ function AttendancePage({ showToast }) {
   async function updateRsvp(playerId, status) {
     const event = events.find(e => e.id === expandedEventId)
     if (!event) return
+    // Guard: coaches can only mark attendance for their teams' events
+    if ((activeView === 'coach' || activeView === 'team_manager') && event.team_id && !coachTeamIds.includes(event.team_id)) {
+      showToast("You can only mark attendance for your own team's events", 'warning')
+      return
+    }
     try {
       const existingRsvp = rsvps.find(r => r.player_id === playerId)
       if (existingRsvp) {
@@ -189,6 +195,10 @@ function AttendancePage({ showToast }) {
   async function assignVolunteer(role, position, profileId) {
     const event = events.find(e => e.id === expandedEventId)
     if (!event) return
+    if ((activeView === 'coach' || activeView === 'team_manager') && event.team_id && !coachTeamIds.includes(event.team_id)) {
+      showToast("You can only manage volunteers for your own team's events", 'warning')
+      return
+    }
     try {
       const existing = volunteers.find(v => v.role === role && v.position === position)
       if (existing) { showToast('This slot is already filled', 'error'); return }
@@ -203,6 +213,10 @@ function AttendancePage({ showToast }) {
   async function removeVolunteer(volunteerId) {
     if (!confirm('Remove this volunteer?')) return
     const event = events.find(e => e.id === expandedEventId)
+    if ((activeView === 'coach' || activeView === 'team_manager') && event?.team_id && !coachTeamIds.includes(event.team_id)) {
+      showToast("You can only manage volunteers for your own team's events", 'warning')
+      return
+    }
     try {
       await supabase.from('event_volunteers').delete().eq('id', volunteerId)
       showToast('Volunteer removed', 'success')
@@ -291,7 +305,9 @@ function AttendancePage({ showToast }) {
                 expanded={isExpanded}
               >
                 {/* Expanded inline detail */}
-                {loadingDetail ? (
+                {(() => {
+                  const canMarkAttendance = activeView === 'admin' || !event.team_id || coachTeamIds.includes(event.team_id)
+                  return loadingDetail ? (
                   <div className="text-center py-6 text-slate-400">Loading details...</div>
                 ) : (
                   <div className="space-y-5">
@@ -343,7 +359,8 @@ function AttendancePage({ showToast }) {
                                 ].map(btn => (
                                   <button key={btn.s}
                                     onClick={(e) => { e.stopPropagation(); updateRsvp(player.id, btn.s) }}
-                                    className={`w-7 h-7 rounded-lg text-xs font-bold transition ${status === btn.s ? btn.active : btn.inactive}`}>
+                                    disabled={!canMarkAttendance}
+                                    className={`w-7 h-7 rounded-lg text-xs font-bold transition ${status === btn.s ? btn.active : btn.inactive} ${!canMarkAttendance ? 'opacity-40 cursor-not-allowed' : ''}`}>
                                     {btn.label}
                                   </button>
                                 ))}
@@ -379,8 +396,8 @@ function AttendancePage({ showToast }) {
                                     {vol ? (
                                       <div className="flex items-center gap-2">
                                         <span className="text-sm text-slate-700">{vol.profiles?.full_name || 'Assigned'}</span>
-                                        <button onClick={(e) => { e.stopPropagation(); removeVolunteer(vol.id) }}
-                                          className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                                        {canMarkAttendance && <button onClick={(e) => { e.stopPropagation(); removeVolunteer(vol.id) }}
+                                          className="text-red-400 hover:text-red-600 text-xs">✕</button>}
                                       </div>
                                     ) : isAssigning ? (
                                       <div className="flex items-center gap-1">
@@ -394,11 +411,13 @@ function AttendancePage({ showToast }) {
                                             .map(parent => <option key={parent.id} value={parent.id}>{parent.full_name || 'Parent'}</option>)}
                                         </select>
                                       </div>
-                                    ) : (
+                                    ) : canMarkAttendance ? (
                                       <button onClick={(e) => { e.stopPropagation(); setVolunteerAssignModal({ role, position }) }}
                                         className={`text-sm hover:underline ${position === 'primary' ? 'text-lynx-sky font-semibold' : 'text-slate-400 hover:text-lynx-sky'}`}>
                                         {position === 'primary' ? '+ Assign' : '+ Add'}
                                       </button>
+                                    ) : (
+                                      <span className="text-xs text-slate-300">—</span>
                                     )}
                                   </div>
                                 )
@@ -421,7 +440,8 @@ function AttendancePage({ showToast }) {
                       </button>
                     </div>
                   </div>
-                )}
+                )
+                })()}
               </EventCard>
             )
           })}

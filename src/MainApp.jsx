@@ -807,7 +807,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/practice-plans/:planId" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('drillLibrary') ? <PracticePlanBuilder showToast={showToast} /> : <ComingSoon featureName="Practice Plans" />}</RouteGuard>} />
       <Route path="/reflection-templates" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}>{isFeatureEnabled('coachReflection') ? <ReflectionTemplatesPage showToast={showToast} /> : <ComingSoon featureName="Reflections" />}</RouteGuard>} />
 
-      <Route path="/attendance" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><AttendancePage showToast={showToast} /></RouteGuard>} />
+      <Route path="/attendance" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><AttendancePage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
       <Route path="/payments" element={
         activeView === 'parent'
           ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
