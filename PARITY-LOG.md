@@ -217,6 +217,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: ParentDashboard, PlayerProfilePage, MyStuffPage, ParentRegistrationHub, MainApp, SetupWizard all updated to use getPrimaryTeam instead of team_players[0]. → MOBILE: Audit all team_players[0] usage and apply same pattern.
 - WEB: PlayerProfilePage shows ALL teams as pill badges when player is on multiple teams. ParentDashboard kid card shows primary + "+N more" indicator. → MOBILE: Consider similar multi-team display on player profile and parent home.
 
+### April 16, 2026 (Jersey Lifecycle)
+- WEB: Added "Assign jersey numbers" step (step 8 of 9) to admin LifecycleTracker. Completion: at least one team_players.jersey_number is non-null. Links to /jerseys. → MOBILE: If mobile has a season setup tracker, consider adding equivalent step.
+- WEB: Dashboard now shows "X players need a jersey number assigned" attention item using getJerseyTasksCount(). → MOBILE: Consider showing same count on mobile admin/coach dashboard.
+- WEB: Team assignment email template now accepts optional jersey_number field. → MOBILE: No action (emails are web-triggered).
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
