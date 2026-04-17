@@ -11,7 +11,7 @@ import {
   V2DashboardLayout,
 } from '../../components/v2'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
-import LifecycleTracker from '../../components/v2/admin/LifecycleTracker'
+import LifecycleTracker, { ADMIN_STEPS } from '../../components/v2/admin/LifecycleTracker'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { SeasonFormModal } from '../settings/SeasonFormModal'
@@ -493,21 +493,20 @@ export default function ProgramPage({ showToast }) {
     }},
   )
 
-  // --- Season Journey Stepper (scoped to selected season) ---
-  const seasonSetupSteps = (() => {
-    const steps = [
-      { label: 'Add Teams', page: 'teams', status: teams.length > 0 ? 'done' : 'upcoming' },
-      { label: 'Add Players', page: 'registrations', status: totalPlayers > 0 ? 'done' : 'upcoming' },
-      { label: 'Create Schedule', page: 'schedule', status: events.length > 0 ? 'done' : 'upcoming' },
-      { label: 'Open Registration', page: 'registration-templates', status: registrations.length > 0 ? 'done' : 'upcoming' },
-      { label: 'Set Up Payments', page: 'payment-setup', status: payments.length > 0 ? 'done' : 'upcoming' },
-    ]
-    const first = steps.findIndex(s => s.status !== 'done')
-    if (first >= 0) steps[first].status = 'current'
-    return steps
-  })()
-  const setupComplete = seasonSetupSteps.filter(s => s.status === 'done').length
-  const setupTotal = seasonSetupSteps.length
+  // --- Season Setup badge (reads from ADMIN_STEPS to stay in sync with LifecycleTracker) ---
+  const trackerData = {
+    teamsCount: tabTeams.length,
+    coachesAssignedCount: tabTeams.reduce((sum, t) => sum + (t.team_coaches?.[0]?.count || 0), 0),
+    playersCount: tabPlayers?.length || 0,
+    eventsCount: tabEvents.length,
+    registrationsCount: tabRegistrations.length,
+    approvedRegsCount: tabRegistrations.filter(r => r.status === 'approved' || r.status === 'rostered').length,
+    jerseyAssignedCount,
+    hasRegistrationTemplate: Boolean((selectedProgramSeason || programSeasons[0])?.registration_template_id),
+    registrationOpen: Boolean((selectedProgramSeason || programSeasons[0])?.registration_open),
+  }
+  const setupComplete = ADMIN_STEPS.filter(s => s.completionCheck(trackerData)).length
+  const setupTotal = ADMIN_STEPS.length
   const setupIncomplete = isAdmin && setupComplete < setupTotal
 
   // Auto-switch to setup tab on first load when setup is incomplete

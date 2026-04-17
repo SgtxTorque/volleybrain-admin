@@ -10,7 +10,7 @@ import { Check, Lock, ChevronRight } from 'lucide-react'
 import RegistrationSetupModal from '../../ui/RegistrationSetupModal'
 
 // ---------- Step definitions ----------
-const ADMIN_STEPS = [
+export const ADMIN_STEPS = [
   {
     id: 'create_season',
     title: 'Create your season',
