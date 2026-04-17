@@ -7,7 +7,8 @@ import { getSizeOptionsForPiece, getUniformConfig } from './PlayerProfileConstan
 
 export default function PlayerProfileUniformTab({
   player, jerseyPrefs, setJerseyPrefs, editingJersey, setEditingJersey,
-  saveJerseyPreferences, sportName, primaryTeam, assignedJersey, teamColor, isDark
+  saveJerseyPreferences, sportName, primaryTeam, assignedJersey, teamColor, isDark,
+  allTeams = []
 }) {
   const textCls = isDark ? 'text-white' : 'text-slate-900'
   const mutedCls = 'text-slate-400'
@@ -22,26 +23,35 @@ export default function PlayerProfileUniformTab({
   if (bottomLabel) sizePieces.push({ label: bottomLabel, value: player.uniform_size_shorts })
   extras.forEach(extra => { const key = extra.toLowerCase().replace(/\s+/g, '_'); sizePieces.push({ label: extra, value: player.uniform_sizes_extra?.[key] }) })
 
+  // Multi-team: show one jersey card per team, fall back to primary-only
+  const teamsToShow = allTeams.length > 0
+    ? allTeams
+    : [{ id: primaryTeam?.id || 'primary', name: primaryTeam?.name || 'Team', color: teamColor, jerseyNumber: assignedJersey }]
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Left: Current Jersey Visual */}
+      {/* Left: Current Jersey Visual — one card per team */}
       <div>
-        <h3 className={`text-sm font-bold ${textCls} mb-2`}>Current {topLabel}</h3>
-        <div className={`${altBg} rounded-[14px] p-4`}>
-          <div className="flex items-center gap-5">
-            <div className="w-24 h-28 rounded-[14px] flex flex-col items-center justify-center text-white relative overflow-hidden shadow-lg flex-shrink-0" style={{ backgroundColor: teamColor }}>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-2.5 rounded-b-full" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} />
-              <span className="text-3xl font-black mt-1">{assignedJersey || '?'}</span>
-              <span className="text-[10px] opacity-80 mt-0.5 font-medium">{primaryTeam?.name}</span>
+        <h3 className={`text-sm font-bold ${textCls} mb-2`}>Current {topLabel}{teamsToShow.length > 1 ? 's' : ''}</h3>
+        <div className="space-y-3">
+          {teamsToShow.map(team => (
+            <div key={team.id} className={`${altBg} rounded-[14px] p-4`}>
+              <div className="flex items-center gap-5">
+                <div className="w-24 h-28 rounded-[14px] flex flex-col items-center justify-center text-white relative overflow-hidden shadow-lg flex-shrink-0" style={{ backgroundColor: team.color || teamColor }}>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-2.5 rounded-b-full" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} />
+                  <span className="text-3xl font-black mt-1">{team.jerseyNumber || '?'}</span>
+                  <span className="text-[10px] opacity-80 mt-0.5 font-medium">{team.name}</span>
+                </div>
+                <div className="space-y-1">
+                  <div className={`text-sm ${textCls}`}><span className="font-semibold">Number:</span> {team.jerseyNumber ? `#${team.jerseyNumber}` : 'Not assigned'}</div>
+                  {sizePieces.map(piece => (
+                    <div key={piece.label} className={`text-sm ${textCls}`}><span className="font-semibold">{piece.label}:</span> {piece.value || 'Not set'}</div>
+                  ))}
+                  <div className={`text-xs ${mutedCls}`}>{team.jerseyNumber ? 'Assigned by admin' : 'Waiting for admin'}</div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-1">
-              <div className={`text-sm ${textCls}`}><span className="font-semibold">Number:</span> {assignedJersey ? `#${assignedJersey}` : 'Not assigned'}</div>
-              {sizePieces.map(piece => (
-                <div key={piece.label} className={`text-sm ${textCls}`}><span className="font-semibold">{piece.label}:</span> {piece.value || 'Not set'}</div>
-              ))}
-              <div className={`text-xs ${mutedCls}`}>{assignedJersey ? 'Assigned by admin' : 'Waiting for admin'}</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 

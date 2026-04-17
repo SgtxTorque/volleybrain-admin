@@ -106,6 +106,28 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColor}`}>{statusDisplay}</span>
             {registeredDate && <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Registered {registeredDate}</span>}
           </div>
+          {/* Team badges — at top of panel for quick verification */}
+          {hasTeam && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {teamPlayers.map(tp => {
+                if (!tp?.team_id) return null
+                const name = tp?.teams?.name || 'Team'
+                const color = tp?.teams?.color
+                return (
+                  <span
+                    key={tp.team_id}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    style={color
+                      ? { backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }
+                      : { backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                  >
+                    <Check className="w-2.5 h-2.5" />
+                    <span>{name}</span>
+                  </span>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -232,29 +254,6 @@ export default function PlayerDossierPanel({ player, registration, payments, onC
         {/* TEAM ASSIGNMENTS — multi-team aware */}
         {(isApproved || isRostered) && (
           <>
-            {/* Existing team badges (may be 1 or many) */}
-            {hasTeam && (
-              <div className="flex flex-wrap gap-1.5">
-                {teamPlayers.map(tp => {
-                  if (!tp?.team_id) return null
-                  const name = tp?.teams?.name || 'Team'
-                  const color = tp?.teams?.color
-                  return (
-                    <span
-                      key={tp.team_id}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                      style={color
-                        ? { backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }
-                        : { backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', border: '1px solid rgba(34, 197, 94, 0.2)' }}
-                    >
-                      <Check className="w-3 h-3" />
-                      <span>{name}</span>
-                    </span>
-                  )
-                })}
-              </div>
-            )}
-
             {/* Zero teams yet — primary full-width sky-blue dropdown (first assignment prominence) */}
             {!hasTeam && isApproved && onAssignToTeam && (
               teams.length > 0 ? (

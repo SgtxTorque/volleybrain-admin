@@ -376,7 +376,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
               {player.last_name?.toUpperCase()}
             </h1>
             <div className="flex items-center gap-2 mt-3 flex-wrap">
-              {assignedJersey && <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
+              {assignedJersey && !hasMultipleTeams && <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
               {player.position && <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-white/70">{player.position}</span>}
               <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                 player.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
@@ -424,6 +424,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activ
               saveJerseyPreferences={saveJerseyPreferences} sportName={sportName}
               primaryTeam={primaryTeam} assignedJersey={assignedJersey}
               teamColor={teamColor} isDark={isDark}
+              allTeams={allTeamsFlat}
             />
           )}
 
