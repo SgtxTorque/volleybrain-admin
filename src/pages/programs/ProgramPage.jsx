@@ -327,6 +327,46 @@ export default function ProgramPage({ showToast }) {
 
   // --- Computed Values ---
   const programSeasons = (allSeasons || []).filter(s => s.program_id === programId)
+
+  // Filtered data for tabs (scoped to selected season or all program seasons)
+  const tabSeasonIds = selectedProgramSeason
+    ? [selectedProgramSeason.id]
+    : programSeasons.map(s => s.id)
+  const tabTeams = teams.filter(t => tabSeasonIds.includes(t.season_id))
+  const tabPlayers = players.filter(p => tabSeasonIds.includes(p.season_id))
+  const tabRegistrations = registrations.filter(r => tabSeasonIds.includes(r.season_id))
+  const tabPayments = payments.filter(p => tabSeasonIds.includes(p.season_id))
+  const tabEvents = events.filter(e => tabSeasonIds.includes(e.season_id))
+
+  const tabPendingRegs = tabRegistrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length
+  const tabOverduePayments = tabPayments.filter(p => !p.paid && p.due_date && new Date(p.due_date) < new Date()).length
+
+  // --- Season Setup badge (reads from ADMIN_STEPS to stay in sync with LifecycleTracker) ---
+  const trackerData = {
+    teamsCount: tabTeams.length,
+    coachesAssignedCount: tabTeams.reduce((sum, t) => sum + (t.team_coaches?.[0]?.count || 0), 0),
+    playersCount: tabPlayers?.length || 0,
+    eventsCount: tabEvents.length,
+    registrationsCount: tabRegistrations.length,
+    approvedRegsCount: tabRegistrations.filter(r => r.status === 'approved' || r.status === 'rostered').length,
+    jerseyAssignedCount,
+    hasRegistrationTemplate: Boolean((selectedProgramSeason || programSeasons[0])?.registration_template_id),
+    registrationOpen: Boolean((selectedProgramSeason || programSeasons[0])?.registration_open),
+  }
+  const setupComplete = ADMIN_STEPS.filter(s => s.completionCheck(trackerData)).length
+  const setupTotal = ADMIN_STEPS.length
+  const setupIncomplete = isAdmin && setupComplete < setupTotal
+
+  // Auto-switch to setup tab on first load when setup is incomplete
+  useEffect(() => {
+    if (!loading && !setupTabInitialized && setupIncomplete) {
+      setActiveTab('setup')
+      setSetupTabInitialized(true)
+    } else if (!loading && !setupTabInitialized) {
+      setSetupTabInitialized(true)
+    }
+  }, [loading, setupTabInitialized, setupIncomplete])
+
   const activeSeasons = programSeasons.filter(s => s.status === 'active').length
   const totalTeams = teams.length
   const totalPlayers = players.length
@@ -706,45 +746,6 @@ export default function ProgramPage({ showToast }) {
     { value: fmt(totalCollected), label: 'Collected', color: '#10B981' },
     { value: actionItemCount, label: 'Action Items', color: actionItemCount > 0 ? '#F59E0B' : '#4BB9EC' },
   ]
-
-  // Filtered data for tabs (scoped to selected season or all program seasons)
-  const tabSeasonIds = selectedProgramSeason
-    ? [selectedProgramSeason.id]
-    : programSeasons.map(s => s.id)
-  const tabTeams = teams.filter(t => tabSeasonIds.includes(t.season_id))
-  const tabPlayers = players.filter(p => tabSeasonIds.includes(p.season_id))
-  const tabRegistrations = registrations.filter(r => tabSeasonIds.includes(r.season_id))
-  const tabPayments = payments.filter(p => tabSeasonIds.includes(p.season_id))
-  const tabEvents = events.filter(e => tabSeasonIds.includes(e.season_id))
-
-  const tabPendingRegs = tabRegistrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length
-  const tabOverduePayments = tabPayments.filter(p => !p.paid && p.due_date && new Date(p.due_date) < new Date()).length
-
-  // --- Season Setup badge (reads from ADMIN_STEPS to stay in sync with LifecycleTracker) ---
-  const trackerData = {
-    teamsCount: tabTeams.length,
-    coachesAssignedCount: tabTeams.reduce((sum, t) => sum + (t.team_coaches?.[0]?.count || 0), 0),
-    playersCount: tabPlayers?.length || 0,
-    eventsCount: tabEvents.length,
-    registrationsCount: tabRegistrations.length,
-    approvedRegsCount: tabRegistrations.filter(r => r.status === 'approved' || r.status === 'rostered').length,
-    jerseyAssignedCount,
-    hasRegistrationTemplate: Boolean((selectedProgramSeason || programSeasons[0])?.registration_template_id),
-    registrationOpen: Boolean((selectedProgramSeason || programSeasons[0])?.registration_open),
-  }
-  const setupComplete = ADMIN_STEPS.filter(s => s.completionCheck(trackerData)).length
-  const setupTotal = ADMIN_STEPS.length
-  const setupIncomplete = isAdmin && setupComplete < setupTotal
-
-  // Auto-switch to setup tab on first load when setup is incomplete
-  useEffect(() => {
-    if (!loading && !setupTabInitialized && setupIncomplete) {
-      setActiveTab('setup')
-      setSetupTabInitialized(true)
-    } else if (!loading && !setupTabInitialized) {
-      setSetupTabInitialized(true)
-    }
-  }, [loading, setupTabInitialized, setupIncomplete])
 
   // Filtered stats for tabs
   const tabRegStats = {
