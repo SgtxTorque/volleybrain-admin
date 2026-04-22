@@ -533,6 +533,8 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     const submitRegistration = async () => {
     const createdPlayerIds = []
     const createdRegistrationIds = []
+    let familyId = null
+    let familyIsNew = false
 
     try {
       let allChildren = [...children]
@@ -590,8 +592,6 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       const signatureDate = new Date().toISOString()
 
       // ─── Find or create family record ─────────────────────────────────
-      let familyId = null
-      let familyIsNew = false
       const parentEmail = sharedInfo.parent1_email?.trim().toLowerCase()
 
       if (parentEmail) {
