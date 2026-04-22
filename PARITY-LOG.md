@@ -234,6 +234,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Attendance write (RSVP/mark present) now gated to coach's teams. View remains open. → MOBILE: Apply same guard on mobile attendance marking.
 - WEB: Replaced native window.confirm() on event delete with custom in-app confirmation modal. → MOBILE: No action (mobile has its own UI patterns).
 
+### April 22, 2026
+- WEB: Fixed "Permanently Delete User" — now uses delete_profile_cascade RPC + slim Edge Function for auth.users → Mobile does not have platform admin features, no action needed
+- WEB: Fixed "Remove from Org" — new remove_user_from_org RPC cleans coaches, teams, staff → Mobile does not have platform admin features, no action needed
+- WEB: New migration 20260422_remove_user_from_org.sql adds remove_user_from_org() function → Function is org-scoped, mobile does not call it, no action needed
+- WEB: Edge Function delete-user-account simplified and deployed → Mobile does not call this function, no action needed
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
