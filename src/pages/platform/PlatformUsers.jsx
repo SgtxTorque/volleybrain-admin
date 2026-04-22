@@ -156,10 +156,11 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction, sh
 
   async function handleRemoveFromOrg(membership) {
     try {
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('id', membership.id)
+      // Use comprehensive RPC that cleans up coaches, team_coaches, staff, roles, etc.
+      const { error } = await supabase.rpc('remove_user_from_org', {
+        p_user_id: membership.user_id,
+        p_org_id: membership.organization_id
+      })
       if (error) throw error
       await supabase.from('platform_admin_actions').insert({
         admin_id: adminUser?.id,
@@ -174,7 +175,7 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction, sh
           role: membership.role,
         },
       })
-      showToast?.(`Removed from ${membership.organizations?.name || 'organization'}`, 'success')
+      showToast?.(`User removed from organization and all related roles cleaned up`, 'success')
       setRemoveConfirm({ open: false, membership: null })
       loadUserDetails()
       onDataChange?.()
