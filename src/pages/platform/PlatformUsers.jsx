@@ -715,10 +715,8 @@ function PlatformUsersPage({ showToast }) {
     setLoadingDuplicates(false)
   }
 
-  // Delete user — calls the delete-user-account Edge Function which runs with
-  // the service role key and removes BOTH the profiles/roles/etc. rows AND
-  // the auth.users record. Deleting only the profile leaves a ghost auth
-  // account behind and locks the email permanently.
+  // Delete user — two-step: RPC delete_profile_cascade handles 60+ tables,
+  // then Edge Function removes the auth.users record (requires service role key).
   function handleDeleteUser(targetUser) {
     setConfirmModal({
       open: true,
@@ -727,16 +725,49 @@ function PlatformUsersPage({ showToast }) {
       destructive: true,
       onConfirm: async () => {
         try {
-          await logAction('delete_user', targetUser.id, {
-            user_name: targetUser.full_name,
-            email: targetUser.email,
+          // Step 1: Delete all profile data via database function (handles 60+ tables)
+          const { error: rpcError } = await supabase.rpc('delete_profile_cascade', {
+            p_profile_id: targetUser.id
           })
-          const { data, error } = await supabase.functions.invoke('delete-user-account', {
+
+          if (rpcError) {
+            console.error('Profile cascade delete failed:', rpcError)
+            showToast?.(`Failed to delete user data: ${rpcError.message}`, 'error')
+            return
+          }
+
+          // Step 2: Delete from auth.users via Edge Function
+          const { data, error: fnError } = await supabase.functions.invoke('delete-user-account', {
             body: { userId: targetUser.id },
           })
-          if (error) throw error
-          if (data?.error) throw new Error(data.error)
-          showToast?.(`${targetUser.full_name || targetUser.email} fully deleted (auth + data)`, 'success')
+
+          if (fnError || data?.error) {
+            const errMsg = fnError?.message || data?.error || 'Unknown error'
+            console.error('Auth deletion failed:', errMsg)
+            // Profile data is already gone — warn admin that auth cleanup failed
+            showToast?.(`User data deleted but auth account removal failed. The user cannot log in but the email address may not be freed. Contact support if needed.`, 'error')
+            // Still log the partial success
+            await logAction('delete_user', targetUser.id, {
+              email: targetUser.email,
+              name: targetUser.full_name,
+              auth_deleted: false,
+              profile_deleted: true
+            })
+            // Still close panel and reload since profile is gone
+            setSelectedUser(null)
+            loadData()
+            return
+          }
+
+          // Step 3: Log the action AFTER success (not before)
+          await logAction('delete_user', targetUser.id, {
+            email: targetUser.email,
+            name: targetUser.full_name,
+            auth_deleted: true,
+            profile_deleted: true
+          })
+
+          showToast?.(`${targetUser.full_name || targetUser.email} has been permanently deleted`, 'success')
           setSelectedUser(null)
           loadData()
         } catch (err) {
