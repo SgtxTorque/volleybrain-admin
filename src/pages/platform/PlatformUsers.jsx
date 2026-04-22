@@ -115,7 +115,7 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction, sh
           .select('*, organizations(id, name, slug, is_active)')
           .eq('user_id', selectedUser.id)
           .eq('is_active', true)
-          .order('created_at', { ascending: false }),
+          .order('granted_at', { ascending: false }),
         supabase.from('platform_admin_actions')
           .select('*, profiles:admin_id(full_name)')
           .eq('target_id', selectedUser.id)
@@ -728,7 +728,7 @@ function PlatformUsersPage({ showToast }) {
         try {
           // Step 1: Delete all profile data via database function (handles 60+ tables)
           const { error: rpcError } = await supabase.rpc('delete_profile_cascade', {
-            p_profile_id: targetUser.id
+            profile_id: targetUser.id
           })
 
           if (rpcError) {
