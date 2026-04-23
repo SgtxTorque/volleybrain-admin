@@ -3,9 +3,9 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
-  CreditCard, Key, CheckCircle2 as CheckCircle, AlertCircle, ExternalLink,
-  RefreshCw, Shield, Zap, DollarSign,
-  Loader2, HelpCircle, AlertTriangle
+  CreditCard, CheckCircle2 as CheckCircle, AlertCircle, ExternalLink,
+  RefreshCw, Zap, DollarSign,
+  Loader2, HelpCircle, AlertTriangle, XCircle
 } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 
@@ -13,42 +13,41 @@ function PaymentSetupPage({ showToast }) {
   const { organization, setOrganization } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
-  
+
   // Manual payment settings
-  const [settings, setSettings] = useState({ 
-    venmoHandle: '', 
-    zelleEmail: '', 
-    cashappHandle: '', 
-    acceptManualPayments: true 
+  const [settings, setSettings] = useState({
+    venmoHandle: '',
+    zelleEmail: '',
+    cashappHandle: '',
+    acceptManualPayments: true
   })
-  
+
   // Stripe settings
   const [stripeSettings, setStripeSettings] = useState({
     stripe_enabled: false,
-    stripe_mode: 'test',
-    stripe_publishable_key: '',
     payment_processing_fee_mode: 'absorb',
     allow_partial_payments: false,
     minimum_payment_amount: 10,
     send_receipt_emails: true
   })
-  
+
+  // Connect state
+  const [connectStatus, setConnectStatus] = useState(null) // null = loading, object = loaded
+  const [connectLoading, setConnectLoading] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(false)
+  const [disconnecting, setDisconnecting] = useState(false)
+
   const [saving, setSaving] = useState(false)
-  const [testing, setTesting] = useState(false)
-  const [testResult, setTestResult] = useState(null)
-  const [activeTab, setActiveTab] = useState('manual') // 'manual' or 'stripe'
+  const [activeTab, setActiveTab] = useState('manual')
 
   useEffect(() => {
     if (organization?.settings?.payments) {
-      setSettings({ ...settings, ...organization.settings.payments })
+      setSettings(prev => ({ ...prev, ...organization.settings.payments }))
     }
-    // Load Stripe settings from organization
     if (organization) {
       setStripeSettings(prev => ({
         ...prev,
         stripe_enabled: organization.stripe_enabled || false,
-        stripe_mode: organization.stripe_mode || 'test',
-        stripe_publishable_key: organization.stripe_publishable_key || '',
         payment_processing_fee_mode: organization.payment_processing_fee_mode || 'absorb',
         allow_partial_payments: organization.allow_partial_payments || false,
         minimum_payment_amount: organization.minimum_payment_amount || 10,
@@ -57,20 +56,126 @@ function PaymentSetupPage({ showToast }) {
     }
   }, [organization])
 
+  // On mount: check for Stripe return/refresh URL params and check connect status
+  useEffect(() => {
+    if (!organization?.id) return
+
+    const params = new URLSearchParams(window.location.search)
+    const isReturn = params.get('stripe_return') === 'true'
+    const isRefresh = params.get('stripe_refresh') === 'true'
+
+    // Clean up URL params
+    if (isReturn || isRefresh) {
+      const url = new URL(window.location)
+      url.searchParams.delete('stripe_return')
+      url.searchParams.delete('stripe_refresh')
+      window.history.replaceState({}, '', url)
+    }
+
+    // Always check status if org has a stripe_account_id, or if returning from Stripe
+    if (organization.stripe_account_id || isReturn) {
+      checkConnectStatus()
+    } else {
+      setConnectStatus({ connected: false })
+    }
+  }, [organization?.id])
+
+  async function checkConnectStatus() {
+    setStatusLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-status', {
+        body: { organization_id: organization.id }
+      })
+
+      if (error) {
+        console.error('Connect status error:', error)
+        setConnectStatus({ connected: false, error: error.message })
+      } else {
+        setConnectStatus(data)
+        // Update local org state if onboarding status changed
+        if (data?.onboarding_complete && !organization.stripe_onboarding_complete) {
+          setOrganization(prev => ({
+            ...prev,
+            stripe_onboarding_complete: true,
+            stripe_enabled: true
+          }))
+          setStripeSettings(prev => ({ ...prev, stripe_enabled: true }))
+        }
+      }
+    } catch (err) {
+      console.error('Connect status error:', err)
+      setConnectStatus({ connected: false, error: err.message })
+    }
+    setStatusLoading(false)
+  }
+
+  async function handleConnectWithStripe() {
+    setConnectLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
+        body: { organization_id: organization.id }
+      })
+
+      if (error) throw new Error(error.message)
+
+      if (data?.already_connected) {
+        showToast('Stripe is already connected!', 'success')
+        checkConnectStatus()
+      } else if (data?.url) {
+        // Redirect to Stripe onboarding
+        window.location.href = data.url
+      } else {
+        throw new Error('No onboarding URL returned')
+      }
+    } catch (err) {
+      console.error('Connect onboard error:', err)
+      showToast('Failed to start Stripe setup: ' + err.message, 'error')
+    }
+    setConnectLoading(false)
+  }
+
+  async function handleDisconnect() {
+    if (!confirm('Disconnect your Stripe account? Parents will no longer be able to pay online. You can reconnect at any time.')) return
+
+    setDisconnecting(true)
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          stripe_account_id: null,
+          stripe_onboarding_complete: false,
+          stripe_enabled: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', organization.id)
+
+      if (error) throw error
+
+      setOrganization(prev => ({
+        ...prev,
+        stripe_account_id: null,
+        stripe_onboarding_complete: false,
+        stripe_enabled: false
+      }))
+      setConnectStatus({ connected: false })
+      setStripeSettings(prev => ({ ...prev, stripe_enabled: false }))
+      showToast('Stripe disconnected', 'success')
+    } catch (err) {
+      showToast('Failed to disconnect: ' + err.message, 'error')
+    }
+    setDisconnecting(false)
+  }
+
   async function handleSave() {
     setSaving(true)
     try {
-      // Save manual payment settings to organization.settings
       const newSettings = { ...organization.settings, payments: settings }
-      
-      // Save both manual and Stripe settings
+
       const { error } = await supabase
         .from('organizations')
-        .update({ 
+        .update({
           settings: newSettings,
           stripe_enabled: stripeSettings.stripe_enabled,
-          stripe_mode: stripeSettings.stripe_mode,
-          stripe_publishable_key: stripeSettings.stripe_publishable_key,
           payment_processing_fee_mode: stripeSettings.payment_processing_fee_mode,
           allow_partial_payments: stripeSettings.allow_partial_payments,
           minimum_payment_amount: stripeSettings.minimum_payment_amount,
@@ -78,21 +183,19 @@ function PaymentSetupPage({ showToast }) {
           updated_at: new Date().toISOString()
         })
         .eq('id', organization.id)
-      
+
       if (error) throw error
-      
-      setOrganization({ 
-        ...organization, 
+
+      setOrganization(prev => ({
+        ...prev,
         settings: newSettings,
         stripe_enabled: stripeSettings.stripe_enabled,
-        stripe_mode: stripeSettings.stripe_mode,
-        stripe_publishable_key: stripeSettings.stripe_publishable_key,
         payment_processing_fee_mode: stripeSettings.payment_processing_fee_mode,
         allow_partial_payments: stripeSettings.allow_partial_payments,
         minimum_payment_amount: stripeSettings.minimum_payment_amount,
         send_receipt_emails: stripeSettings.send_receipt_emails
-      })
-      
+      }))
+
       showToast('Payment settings saved!', 'success')
     } catch (err) {
       console.error('Error saving settings:', err)
@@ -101,49 +204,7 @@ function PaymentSetupPage({ showToast }) {
     setSaving(false)
   }
 
-async function testStripeConnection() {
-    setTesting(true)
-    setTestResult(null)
-    
-    try {
-      const key = stripeSettings.stripe_publishable_key
-      
-      if (!key) {
-        setTestResult({ success: false, message: 'Please enter a publishable key' })
-        setTesting(false)
-        return
-      }
-      if (!key.startsWith('pk_')) {
-        setTestResult({ success: false, message: 'Invalid key format. Publishable key should start with pk_' })
-        setTesting(false)
-        return
-      }
-      if (stripeSettings.stripe_mode === 'test' && !key.includes('_test_')) {
-        setTestResult({ success: false, message: 'You selected Test mode but entered a Live key' })
-        setTesting(false)
-        return
-      }
-      if (stripeSettings.stripe_mode === 'live' && key.includes('_test_')) {
-        setTestResult({ success: false, message: 'You selected Live mode but entered a Test key' })
-        setTesting(false)
-        return
-      }
-
-      const { data, error } = await supabase.functions.invoke('stripe-test-connection')
-      
-      if (error) {
-        setTestResult({ success: false, message: error.message || 'Connection test failed' })
-      } else if (data?.success) {
-        setTestResult({ success: true, message: data.message || 'Connection successful!' })
-      } else {
-        setTestResult({ success: false, message: data?.message || 'Connection test failed' })
-      }
-    } catch (err) {
-      setTestResult({ success: false, message: err.message })
-    }
-    
-    setTesting(false)
-  }
+  const isConnected = connectStatus?.connected && connectStatus?.onboarding_complete
 
   return (
     <PageShell
@@ -187,8 +248,8 @@ async function testStripeConnection() {
               Manual {settings.acceptManualPayments ? 'On' : 'Off'}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full inline-block ${stripeSettings.stripe_enabled ? 'bg-[#22C55E]' : 'bg-slate-500'}`} />
-              Stripe {stripeSettings.stripe_enabled ? 'On' : 'Off'}
+              <span className={`w-2 h-2 rounded-full inline-block ${isConnected ? 'bg-[#22C55E]' : 'bg-slate-500'}`} />
+              Stripe {isConnected ? 'Connected' : 'Off'}
             </span>
           </div>
         </div>
@@ -217,7 +278,7 @@ async function testStripeConnection() {
           style={{ fontFamily: 'var(--v2-font)' }}
         >
           <CreditCard className="w-4 h-4" /> Online Payments
-          {stripeSettings.stripe_enabled && <span className="w-2 h-2 rounded-full bg-[#22C55E]" />}
+          {isConnected && <span className="w-2 h-2 rounded-full bg-[#22C55E]" />}
         </button>
       </div>
 
@@ -281,224 +342,113 @@ async function testStripeConnection() {
       {/* Stripe Tab */}
       {activeTab === 'stripe' && (
         <div className="space-y-6">
-          {/* Help Section - Show at top */}
-          <div className={`rounded-[14px] p-6 ${isDark ? 'bg-[#4BB9EC]/5 border border-[#4BB9EC]/15' : 'bg-[#4BB9EC]/5 border border-[#4BB9EC]/20'}`}>
-            <h3 className="text-[#4BB9EC] font-bold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--v2-font)' }}>
-              <HelpCircle className="w-5 h-5" />
-              Getting Started with Stripe
-            </h3>
-            <div className={`space-y-2 text-sm ${isDark ? 'text-[#4BB9EC]/70' : 'text-[#4BB9EC]/80'}`}>
-              <p>
-                <strong>1.</strong> Create a free{' '}
-                <a href="https://dashboard.stripe.com/register" target="_blank" rel="noopener noreferrer" className="underline">
-                  Stripe account
-                </a>
-              </p>
-              <p>
-                <strong>2.</strong> Get your Publishable Key from{' '}
-                <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="underline">
-                  Developers → API Keys
-                </a>
-              </p>
-              <p>
-                <strong>3.</strong> Start with Test mode to try payments without real charges
-              </p>
-              <p>
-                <strong>4.</strong> Use test card: <code className="bg-[#4BB9EC]/15 px-1.5 py-0.5 rounded text-xs font-mono">4242 4242 4242 4242</code>
-              </p>
-            </div>
-          </div>
 
-          {/* Enable/Disable Toggle */}
-          <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  stripeSettings.stripe_enabled ? 'bg-[#22C55E]/15' : isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'
-                }`}>
-                  <Zap className={`w-6 h-6 ${stripeSettings.stripe_enabled ? 'text-[#22C55E]' : isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-                </div>
-                <div>
-                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Online Card Payments</h3>
-                  <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {stripeSettings.stripe_enabled
-                      ? 'Parents can pay with credit/debit cards'
-                      : 'Enable to accept card payments via Stripe'
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={stripeSettings.stripe_enabled}
-                  onChange={e => setStripeSettings(prev => ({ ...prev, stripe_enabled: e.target.checked }))}
-                  className="sr-only peer"
-                />
-                <div className="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#4BB9EC]" />
-              </label>
-            </div>
-          </div>
-
-          {stripeSettings.stripe_enabled && (
+          {/* === CONNECTED STATE === */}
+          {isConnected && (
             <>
-              {/* Mode Selection */}
-              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-                <h3 className={`font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
-                  <Shield className="w-5 h-5" />
-                  Environment Mode
-                </h3>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setStripeSettings(prev => ({ ...prev, stripe_mode: 'test' }))}
-                    className={`p-4 rounded-[14px] border-2 transition text-left ${
-                      stripeSettings.stripe_mode === 'test'
-                        ? 'border-amber-500 bg-amber-500/10'
-                        : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`w-3 h-3 rounded-full ${stripeSettings.stripe_mode === 'test' ? 'bg-amber-500' : 'bg-slate-500'}`} />
-                      <span className={`font-semibold ${tc.text}`}>Test Mode</span>
+              {/* Connected Status Card */}
+              <div className={`rounded-[14px] p-6 border-2 border-[#22C55E]/30 ${isDark ? 'bg-[#22C55E]/5' : 'bg-[#22C55E]/5'}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#22C55E]/15 flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-[#22C55E]" />
                     </div>
-                    <p className={`text-sm ${tc.textMuted}`}>
-                      Use test API keys. No real charges.
-                    </p>
-                  </button>
-
-                  <button
-                    onClick={() => setStripeSettings(prev => ({ ...prev, stripe_mode: 'live' }))}
-                    className={`p-4 rounded-[14px] border-2 transition text-left ${
-                      stripeSettings.stripe_mode === 'live'
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`w-3 h-3 rounded-full ${stripeSettings.stripe_mode === 'live' ? 'bg-emerald-500' : 'bg-slate-500'}`} />
-                      <span className={`font-semibold ${tc.text}`}>Live Mode</span>
-                    </div>
-                    <p className={`text-sm ${tc.textMuted}`}>
-                      Real payments will be processed.
-                    </p>
-                  </button>
-                </div>
-                
-                {stripeSettings.stripe_mode === 'live' && (
-                  <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-amber-400 font-medium text-sm">Live Mode Active</p>
-                      <p className="text-amber-400/70 text-sm">
-                        Real payments will be charged to parents.
+                      <h3 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                        Stripe Connected
+                      </h3>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {connectStatus.business_name || 'Your Stripe Account'}
                       </p>
                     </div>
                   </div>
-                )}
-              </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={checkConnectStatus}
+                      disabled={statusLoading}
+                      className={`p-2 rounded-lg transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}
+                      title="Refresh status"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${statusLoading ? 'animate-spin' : ''} ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                    </button>
+                  </div>
+                </div>
 
-              {/* API Keys */}
-              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-                <h3 className={`font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
-                  <Key className="w-5 h-5" />
-                  API Keys
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    stripeSettings.stripe_mode === 'test' 
-                      ? 'bg-amber-500/20 text-amber-400' 
-                      : 'bg-emerald-500/20 text-emerald-400'
-                  }`}>
-                    {stripeSettings.stripe_mode === 'test' ? 'Test' : 'Live'}
-                  </span>
-                </h3>
-                
-                <p className={`${tc.textMuted} text-sm mb-4`}>
-                  Get your API keys from{' '}
-                  <a 
-                    href={`https://dashboard.stripe.com/${stripeSettings.stripe_mode === 'test' ? 'test/' : ''}apikeys`}
+                {/* Status indicators */}
+                <div className="flex gap-4 mt-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${connectStatus.charges_enabled ? 'bg-[#22C55E]' : 'bg-amber-500'}`} />
+                    <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Charges {connectStatus.charges_enabled ? 'Enabled' : 'Pending'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${connectStatus.payouts_enabled ? 'bg-[#22C55E]' : 'bg-amber-500'}`} />
+                    <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Payouts {connectStatus.payouts_enabled ? 'Enabled' : 'Pending'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions row */}
+                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[#22C55E]/20">
+                  <a
+                    href="https://dashboard.stripe.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[#4BB9EC] hover:underline flex items-center gap-1.5"
                   >
-                    Stripe Dashboard → Developers → API Keys
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View Stripe Dashboard
                   </a>
-                </p>
-                
-                <div className="space-y-4">
-                  {/* Publishable Key */}
-                  <div>
-                    <label className={`block text-sm font-medium ${tc.text} mb-2`}>
-                      Publishable Key
-                      <span className={`${tc.textMuted} font-normal ml-2`}>(starts with pk_)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={stripeSettings.stripe_publishable_key}
-                      onChange={e => setStripeSettings(prev => ({ ...prev, stripe_publishable_key: e.target.value }))}
-                      placeholder={`pk_${stripeSettings.stripe_mode}_...`}
-                      className={`w-full px-4 py-3 ${tc.input} rounded-lg focus:outline-none focus:ring-2 focus:ring-lynx-sky font-mono text-sm`}
-                    />
-                  </div>
-                  
-                  {/* Secret Key - Info Only */}
-                  <div className={`p-4 ${tc.cardBgAlt} rounded-lg`}>
-                    <div className="flex items-start gap-3">
-                      <Shield className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                      <div>
-                        <p className={`${tc.text} font-medium text-sm`}>Secret Key</p>
-                        <p className={`${tc.textMuted} text-sm mt-1`}>
-                          Your secret key (sk_...) should be stored securely in your Supabase Edge Function secrets, not here.
-                          This will be set up when you deploy the payment processing functions.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Test Connection */}
-                <div className={`mt-6 pt-4 border-t ${tc.border}`}>
+                  <span className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>|</span>
                   <button
-                    onClick={testStripeConnection}
-                    disabled={testing || !stripeSettings.stripe_publishable_key}
-                    className={`px-4 py-2 rounded-lg transition disabled:opacity-50 flex items-center gap-2 ${isDark ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
+                    onClick={handleDisconnect}
+                    disabled={disconnecting}
+                    className="text-sm font-medium text-red-400 hover:text-red-300 flex items-center gap-1.5"
                   >
-                    {testing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Testing...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-4 h-4" />
-                        Validate Key
-                      </>
-                    )}
+                    {disconnecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                    Disconnect
                   </button>
-                  
-                  {testResult && (
-                    <div className={`mt-3 p-3 rounded-lg flex items-start gap-3 ${
-                      testResult.success 
-                        ? 'bg-emerald-500/10 border border-emerald-500/30' 
-                        : 'bg-red-500/10 border border-red-500/30'
-                    }`}>
-                      {testResult.success ? (
-                        <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                      )}
-                      <p className={testResult.success ? 'text-emerald-400' : 'text-red-400'}>
-                        {testResult.message}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Payment Options */}
+              {/* Enable/Disable Toggle */}
+              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      stripeSettings.stripe_enabled ? 'bg-[#22C55E]/15' : isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'
+                    }`}>
+                      <Zap className={`w-6 h-6 ${stripeSettings.stripe_enabled ? 'text-[#22C55E]' : isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                    </div>
+                    <div>
+                      <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Accept Online Payments</h3>
+                      <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {stripeSettings.stripe_enabled
+                          ? 'Parents can pay with credit/debit cards'
+                          : 'Enable to show "Pay Online" option to parents'
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={stripeSettings.stripe_enabled}
+                      onChange={e => setStripeSettings(prev => ({ ...prev, stripe_enabled: e.target.checked }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#4BB9EC]" />
+                  </label>
+                </div>
+              </div>
+
+              {/* Payment Options (always shown when connected) */}
               <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
                 <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Payment Options</h3>
-                
+
                 <div className="space-y-4">
                   {/* Processing Fee Mode */}
                   <div>
@@ -534,7 +484,7 @@ async function testStripeConnection() {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Partial Payments */}
                   <div className={`flex items-center justify-between p-4 ${tc.cardBgAlt} rounded-lg`}>
                     <div>
@@ -551,18 +501,131 @@ async function testStripeConnection() {
                       <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lynx-sky" />
                     </label>
                   </div>
+
+                  {/* Send Receipt Emails */}
+                  <div className={`flex items-center justify-between p-4 ${tc.cardBgAlt} rounded-lg`}>
+                    <div>
+                      <p className={`${tc.text} font-medium`}>Send Receipt Emails</p>
+                      <p className={`${tc.textMuted} text-sm`}>Email parents when payments are confirmed</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={stripeSettings.send_receipt_emails}
+                        onChange={e => setStripeSettings(prev => ({ ...prev, send_receipt_emails: e.target.checked }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lynx-sky" />
+                    </label>
+                  </div>
                 </div>
               </div>
             </>
           )}
-          
-          {!stripeSettings.stripe_enabled && (
+
+          {/* === NOT CONNECTED STATE — onboarding incomplete === */}
+          {connectStatus?.connected && !connectStatus?.onboarding_complete && (
+            <div className={`rounded-[14px] p-6 ${isDark ? 'bg-amber-500/5 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                    Stripe Setup Incomplete
+                  </h3>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Your Stripe account was created but onboarding isn't finished. Complete setup to start accepting payments.
+                  </p>
+                  <button
+                    onClick={handleConnectWithStripe}
+                    disabled={connectLoading}
+                    className="mt-4 px-6 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:brightness-110 disabled:opacity-50 flex items-center gap-2 text-sm"
+                  >
+                    {connectLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="w-4 h-4" />
+                        Complete Stripe Setup
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* === NOT CONNECTED STATE === */}
+          {connectStatus && !connectStatus.connected && (
+            <>
+              {/* Help Section */}
+              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-[#4BB9EC]/5 border border-[#4BB9EC]/15' : 'bg-[#4BB9EC]/5 border border-[#4BB9EC]/20'}`}>
+                <h3 className="text-[#4BB9EC] font-bold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--v2-font)' }}>
+                  <HelpCircle className="w-5 h-5" />
+                  How it works
+                </h3>
+                <div className={`space-y-2 text-sm ${isDark ? 'text-[#4BB9EC]/70' : 'text-[#4BB9EC]/80'}`}>
+                  <p>
+                    <strong>1.</strong> Click "Connect with Stripe" below to create or link your Stripe account
+                  </p>
+                  <p>
+                    <strong>2.</strong> Complete the Stripe setup wizard (takes about 5 minutes)
+                  </p>
+                  <p>
+                    <strong>3.</strong> Once connected, parents can pay fees with credit/debit cards
+                  </p>
+                  <p>
+                    <strong>4.</strong> Payments go directly to your Stripe account. You manage payouts from your Stripe Dashboard.
+                  </p>
+                </div>
+              </div>
+
+              {/* Connect Button Card */}
+              <div className={`rounded-[14px] p-8 text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+                <div className="w-16 h-16 rounded-2xl bg-[#4BB9EC]/10 flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="w-8 h-8 text-[#4BB9EC]" />
+                </div>
+                <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                  Connect Your Stripe Account
+                </h3>
+                <p className={`text-sm max-w-md mx-auto mb-6 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Accept credit and debit card payments from parents. Stripe handles all payment processing securely.
+                  {' '}A small platform fee of $0.50 per transaction applies.
+                </p>
+                <button
+                  onClick={handleConnectWithStripe}
+                  disabled={connectLoading}
+                  className="w-full max-w-sm mx-auto px-8 py-3.5 bg-[#4BB9EC] text-white font-bold rounded-xl hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-2 text-sm transition"
+                  style={{ fontFamily: 'var(--v2-font)' }}
+                >
+                  {connectLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5" />
+                      Connect with Stripe
+                    </>
+                  )}
+                </button>
+                <p className={`text-xs mt-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                  You'll be redirected to Stripe to complete setup
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Loading state */}
+          {!connectStatus && (
             <div className={`rounded-[14px] p-8 text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-              <CreditCard className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Online Payments Disabled</h3>
-              <p className={`max-w-md mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                Enable online payments above to accept credit/debit card payments from parents via Stripe.
-              </p>
+              <Loader2 className={`w-8 h-8 animate-spin mx-auto mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Checking Stripe connection...</p>
             </div>
           )}
         </div>
