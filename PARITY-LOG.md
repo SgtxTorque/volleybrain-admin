@@ -240,6 +240,17 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: New migration 20260422_remove_user_from_org.sql adds remove_user_from_org() function → Function is org-scoped, mobile does not call it, no action needed
 - WEB: Edge Function delete-user-account simplified and deployed → Mobile does not call this function, no action needed
 
+### April 23, 2026 (Stripe Connect Phase 1)
+- **CRITICAL — SHARED BACKEND:** Stripe payment flow now routes to connected org Stripe accounts via `stripe_account_id` on the `organizations` table. The `stripe-create-checkout` Edge Function now accepts `organization_id` and looks up the org's connected account. → **MOBILE: If mobile calls `stripe-create-checkout`, it MUST pass `organization_id` in the request body.** Without it, payments fall back to the platform account (backward compatible but orgs won't receive funds).
+- WEB: Created `stripe-connect-onboard` Edge Function — creates Standard Connect accounts and generates Stripe-hosted onboarding links → Mobile does not have payment setup, no action needed
+- WEB: Created `stripe-connect-status` Edge Function — retrieves connected account status (charges_enabled, payouts_enabled, onboarding_complete) → Mobile could call this to verify org payment readiness before showing pay buttons
+- WEB: PaymentSetupPage rewritten — removed manual Stripe key entry, replaced with "Connect with Stripe" button + connected state UI → Mobile does not have payment setup, no action needed
+- WEB: `stripe-create-checkout` now adds `application_fee_amount: 50` ($0.50) for connected accounts → No mobile action needed (fee is server-side)
+- WEB: `src/lib/stripe-checkout.js` updated to accept and pass `organization_id` → **MOBILE: If mobile has its own checkout caller, add `organization_id` to the request**
+- WEB: ParentPaymentsPage now passes `organization_id: organization?.id` to checkout → MOBILE: Parent payment screen should pass `organization_id` when calling checkout
+- WEB: Stripe SDK updated from 13.10.0 to 14.14.0 in `stripe-create-checkout` Edge Function → No mobile action needed (server-side)
+- **DB COLUMNS USED:** `organizations.stripe_account_id`, `organizations.stripe_onboarding_complete`, `organizations.stripe_enabled` — these columns must already exist in the schema
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
