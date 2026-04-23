@@ -18,6 +18,7 @@ export async function createCheckoutSession({
   customer_email,
   customer_name,
   description,
+  organization_id,
   success_url,
   cancel_url,
   metadata = {}
@@ -34,6 +35,7 @@ export async function createCheckoutSession({
       customer_email,
       customer_name,
       description,
+      organization_id,
       success_url,
       cancel_url,
       metadata,

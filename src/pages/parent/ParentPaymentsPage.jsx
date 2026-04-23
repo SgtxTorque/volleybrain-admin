@@ -176,6 +176,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
         description: processingFee > 0
           ? `${description} (includes $${processingFee.toFixed(2)} processing fee)`
           : description,
+        organization_id: organization?.id,
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
