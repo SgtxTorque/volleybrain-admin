@@ -16,7 +16,7 @@
 
 export const FEATURE_FLAGS = {
   // ===== GAME DAY (advanced coach tools) =====
-  gamePrep: false,          // Lineup builder, game completion, stats entry
+  gamePrep: true,           // Lineup builder, game completion, stats entry
   standings: false,         // Team standings (requires game data)
   leaderboards: false,      // Season leaderboards (requires stats data)
 
