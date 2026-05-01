@@ -2,7 +2,7 @@
 // 5-step flow: Programs → Children → Assign → Family Info → Review + Submit
 // Reuses existing form components from RegistrationFormSteps.jsx and RegistrationScreens.jsx
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
@@ -1294,6 +1294,7 @@ export function RegistrationCartPage() {
 
   // Step 5: Review + submit (populated in Phase 5)
   const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
   const [submitted, setSubmitted] = useState(false)
   const [registrationIds, setRegistrationIds] = useState([])
   const [savedInviteUrl, setSavedInviteUrl] = useState(null)
@@ -1398,6 +1399,9 @@ export function RegistrationCartPage() {
       setSubmitted(true)
       return
     }
+    // Prevent double-submit — useRef is synchronous, unlike useState
+    if (submittingRef.current) return
+    submittingRef.current = true
     setSubmitting(true)
     setError(null)
 
@@ -1807,6 +1811,7 @@ export function RegistrationCartPage() {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setSubmitting(false)
+      submittingRef.current = false
     }
   }
 
