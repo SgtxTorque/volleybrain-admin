@@ -14,6 +14,8 @@ import {
   SharedInfoCard, CustomQuestionsCard,
 } from './RegistrationFormSteps'
 import OrgLogo from '../../components/OrgLogo'
+import AppDownloadPrompt from '../../components/AppDownloadPrompt'
+import { isMobile } from '../../lib/platform-detect'
 import { getContrastText } from '../../components/social-cards/cardColorUtils'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2, CheckCircle2, ExternalLink } from 'lucide-react'
 
@@ -458,7 +460,7 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
 }
 
 // ─── Cart Success Screen ──────────────────────────────────────────────────
-function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee, inviteUrl, existingAccountDetected }) {
+function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee, inviteUrl, existingAccountDetected, parentEmail }) {
   const [hasSession, setHasSession] = useState(false)
   const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
   const totalRegs = registrationIds.length
@@ -532,18 +534,29 @@ function CartSuccessScreen({ children, childProgramMap, selectedPrograms, regist
           </p>
         )}
 
+        {/* App Download Prompt */}
+        <div className="mb-6">
+          <AppDownloadPrompt parentEmail={parentEmail} organization={organization} />
+        </div>
+
         {/* Account CTA */}
         {hasSession ? (
           <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-left mb-4">
             <p className="font-semibold text-green-800 text-sm mb-2">You're signed in!</p>
             <p className="text-green-700 text-xs mb-3">Head to your dashboard to track registration status and manage your team.</p>
-            <a href="/" className="inline-flex items-center justify-center w-full px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">Go to Your Dashboard →</a>
+            {isMobile() ? (
+              <a href="/" className="text-sm text-[#4BB9EC] hover:underline">
+                Or continue in your browser &rarr;
+              </a>
+            ) : (
+              <a href="/" className="inline-flex items-center justify-center w-full px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">Go to Your Dashboard &rarr;</a>
+            )}
           </div>
         ) : existingAccountDetected ? (
           <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-left mb-4">
             <p className="font-semibold text-amber-800 text-sm mb-2">You already have an account</p>
             <p className="text-amber-700 text-xs mb-3">Sign in with your existing email and password.</p>
-            <a href="/login" className="inline-flex items-center justify-center w-full px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">Sign In →</a>
+            <a href="/login" className="inline-flex items-center justify-center w-full px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">Sign In &rarr;</a>
             <a href="/login" className="inline-flex items-center justify-center w-full px-5 py-2 mt-2 rounded-[14px] border border-slate-300 text-slate-600 text-sm hover:bg-slate-50">Forgot Password?</a>
           </div>
         ) : (
@@ -1999,6 +2012,7 @@ export function RegistrationCartPage() {
           totalFee={cartTotal}
           inviteUrl={savedInviteUrl}
           existingAccountDetected={existingAccountDetected}
+          parentEmail={sharedInfo.parent1_email}
         />
       </>
     )
