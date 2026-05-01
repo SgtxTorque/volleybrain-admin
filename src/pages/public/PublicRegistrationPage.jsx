@@ -895,6 +895,55 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         }
       }
 
+      // === RETURNING PARENT LINKING ===
+      // If parent already has an account (existingAccount is truthy from checkExistingAccount),
+      // link the newly created players to their existing profile.
+      // This handles the case where password field was hidden and auth.signUp was skipped.
+      if (existingAccount?.id && createdPlayerIds.length > 0 && !authUserId) {
+        try {
+          // Set parent_account_id on all newly created player records
+          const { error: linkError } = await supabase
+            .from('players')
+            .update({ parent_account_id: existingAccount.id })
+            .in('id', createdPlayerIds)
+
+          if (linkError) {
+            console.error('Failed to link players to existing account:', linkError.message)
+          } else {
+            console.log(`Linked ${createdPlayerIds.length} player(s) to existing account ${existingAccount.id}`)
+          }
+
+          // Link family record if not already linked
+          if (familyId) {
+            await supabase
+              .from('families')
+              .update({ account_id: existingAccount.id })
+              .eq('id', familyId)
+              .is('account_id', null)
+          }
+
+          // Upsert player_parents records (table verified in Phase 0B)
+          for (const playerId of createdPlayerIds) {
+            await supabase.from('player_parents').upsert({
+              player_id: playerId,
+              parent_id: existingAccount.id,
+              relationship: 'parent',
+              is_primary: true,
+            }, { onConflict: 'player_id,parent_id' }).catch(() => {})
+          }
+
+          // Grant parent role for this org
+          try {
+            await grantRole(existingAccount.id, organization?.id, 'parent')
+          } catch (roleErr) {
+            console.error('Role grant for existing parent failed:', roleErr.message)
+          }
+        } catch (err) {
+          // Non-fatal — registration data is already saved
+          console.error('Existing account linking error:', err.message)
+        }
+      }
+
       // Create parent invite + send registration confirmation email
       if (sharedInfo.parent1_email) {
         let inviteUrl = null

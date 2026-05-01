@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import { EmailService } from '../../lib/email-service'
-import { createInvitation, checkExistingAccount } from '../../lib/invite-utils'
+import { createInvitation, checkExistingAccount, grantRole } from '../../lib/invite-utils'
 import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
   SharedInfoCard, CustomQuestionsCard,
@@ -1452,9 +1452,10 @@ export function RegistrationCartPage() {
 
       // 2a. Create parent invite for magic link (before the loop so invite_code is ready)
       let parentInviteUrl = null
+      let existingProfile = null
       try {
         if (parentEmail && organization?.id) {
-          const existingProfile = await checkExistingAccount(parentEmail)
+          existingProfile = await checkExistingAccount(parentEmail)
           if (existingProfile) {
             setExistingAccountDetected(true)
           } else {
@@ -1676,6 +1677,63 @@ export function RegistrationCartPage() {
             organization_id: organization?.id,
             metadata: { source: 'shopping_cart', program: sp.program.name },
           }).catch(() => {})
+        }
+      }
+
+      // === RETURNING PARENT LINKING ===
+      // If parent already has an account, link the newly created players to their profile.
+      // The cart page has no auth.signUp — linking must happen here for existing parents.
+      if (existingProfile?.id && createdPlayerIds.length > 0) {
+        try {
+          // Set parent_account_id on all newly created player records
+          const { error: linkError } = await supabase
+            .from('players')
+            .update({ parent_account_id: existingProfile.id })
+            .in('id', createdPlayerIds)
+
+          if (linkError) {
+            console.error('Failed to link players to existing account:', linkError.message)
+          } else {
+            console.log(`Linked ${createdPlayerIds.length} player(s) to existing account ${existingProfile.id}`)
+          }
+
+          // Link family record if not already linked
+          if (familyId) {
+            await supabase
+              .from('families')
+              .update({ account_id: existingProfile.id })
+              .eq('id', familyId)
+              .is('account_id', null)
+          }
+
+          // Upsert player_parents records (table verified in Phase 0B)
+          for (const playerId of createdPlayerIds) {
+            await supabase.from('player_parents').upsert({
+              player_id: playerId,
+              parent_id: existingProfile.id,
+              relationship: 'parent',
+              is_primary: true,
+            }, { onConflict: 'player_id,parent_id' }).catch(() => {})
+          }
+
+          // Grant parent role for this org
+          try {
+            await grantRole(existingProfile.id, organization?.id, 'parent')
+          } catch (roleErr) {
+            console.error('Role grant for existing parent failed:', roleErr.message)
+          }
+
+          // Sync emergency contact info to parent profile
+          if (sharedInfo.emergency_name || sharedInfo.emergency_phone) {
+            await supabase.from('profiles').update({
+              emergency_contact_name: sharedInfo.emergency_name || null,
+              emergency_contact_phone: sharedInfo.emergency_phone || null,
+              emergency_contact_relation: sharedInfo.emergency_relation || null,
+            }).eq('id', existingProfile.id).catch(() => {})
+          }
+        } catch (err) {
+          // Non-fatal — registration data is already saved
+          console.error('Existing account linking error:', err.message)
         }
       }
 
