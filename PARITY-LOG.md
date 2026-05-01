@@ -251,6 +251,9 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: Stripe SDK updated from 13.10.0 to 14.14.0 in `stripe-create-checkout` Edge Function → No mobile action needed (server-side)
 - **DB COLUMNS USED:** `organizations.stripe_account_id`, `organizations.stripe_onboarding_complete`, `organizations.stripe_enabled` — these columns must already exist in the schema
 
+### April 30, 2026
+- WEB: Fixed parent_account_id linking for returning parents in PublicRegistrationPage and RegistrationCartPage. Existing parents who register new children now get players linked to their profile immediately during registration. Also links families.account_id, upserts player_parents, and grants parent role. → MOBILE: Auth auto-link on login (lib/auth.tsx) handles the same case. Mobile should also fix case-sensitivity in orphan detection (.eq → .ilike on parent_email). No schema changes.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
