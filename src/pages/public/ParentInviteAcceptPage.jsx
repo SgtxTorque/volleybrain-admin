@@ -93,10 +93,11 @@ export default function ParentInviteAcceptPage() {
         .is('parent_account_id', null)
     }
 
-    // Link family record if it exists for this email
+    // Link family record if it exists for this email + org
     await supabase.from('families')
       .update({ account_id: userId })
       .eq('primary_email', invite.email)
+      .eq('organization_id', invite.organization_id)
       .is('account_id', null)
 
     // Grant parent role
