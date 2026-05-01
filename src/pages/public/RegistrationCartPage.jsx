@@ -1415,7 +1415,7 @@ export function RegistrationCartPage() {
       const parentEmail = sharedInfo.parent1_email?.trim().toLowerCase()
       if (parentEmail) {
         const { data: existingFamily } = await supabase
-          .from('families').select('id').eq('primary_email', parentEmail).maybeSingle()
+          .from('families').select('id').eq('primary_email', parentEmail).eq('organization_id', organization?.id).maybeSingle()
 
         if (existingFamily) {
           familyId = existingFamily.id
@@ -1449,6 +1449,7 @@ export function RegistrationCartPage() {
               emergency_contact_name: sharedInfo.emergency_name || null,
               emergency_contact_phone: sharedInfo.emergency_phone || null,
               emergency_contact_relation: sharedInfo.emergency_relation || null,
+              organization_id: organization?.id,
             }).select('id').single()
           if (!familyError && newFamily) { familyId = newFamily.id; familyIsNew = true }
         }
