@@ -1,7 +1,7 @@
 // PublicRegistrationPage — orchestrator for public season registration
 // Sub-components in RegistrationFormSteps.jsx, constants in registrationConstants.jsx
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
@@ -43,6 +43,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [config, setConfig] = useState(DEFAULT_CONFIG)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
@@ -523,12 +524,16 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       setSubmitted(true)
       return
     }
+    // Prevent double-submit — useRef is synchronous, unlike useState
+    if (submittingRef.current) return
+    submittingRef.current = true
     setSubmitting(true)
     setError(null)
 
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Registration is taking longer than expected. Please check your connection and try again.')), 30000)
-    )
+    // Show a "still working" message after 15 seconds — but do NOT re-enable submit
+    const slowTimer = setTimeout(() => {
+      setError('Still processing your registration — please don\'t close this page...')
+    }, 15000)
 
     const submitRegistration = async () => {
     const createdPlayerIds = []
@@ -1078,11 +1083,13 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     }
 
     try {
-      await Promise.race([submitRegistration(), timeout])
+      await submitRegistration()
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
+      clearTimeout(slowTimer)
       setSubmitting(false)
+      submittingRef.current = false
     }
   }
 
