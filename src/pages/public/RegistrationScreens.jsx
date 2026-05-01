@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react'
 import { Edit, ChevronDown, ChevronUp, CheckCircle2, AlertCircle } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
+import { isMobile } from '../../lib/platform-detect'
+import AppDownloadPrompt from '../../components/AppDownloadPrompt'
 
 const CARD_CLASSES = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
 const INPUT_CLASSES = 'w-full px-4 py-3 rounded-xl border border-[#E8ECF2] text-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 transition-colors'
@@ -267,21 +269,35 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
           </div>
         )}
 
-        {/* Section A: Account status CTA */}
+        {/* Section A: App Download — Primary CTA for mobile users */}
         <div className="mt-8 pt-6 border-t border-slate-200">
+          <AppDownloadPrompt parentEmail={parentEmail} organization={organization} />
+        </div>
+
+        {/* Section B: Account status CTA */}
+        <div className="mt-6 pt-6 border-t border-slate-200">
           <h2 className="text-r-lg font-bold text-slate-900">What's next?</h2>
           {hasSession ? (
             <>
               <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">
                 You're already logged in. Head to your dashboard to track registration status and manage your team.
               </p>
-              <a
-                href="/"
-                className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
-                style={{ fontFamily: 'var(--v2-font)' }}
-              >
-                Go to Dashboard
-              </a>
+              {isMobile() ? (
+                <a
+                  href="/"
+                  className="inline-block mt-4 text-sm text-[#4BB9EC] hover:underline"
+                >
+                  Or continue in your browser &rarr;
+                </a>
+              ) : (
+                <a
+                  href="/"
+                  className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
+                  style={{ fontFamily: 'var(--v2-font)' }}
+                >
+                  Go to Dashboard
+                </a>
+              )}
             </>
           ) : authCreated ? (
             <>
@@ -310,7 +326,7 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
               </p>
               <div className="flex flex-col gap-2">
                 <a href="/login" className="inline-flex items-center justify-center px-5 py-2.5 rounded-[14px] bg-[#10284C] text-white font-semibold text-sm hover:brightness-110">
-                  Sign In →
+                  Sign In &rarr;
                 </a>
                 <a href="/login" className="inline-flex items-center justify-center px-5 py-2.5 rounded-[14px] border border-slate-300 text-slate-600 font-medium text-sm hover:bg-slate-50">
                   Forgot Password?
@@ -332,15 +348,6 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
               <p className="text-r-xs text-slate-400 mt-2">Use the same email you registered with</p>
             </>
           )}
-        </div>
-
-        {/* Section B: Download the App */}
-        <div className="mt-6 pt-6 border-t border-slate-200">
-          <h3 className="text-r-sm font-bold text-slate-700">Get the Lynx App</h3>
-          <p className="text-r-xs text-slate-400 mt-1">
-            Download the mobile app for game day updates, real-time notifications, and more.
-          </p>
-          <p className="text-r-xs text-slate-400 mt-1">Coming soon to App Store and Google Play</p>
         </div>
 
         {/* Section C: Organization contact info */}
