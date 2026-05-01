@@ -46,6 +46,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const submittingRef = useRef(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
+  const [slowWarning, setSlowWarning] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
   const [prefillApplied, setPrefillApplied] = useState(false)
   const [formStartTracked, setFormStartTracked] = useState(false)
@@ -532,8 +533,15 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
     // Show a "still working" message after 15 seconds — but do NOT re-enable submit
     const slowTimer = setTimeout(() => {
-      setError('Still processing your registration — please don\'t close this page...')
+      setSlowWarning('Still processing your registration — please don\'t close this page...')
     }, 15000)
+
+    // Hard timeout at 120 seconds to prevent permanently stuck UI if Supabase is unreachable
+    const hardTimeout = setTimeout(() => {
+      setError('Registration is taking too long. Please check your connection and try again.')
+      setSubmitting(false)
+      submittingRef.current = false
+    }, 120000)
 
     const submitRegistration = async () => {
     const createdPlayerIds = []
@@ -1090,6 +1098,8 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
       clearTimeout(slowTimer)
+      clearTimeout(hardTimeout)
+      setSlowWarning(null)
       setSubmitting(false)
       submittingRef.current = false
     }
@@ -1315,6 +1325,14 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
                 Start fresh
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Slow warning (informational, not an error) */}
+        {slowWarning && !error && (
+          <div className="mb-6 p-4 rounded-[14px] bg-amber-50 border border-amber-200 flex items-start gap-3">
+            <Info className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+            <p className="text-r-sm text-amber-700 font-medium">{slowWarning}</p>
           </div>
         )}
 
