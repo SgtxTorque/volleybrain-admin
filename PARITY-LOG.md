@@ -264,6 +264,9 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - EDGE FUNCTIONS: All Stripe functions now require authenticated user with ownership/admin verification. Amounts are derived server-side. notification-cron and push now use shared secret instead of --no-verify-jwt. resend-webhooks verifies signature headers and requires RESEND_WEBHOOK_SECRET. stripe-test-connection and stripe-connect-status require admin auth. stripe-connect-onboard fixed role check from wrong values ('admin','director','owner') to correct 'league_admin'. → MOBILE: Payment checkout calls must include Authorization header (already does in stripe-checkout.js).
 - NEW SECRET: `CRON_SECRET` must be set in Edge Function secrets. Database webhooks calling `push` function must include `x-cron-secret` header. `RESEND_WEBHOOK_SECRET` must be set from Resend dashboard.
 
+### May 1, 2026 (App Download Prompt)
+- WEB: Registration success screens now show platform-aware app download prompt. iOS users see TestFlight badge. Android users can request beta access (email captured, notification sent to org director via email_notifications table). Desktop users see iOS badge + Android coming soon. Dashboard CTA demoted to text link on mobile. -> MOBILE: No changes needed. TestFlight URL stored in `src/lib/app-constants.js` -- update when transitioning to App Store. Android Play Store URL currently null -- set when listing goes live.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
