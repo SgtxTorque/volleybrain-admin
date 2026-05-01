@@ -4,17 +4,25 @@ import { IOS_APP_URL, BETA_REQUEST_NOTIFY_EMAIL } from '../lib/app-constants'
 import { supabase } from '../lib/supabase'
 import { Smartphone } from 'lucide-react'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 function AndroidBetaRequest({ parentEmail, organizationName, organizationId }) {
   const [email, setEmail] = useState(parentEmail || '')
   const [requested, setRequested] = useState(false)
   const [sending, setSending] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   const handleRequest = async () => {
     if (!email || sending) return
+    if (!EMAIL_REGEX.test(email)) {
+      setSubmitError('Please enter a valid email address.')
+      return
+    }
     setSending(true)
+    setSubmitError(null)
 
     try {
-      await supabase.from('email_notifications').insert({
+      const { error } = await supabase.from('email_notifications').insert({
         type: 'admin_notification',
         recipient_email: BETA_REQUEST_NOTIFY_EMAIL,
         recipient_name: 'Carlos',
@@ -31,11 +39,11 @@ function AndroidBetaRequest({ parentEmail, organizationName, organizationId }) {
         created_at: new Date().toISOString()
       })
 
+      if (error) throw error
       setRequested(true)
     } catch (err) {
       console.error('Beta request failed:', err)
-      // Still show success — the parent doesn't need to know the notification failed
-      setRequested(true)
+      setSubmitError('Request failed. Please try again.')
     } finally {
       setSending(false)
     }
@@ -65,8 +73,9 @@ function AndroidBetaRequest({ parentEmail, organizationName, organizationId }) {
         <input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setSubmitError(null) }}
           placeholder="your@email.com"
+          aria-label="Email address for Android beta access"
           className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm placeholder-slate-400 focus:outline-none focus:border-[#4BB9EC]"
         />
         <button
@@ -77,6 +86,9 @@ function AndroidBetaRequest({ parentEmail, organizationName, organizationId }) {
           {sending ? '...' : 'Request'}
         </button>
       </div>
+      {submitError && (
+        <p className="text-xs text-red-400 text-center">{submitError}</p>
+      )}
     </div>
   )
 }
