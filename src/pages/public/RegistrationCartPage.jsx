@@ -1685,11 +1685,12 @@ export function RegistrationCartPage() {
       // The cart page has no auth.signUp — linking must happen here for existing parents.
       if (existingProfile?.id && createdPlayerIds.length > 0) {
         try {
-          // Set parent_account_id on all newly created player records
+          // Set parent_account_id only on unlinked player records
           const { error: linkError } = await supabase
             .from('players')
             .update({ parent_account_id: existingProfile.id })
             .in('id', createdPlayerIds)
+            .is('parent_account_id', null)
 
           if (linkError) {
             console.error('Failed to link players to existing account:', linkError.message)
