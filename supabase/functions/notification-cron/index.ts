@@ -8,8 +8,12 @@
 //   - Payment reminders (weekly)
 //   - Scheduled notifications that are now due
 //
-// Deploy: supabase functions deploy notification-cron --no-verify-jwt
+// Deploy: supabase functions deploy notification-cron
 // Cron: Set up external cron to call every 15 minutes
+//       Include header: x-cron-secret: <CRON_SECRET value>
+//
+// Required secrets:
+//   supabase secrets set CRON_SECRET=<strong-random-string>
 // =====================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -21,6 +25,17 @@ const supabase = createClient(
 
 Deno.serve(async (req) => {
   try {
+    // Verify cron secret — replaces --no-verify-jwt
+    const cronSecret = req.headers.get('x-cron-secret')
+    const expectedSecret = Deno.env.get('CRON_SECRET')
+
+    if (!expectedSecret || cronSecret !== expectedSecret) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     const results: Record<string, any> = {}
 
     // 1. Check game reminders (24hr)
@@ -74,10 +89,10 @@ Deno.serve(async (req) => {
       }),
       { headers: { 'Content-Type': 'application/json' } }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Notification cron error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }

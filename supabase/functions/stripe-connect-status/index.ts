@@ -53,6 +53,30 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // 2b. Verify caller is admin of this organization
+    const { data: adminRole } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('organization_id', organization_id)
+      .eq('role', 'league_admin')
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle()
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('is_platform_admin')
+      .eq('id', user.id)
+      .single()
+
+    if (!adminRole && callerProfile?.is_platform_admin !== true) {
+      return new Response(
+        JSON.stringify({ error: 'Admin access required for this organization' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // 3. Look up the org's stripe_account_id
     const { data: org, error: orgError } = await supabase
       .from('organizations')
@@ -117,7 +141,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('stripe-connect-status error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Failed to check Stripe status' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

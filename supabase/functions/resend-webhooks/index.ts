@@ -4,6 +4,10 @@
 // Receives delivery events from Resend, updates email_notifications status
 // Configure webhook URL in Resend dashboard:
 //   https://uqpjvbiuokwpldjvxiby.supabase.co/functions/v1/resend-webhooks
+//
+// Optional secrets:
+//   supabase secrets set RESEND_WEBHOOK_SECRET=whsec_xxxxx
+//   (Get from Resend dashboard → Webhooks → Signing secret)
 // ============================================
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
@@ -16,6 +20,67 @@ serve(async (req) => {
   }
 
   try {
+    // Verify Resend webhook signature headers
+    const svixId = req.headers.get('svix-id')
+    const svixTimestamp = req.headers.get('svix-timestamp')
+    const svixSignature = req.headers.get('svix-signature')
+
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      return new Response(JSON.stringify({ error: 'Missing webhook signature headers' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Reject stale webhooks (older than 5 minutes)
+    const timestampSeconds = parseInt(svixTimestamp, 10)
+    const now = Math.floor(Date.now() / 1000)
+    if (isNaN(timestampSeconds) || Math.abs(now - timestampSeconds) > 300) {
+      return new Response(JSON.stringify({ error: 'Webhook timestamp too old or invalid' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    // If a webhook signing secret is configured, verify the HMAC signature
+    const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET')
+    if (webhookSecret) {
+      // svix signs: "${svix-id}.${svix-timestamp}.${body}"
+      // The secret is base64-encoded after the "whsec_" prefix
+      const secretBytes = Uint8Array.from(
+        atob(webhookSecret.replace(/^whsec_/, '')),
+        c => c.charCodeAt(0)
+      )
+      const bodyText = await req.clone().text()
+      const signedContent = `${svixId}.${svixTimestamp}.${bodyText}`
+      const encoder = new TextEncoder()
+
+      const key = await crypto.subtle.importKey(
+        'raw',
+        secretBytes,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      )
+      const signatureBytes = await crypto.subtle.sign('HMAC', key, encoder.encode(signedContent))
+      const expectedSig = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)))
+
+      // svix-signature may contain multiple signatures separated by spaces
+      // Each is prefixed with "v1,"
+      const signatures = svixSignature.split(' ')
+      const isValid = signatures.some(sig => {
+        const sigValue = sig.replace(/^v1,/, '')
+        return sigValue === expectedSig
+      })
+
+      if (!isValid) {
+        return new Response(JSON.stringify({ error: 'Invalid webhook signature' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!

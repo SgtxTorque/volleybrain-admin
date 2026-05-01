@@ -1,14 +1,18 @@
 // =====================================================================
 // SUPABASE EDGE FUNCTION: Push Notification Sender
 // =====================================================================
-// Deploy: supabase functions deploy push --no-verify-jwt
-// 
+// Deploy: supabase functions deploy push
+//
 // This function is triggered by a database webhook when a new row
 // is inserted into the notifications table. It looks up the user's
 // Expo push token and sends the notification via Expo's push API.
 //
+// Authentication: shared secret via x-cron-secret header
+// (database webhooks must include this header)
+//
 // Required secrets:
 //   supabase secrets set EXPO_ACCESS_TOKEN=your_expo_access_token
+//   supabase secrets set CRON_SECRET=<same-secret-as-notification-cron>
 // =====================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -42,6 +46,17 @@ const supabase = createClient(
 
 Deno.serve(async (req) => {
   try {
+    // Verify shared secret — replaces --no-verify-jwt
+    const cronSecret = req.headers.get('x-cron-secret')
+    const expectedSecret = Deno.env.get('CRON_SECRET')
+
+    if (!expectedSecret || cronSecret !== expectedSecret) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     const payload: WebhookPayload = await req.json()
     const notification = payload.record
 
@@ -166,10 +181,10 @@ Deno.serve(async (req) => {
       }),
       { headers: { 'Content-Type': 'application/json' } }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Push notification error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }

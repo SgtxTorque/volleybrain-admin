@@ -58,7 +58,8 @@ serve(async (req) => {
       .select('role')
       .eq('user_id', user.id)
       .eq('organization_id', organization_id)
-      .in('role', ['admin', 'director', 'owner'])
+      .eq('role', 'league_admin')
+      .eq('is_active', true)
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -143,7 +144,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('stripe-connect-onboard error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Stripe onboarding failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
