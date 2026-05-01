@@ -259,6 +259,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - DB MIGRATION: Added `organization_id` (uuid, FK to organizations) to `families` table. Backfilled from linked players/seasons. Added unique partial index on `(organization_id, primary_email)`. → MOBILE: Family lookups should add `.eq('organization_id', orgId)` where org context is available. No schema break — the column is nullable, so existing mobile queries that don't filter by org_id will still work (returning any matching family).
 - WEB: Updated all family lookups and inserts in PublicRegistrationPage, RegistrationCartPage, and ParentInviteAcceptPage to include organization_id. LoginPage family queries are read-only and remain unscoped (org context not available at login time).
 
+### May 1, 2026 (Security Hardening)
+- DB MIGRATION: RLS write policies for teams, players, schedule_events, and payments now require `user_roles.role = 'league_admin'` (with `is_active = true`) or `profiles.is_platform_admin = true` instead of just org membership. Read policies remain permissive for org members. Players INSERT allows public registration. Players UPDATE allows parents (account linking) and coaches. Schedule events INSERT/UPDATE allows coaches. Payments are admin-only for all writes. → MOBILE: No impact — mobile uses the same Supabase RLS policies. These changes make the mobile app more secure too.
+- EDGE FUNCTIONS: All Stripe functions now require authenticated user with ownership/admin verification. Amounts are derived server-side. notification-cron and push now use shared secret instead of --no-verify-jwt. resend-webhooks verifies signature headers and requires RESEND_WEBHOOK_SECRET. stripe-test-connection and stripe-connect-status require admin auth. stripe-connect-onboard fixed role check from wrong values ('admin','director','owner') to correct 'league_admin'. → MOBILE: Payment checkout calls must include Authorization header (already does in stripe-checkout.js).
+- NEW SECRET: `CRON_SECRET` must be set in Edge Function secrets. Database webhooks calling `push` function must include `x-cron-secret` header. `RESEND_WEBHOOK_SECRET` must be set from Resend dashboard.
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
