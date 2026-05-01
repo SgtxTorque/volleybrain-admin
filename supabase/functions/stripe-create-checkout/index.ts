@@ -82,6 +82,16 @@ serve(async (req) => {
 
     const orgIds = [...new Set((seasons || []).map(s => s.organization_id).filter(Boolean))]
 
+    // Reject mixed-org payment sets — all payments must belong to one org
+    if (orgIds.length !== 1) {
+      return new Response(JSON.stringify({ error: 'All payments must belong to the same organization' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const resolvedOrgId = orgIds[0]
+
     // Check if caller is parent of the referenced players
     const { data: authorizedPlayers } = await serviceClient
       .from('players')
@@ -91,12 +101,12 @@ serve(async (req) => {
 
     const isParent = playerIds.length === 0 || authorizedPlayers?.length === playerIds.length
 
-    // Check if caller is admin
+    // Check if caller is admin of the specific org
     const { data: adminRoles } = await serviceClient
       .from('user_roles')
       .select('id')
       .eq('user_id', user.id)
-      .in('organization_id', orgIds)
+      .eq('organization_id', resolvedOrgId)
       .eq('role', 'league_admin')
       .eq('is_active', true)
 
@@ -129,8 +139,7 @@ serve(async (req) => {
     }
 
     // 6. Look up connected Stripe account from database (NOT from request)
-    // Use the org_id derived from payment records, not the client-supplied one
-    const resolvedOrgId = orgIds[0] || organization_id
+    // resolvedOrgId is derived from payment records, not client-supplied
     let stripeAccountId: string | null = null
 
     if (resolvedOrgId) {

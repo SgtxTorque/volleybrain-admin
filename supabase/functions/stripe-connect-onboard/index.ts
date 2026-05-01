@@ -90,7 +90,10 @@ serve(async (req) => {
       )
     }
 
-    const origin = req.headers.get('origin') || 'https://www.thelynxapp.com'
+    // Use a trusted base URL, not the request Origin header (prevents open redirect)
+    const TRUSTED_ORIGINS = ['https://www.thelynxapp.com', 'https://thelynxapp.com', 'http://localhost:5173']
+    const requestOrigin = req.headers.get('origin')
+    const origin = (requestOrigin && TRUSTED_ORIGINS.includes(requestOrigin)) ? requestOrigin : 'https://www.thelynxapp.com'
     let stripeAccountId = org.stripe_account_id
 
     // 4a. Already connected and onboarding complete

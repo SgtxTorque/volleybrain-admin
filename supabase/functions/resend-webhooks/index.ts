@@ -42,9 +42,17 @@ serve(async (req) => {
       })
     }
 
-    // If a webhook signing secret is configured, verify the HMAC signature
+    // Verify HMAC signature — fail closed if secret is not configured
     const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET')
-    if (webhookSecret) {
+    if (!webhookSecret) {
+      console.error('RESEND_WEBHOOK_SECRET not configured — rejecting webhook')
+      return new Response(JSON.stringify({ error: 'Webhook verification not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    {
       // svix signs: "${svix-id}.${svix-timestamp}.${body}"
       // The secret is base64-encoded after the "whsec_" prefix
       const secretBytes = Uint8Array.from(
