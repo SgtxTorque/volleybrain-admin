@@ -254,6 +254,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 ### April 30, 2026
 - WEB: Fixed parent_account_id linking for returning parents in PublicRegistrationPage and RegistrationCartPage. Existing parents who register new children now get players linked to their profile immediately during registration. Also links families.account_id, upserts player_parents, and grants parent role. → MOBILE: Auth auto-link on login (lib/auth.tsx) handles the same case. Mobile should also fix case-sensitivity in orphan detection (.eq → .ilike on parent_email). No schema changes.
 
+### May 1, 2026
+- WEB: Removed Promise.race ghost-write vulnerability from PublicRegistrationPage. Submit button now stays disabled until submission completes or fails. Added 120s hard timeout as safety net. Added useRef double-submit guard to both PublicRegistrationPage and RegistrationCartPage.
+- DB MIGRATION: Added `organization_id` (uuid, FK to organizations) to `families` table. Backfilled from linked players/seasons. Added unique partial index on `(organization_id, primary_email)`. → MOBILE: Family lookups should add `.eq('organization_id', orgId)` where org context is available. No schema break — the column is nullable, so existing mobile queries that don't filter by org_id will still work (returning any matching family).
+- WEB: Updated all family lookups and inserts in PublicRegistrationPage, RegistrationCartPage, and ParentInviteAcceptPage to include organization_id. LoginPage family queries are read-only and remain unscoped (org context not available at login time).
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
