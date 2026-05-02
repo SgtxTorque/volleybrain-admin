@@ -267,6 +267,12 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 ### May 1, 2026 (App Download Prompt)
 - WEB: Registration success screens now show platform-aware app download prompt. iOS users see TestFlight badge. Android users can request beta access (email captured, notification sent to org director via email_notifications table). Desktop users see iOS badge + Android coming soon. Dashboard CTA demoted to text link on mobile. -> MOBILE: No changes needed. TestFlight URL stored in `src/lib/app-constants.js` -- update when transitioning to App Store. Android Play Store URL currently null -- set when listing goes live.
 
+### May 2, 2026 (Stripe Live Cutover)
+- WEB: Stripe Connect switched from sandbox to live mode → Mobile: No Stripe integration exists yet. When mobile payments are added, use live keys from the start.
+- WEB: stripe-webhook signature verification hardened (unsafe fallback removed) → Mobile: N/A (webhook is server-side only)
+- WEB: All organizations.stripe_account_id cleared (sandbox accounts invalid in live mode) → Mobile: N/A
+- WEB: Edge Functions redeployed with live Stripe secrets → Mobile: N/A
+
 ---
 
 ## CRITICAL MOBILE ACTIONS (Do These First)
