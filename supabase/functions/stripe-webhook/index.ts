@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import Stripe from 'https://esm.sh/stripe@13.10.0?target=deno'
+import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
@@ -17,19 +17,27 @@ serve(async (req) => {
 
   let event: Stripe.Event
 
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SECRET is not configured')
+    return new Response(
+      JSON.stringify({ error: 'Webhook secret not configured' }),
+      { status: 500 }
+    )
+  }
+
+  if (!signature) {
+    return new Response(
+      JSON.stringify({ error: 'Missing stripe-signature header' }),
+      { status: 400 }
+    )
+  }
+
   try {
-    // Verify webhook signature when secret and signature are present
-    if (webhookSecret && signature) {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } else {
-      // Fallback for testing without signature verification
-      event = JSON.parse(body)
-      console.warn('⚠️ Webhook signature not verified - testing mode')
-    }
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message)
     return new Response(
-      JSON.stringify({ error: `Webhook Error: ${err.message}` }),
+      JSON.stringify({ error: 'Invalid signature' }),
       { status: 400 }
     )
   }
