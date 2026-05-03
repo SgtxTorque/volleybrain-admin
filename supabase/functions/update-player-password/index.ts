@@ -5,6 +5,7 @@
 // password for the player's auth account.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { isAuthorizedParent } from '../_shared/parent-auth.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -56,10 +57,20 @@ Deno.serve(async (req) => {
       .eq('profile_id', userId)
       .single()
 
-    if (!player || player.parent_account_id !== parentUser.id) {
+    if (!player) {
       return new Response(JSON.stringify({ error: 'You do not have permission to change this password' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
+    }
+
+    if (player.parent_account_id !== parentUser.id) {
+      // Fallback: check player_parents for secondary parent authorization
+      const isParent = await isAuthorizedParent(supabaseAdmin, parentUser.id, player.id);
+      if (!isParent) {
+        return new Response(JSON.stringify({ error: 'You do not have permission to change this password' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
     }
 
     // Update the auth password
