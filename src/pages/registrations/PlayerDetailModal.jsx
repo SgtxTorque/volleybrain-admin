@@ -7,7 +7,9 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
-import { Edit } from 'lucide-react'
+import { Edit, UserPlus } from 'lucide-react'
+import InviteCoParentModal from '../../components/modals/InviteCoParentModal'
+import { useAuth } from '../../contexts/AuthContext'
 import { formatPhone } from '../../lib/formatters'
 
 // ============================================
@@ -113,6 +115,7 @@ function EditField({ label, value, onChange, type = 'text', options, multiline }
 // ============================================
 export default function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToast }) {
   const { isDark } = useTheme()
+  const { organization } = useAuth()
   const reg = player.registrations?.[0]
   const rd = reg?.registration_data || {}
   const shared = rd.shared || {}
@@ -121,6 +124,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
   const [isEditing, setIsEditing] = useState(editMode)
   const [saving, setSaving] = useState(false)
   const [siblings, setSiblings] = useState([])
+  const [showCoParentInvite, setShowCoParentInvite] = useState(false)
 
   // Merge player columns with registration_data JSON
   const merged = {
@@ -260,9 +264,14 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
           </div>
           <div className="flex items-center gap-2">
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-xl bg-lynx-sky/15 text-lynx-sky font-bold text-base hover:bg-lynx-sky/25 flex items-center gap-2 transition">
-                <Edit className="w-4 h-4" /> Edit
-              </button>
+              <>
+                <button onClick={() => setShowCoParentInvite(true)} className="px-4 py-2 rounded-xl bg-emerald-500/15 text-emerald-500 font-bold text-base hover:bg-emerald-500/25 flex items-center gap-2 transition">
+                  <UserPlus className="w-4 h-4" /> Invite Co-Parent
+                </button>
+                <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-xl bg-lynx-sky/15 text-lynx-sky font-bold text-base hover:bg-lynx-sky/25 flex items-center gap-2 transition">
+                  <Edit className="w-4 h-4" /> Edit
+                </button>
+              </>
             )}
             <button onClick={onClose} className="text-slate-400 hover:text-white text-3xl leading-none px-2">&times;</button>
           </div>
@@ -478,6 +487,17 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
           )}
         </div>
       </div>
+
+      {showCoParentInvite && (
+        <InviteCoParentModal
+          playerIds={[player.id]}
+          playerNames={[`${player.first_name} ${player.last_name}`]}
+          familyId={player.family_id || null}
+          organizationId={organization?.id || player.organization_id}
+          onClose={() => setShowCoParentInvite(false)}
+          showToast={showToast}
+        />
+      )}
     </div>
   )
 }
