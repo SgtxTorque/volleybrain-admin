@@ -38,6 +38,7 @@ import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCa
 import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
 import CreatePlayerPassModal from '../../components/parent/CreatePlayerPassModal'
 import ManagePlayerPassModal from '../../components/parent/ManagePlayerPassModal'
+import InviteCoParentModal from '../../components/modals/InviteCoParentModal'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -80,6 +81,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [showReRegisterModal, setShowReRegisterModal] = useState(null)
   const [showActionSidebar, setShowActionSidebar] = useState(false)
   const [quickRsvpEvent, setQuickRsvpEvent] = useState(null)
+  const [showInviteFamily, setShowInviteFamily] = useState(false)
   const [activeTab, setActiveTab] = useState('schedule')
 
   // Engagement column state
@@ -803,6 +805,27 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               activeTeam={activeTeam}
             />
 
+            {/* Invite Family Member — let primary parent share access */}
+            {registrationData.length > 0 && (
+              <div style={{
+                display: 'flex', justifyContent: 'flex-end', marginBottom: 2,
+              }}>
+                <button
+                  onClick={() => setShowInviteFamily(true)}
+                  style={{
+                    background: isDark ? 'rgba(16,40,76,0.6)' : '#f0f6ff',
+                    border: `1px solid ${isDark ? 'rgba(75,185,236,0.2)' : '#c6ddf7'}`,
+                    borderRadius: 12, padding: '8px 16px',
+                    color: isDark ? '#4BB9EC' : '#10284C',
+                    fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>+</span> Invite Family Member
+                </button>
+              </div>
+            )}
+
             {/* OPEN REGISTRATIONS BANNER — shows for returning parents who may need to register for a new season */}
             {(() => {
               const registeredSeasonIds = new Set(registrationData.map(c => c.season?.id).filter(Boolean))
@@ -1098,6 +1121,16 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           player={managePassChild}
           onClose={() => setManagePassChild(null)}
           onRefresh={() => loadParentData()}
+          showToast={showToast}
+        />
+      )}
+      {showInviteFamily && (
+        <InviteCoParentModal
+          playerIds={registrationData.map(c => c.id)}
+          playerNames={registrationData.map(c => `${c.first_name} ${c.last_name}`)}
+          familyId={registrationData[0]?.family_id || null}
+          organizationId={organization?.id || orgDetails?.id}
+          onClose={() => setShowInviteFamily(false)}
           showToast={showToast}
         />
       )}
