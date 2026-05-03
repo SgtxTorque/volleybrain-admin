@@ -5,6 +5,11 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 
 ---
 
+### May 3, 2026 (Edge Function Secondary Parent Auth)
+- WEB: Edge Functions (create-player-account, update-player-password, stripe-create-checkout) now check player_parents for secondary parent authorization → Mobile: N/A (Edge Functions are server-side, shared across web and mobile)
+- WEB: Shared isAuthorizedParent() helper in supabase/functions/_shared/ → Mobile: Same helper used by both platforms
+- WEB: create-player-account user_metadata.parent_id now stores primary parent (player.parent_account_id), added created_by field for audit trail → Mobile: If mobile reads user_metadata.parent_id, it now always gets the primary parent ID
+
 ### April 10, 2026 (Feature Lockdown)
 - WEB: Feature flag system added (src/config/feature-flags.js) — 14 advanced features hidden from nav, 3 kept visible (coachAvailability, jerseys, registrationFunnel)
 - WEB: Locked features: gamePrep, standings, leaderboards, achievements, playerStats, playerPass, playerDashboard, engagement, drillLibrary, coachReflection, archives, dataExport, subscription, teamWall
@@ -272,6 +277,16 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 - WEB: stripe-webhook signature verification hardened (unsafe fallback removed) → Mobile: N/A (webhook is server-side only)
 - WEB: All organizations.stripe_account_id cleared (sandbox accounts invalid in live mode) → Mobile: N/A
 - WEB: Edge Functions redeployed with live Stripe secrets → Mobile: N/A
+
+### May 3, 2026 (Second Parent / Guardian Access)
+- WEB: loadMyChildren() helper checks both parent_account_id AND player_parents → Mobile: resolve-linked-players.ts already partially checks player_parents but needs consistency pass across all screens
+- WEB: Invite accept flow handles metadata.isSecondary for co-parent linking → Mobile: No invite accept page on mobile (uses web URL in browser), but child-loading queries need the same player_parents fallback
+- WEB: RLS policies updated to recognize player_parents for secondary parent access → Mobile: Same DB, same policies — will work once mobile queries use player_parents
+- WEB: Admin + Parent "Invite Co-Parent" UI added → Mobile: Needs equivalent UI in future sprint
+- WEB: player_parents backfilled for all existing parent_account_id links → Mobile: Same DB — backfill already visible
+- WEB: Linked parents displayed on player detail views → Mobile: Needs equivalent display in future sprint
+- WEB: player_parents table RLS hardened (INSERT requires matching invitation, escalation guard on UPDATE) → Mobile: Same DB, same policies
+- MEDIUM: Edge Functions (create-player-account, update-player-password, stripe-create-checkout, stripe-create-payment-intent) only check parent_account_id — secondary parents will get 403 on these actions until EFs are updated. Follow-up needed for both web and mobile.
 
 ---
 
