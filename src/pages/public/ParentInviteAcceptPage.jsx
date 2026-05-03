@@ -84,23 +84,40 @@ export default function ParentInviteAcceptPage() {
   }
 
   async function linkPlayersAndFamily(userId) {
-    // Link players to parent account
     const playerIds = invite.metadata?.playerIds || []
-    if (playerIds.length > 0) {
-      await supabase.from('players')
-        .update({ parent_account_id: userId })
-        .in('id', playerIds)
-        .is('parent_account_id', null)
+    const isSecondary = invite.metadata?.isSecondary === true
+
+    if (isSecondary) {
+      // --- SECONDARY PARENT: create player_parents records ---
+      const relationship = invite.metadata?.relationship || 'parent'
+      for (const playerId of playerIds) {
+        await supabase.from('player_parents').upsert({
+          player_id: playerId,
+          parent_id: userId,
+          relationship: relationship,
+          is_primary: false,
+          can_pickup: true,
+          receives_notifications: true,
+        }, { onConflict: 'player_id,parent_id' })
+      }
+    } else {
+      // --- PRIMARY PARENT: existing behavior (unchanged) ---
+      if (playerIds.length > 0) {
+        await supabase.from('players')
+          .update({ parent_account_id: userId })
+          .in('id', playerIds)
+          .is('parent_account_id', null)
+      }
+
+      // Link family record if it exists for this email + org
+      await supabase.from('families')
+        .update({ account_id: userId })
+        .eq('primary_email', invite.email)
+        .eq('organization_id', invite.organization_id)
+        .is('account_id', null)
     }
 
-    // Link family record if it exists for this email + org
-    await supabase.from('families')
-      .update({ account_id: userId })
-      .eq('primary_email', invite.email)
-      .eq('organization_id', invite.organization_id)
-      .is('account_id', null)
-
-    // Grant parent role
+    // Grant parent role (both primary and secondary)
     const orgId = invite.organization_id
     if (orgId) {
       await grantRole(userId, orgId, 'parent')
@@ -313,11 +330,13 @@ export default function ParentInviteAcceptPage() {
             {orgInfo?.name || 'Lynx'}
           </p>
           <h1 className="text-2xl font-black text-white">
-            Welcome, Parent!
+            {invite?.metadata?.isSecondary ? 'Welcome, Family Member!' : 'Welcome, Parent!'}
           </h1>
           {childNames.length > 0 && (
             <p className="text-white/80 text-sm mt-2">
-              Set up your account to track {childNames.join(' & ')}'s season.
+              {invite?.metadata?.isSecondary
+                ? `You've been invited to connect with ${childNames.join(' & ')} on Lynx.`
+                : `Set up your account to track ${childNames.join(' & ')}'s season.`}
             </p>
           )}
         </div>
@@ -336,7 +355,11 @@ export default function ParentInviteAcceptPage() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">Role</span>
-              <span className="text-sm font-bold text-[#4BB9EC]">Parent</span>
+              <span className="text-sm font-bold text-[#4BB9EC]">
+                {invite?.metadata?.isSecondary
+                  ? (invite.metadata.relationship ? invite.metadata.relationship.charAt(0).toUpperCase() + invite.metadata.relationship.slice(1) : 'Family Member')
+                  : 'Parent'}
+              </span>
             </div>
             {childNames.length > 0 && (
               <div className="flex items-center justify-between">
