@@ -8,6 +8,7 @@ import { SeasonProvider, useSeason } from './contexts/SeasonContext'
 import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
 import { OrgBrandingProvider, useOrgBranding } from './contexts/OrgBrandingContext'
 import { supabase } from './lib/supabase'
+import { loadMyChildren } from './lib/parent-utils'
 import { getPrimaryTeam } from './lib/team-utils'
 import { useAppNavigate, useCurrentPageId, useDocumentTitle } from './hooks/useAppNavigate'
 import { getPathForPage } from './lib/routes'
@@ -1051,12 +1052,18 @@ function MainApp() {
         .eq('staff_role', 'team_manager')
         .eq('is_active', true)
 
-      const { data: children } = orgSeasonIds.length > 0
-        ? await supabase
-            .from('players').select('*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
-            .eq('parent_account_id', profile.id)
-            .in('season_id', orgSeasonIds)
-        : { data: [] }
+      // Load children via shared helper (supports primary + secondary parents)
+      const childIds = orgSeasonIds.length > 0
+        ? await loadMyChildren(profile.id, orgSeasonIds, 'id')
+        : []
+      let children = []
+      if (childIds.length > 0) {
+        const { data } = await supabase
+          .from('players')
+          .select('*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
+          .in('id', childIds.map(c => c.id))
+        children = data || []
+      }
 
       // Detect player account: find a player record linked to this auth user's profile_id
       let playerSelf = null

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { loadMyChildren } from '../../lib/parent-utils'
 import { User } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import { ProfileInfoSection } from './ProfileInfoSection'
@@ -33,14 +34,13 @@ function MyProfilePage({ showToast }) {
         .eq('profile_id', profile.id)
         .maybeSingle()
 
-      // Check if user is a parent (has children in active org)
-      let childQuery = supabase.from('players').select('id').eq('parent_account_id', profile.id).limit(1)
+      // Check if user is a parent (has children in active org, supports secondary parents)
+      let orgSeasonIds = []
       if (organization?.id) {
         const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
-        const orgSeasonIds = orgSeasons?.map(s => s.id) || []
-        if (orgSeasonIds.length > 0) childQuery = childQuery.in('season_id', orgSeasonIds)
+        orgSeasonIds = orgSeasons?.map(s => s.id) || []
       }
-      const { data: children } = await childQuery
+      const children = await loadMyChildren(profile.id, orgSeasonIds, 'id')
 
       setRoleContext({
         isCoach: !!coach,

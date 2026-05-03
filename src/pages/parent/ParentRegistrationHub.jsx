@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { loadMyChildren } from '../../lib/parent-utils'
 import { getPrimaryTeamInfo } from '../../lib/team-utils'
 import { parseLocalDate } from '../../lib/date-helpers'
 import {
@@ -68,13 +69,17 @@ function ParentRegistrationHub({ roleContext, showToast }) {
       // Load parent's existing players (scoped to active org via all org seasons)
       const { data: allOrgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', orgId)
       const allOrgSeasonIds = allOrgSeasons?.map(s => s.id) || []
-      let playerQuery = supabase
-        .from('players')
-        .select('*, team_players (team_id, is_primary_team, teams (name))')
-        .eq('parent_account_id', user.id)
-        .order('created_at', { ascending: false })
-      if (allOrgSeasonIds.length > 0) playerQuery = playerQuery.in('season_id', allOrgSeasonIds)
-      const { data: playerData } = await playerQuery
+      // Load parent's children (supports primary + secondary parents)
+      const childIds = await loadMyChildren(user.id, allOrgSeasonIds, 'id')
+      let playerData = []
+      if (childIds.length > 0) {
+        const { data } = await supabase
+          .from('players')
+          .select('*, team_players (team_id, is_primary_team, teams (name))')
+          .in('id', childIds.map(c => c.id))
+          .order('created_at', { ascending: false })
+        playerData = data || []
+      }
       setMyPlayers(playerData || [])
     } catch (err) {
       console.error('Load error:', err)

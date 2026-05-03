@@ -11,6 +11,7 @@ import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
+import { loadMyChildren } from '../../lib/parent-utils'
 import { getPrimaryTeam, getPrimaryTeamInfo, getAllTeams } from '../../lib/team-utils'
 import { OrphanPlayerBanner } from '../parent/ClaimAccountPage'
 import { usePriorityItems } from '../../components/parent/PriorityCardsEngine'
@@ -293,18 +294,22 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   async function loadParentDataFromProfile() {
     if (!profile?.id) { setLoading(false); return }
     try {
-      // Scope children to active organization
-      let playersQuery = supabase
-        .from('players')
-        .select(`*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)),
-          season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))`)
-        .eq('parent_account_id', profile.id)
+      // Scope children to active organization (supports primary + secondary parents)
+      let orgSeasonIds = []
       if (organization?.id) {
         const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
-        const orgSeasonIds = orgSeasons?.map(s => s.id) || []
-        if (orgSeasonIds.length > 0) playersQuery = playersQuery.in('season_id', orgSeasonIds)
+        orgSeasonIds = orgSeasons?.map(s => s.id) || []
       }
-      const { data: players } = await playersQuery
+      const childIds = await loadMyChildren(profile.id, orgSeasonIds, 'id')
+      let players = []
+      if (childIds.length > 0) {
+        const { data } = await supabase
+          .from('players')
+          .select(`*, team_players(team_id, is_primary_team, jersey_number, teams(id, name, color, season_id)),
+            season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))`)
+          .in('id', childIds.map(c => c.id))
+        players = data || []
+      }
 
       if (players && players.length > 0) {
         const regData = players.map(p => {

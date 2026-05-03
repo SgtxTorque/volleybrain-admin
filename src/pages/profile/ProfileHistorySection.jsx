@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { loadMyChildren } from '../../lib/parent-utils'
 import {
   Clock, ChevronRight, Trophy, Building2
 } from '../../constants/icons'
@@ -180,10 +181,16 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
       }
 
       // Get player participation (for users who are also players)
-      const { data: playerRecords } = await supabase
-        .from('players')
-        .select('id, first_name, last_name, team_players(team_id, teams(name, season_id, seasons(id, name, start_date, end_date, status, organization_id, sports(id, name, icon), organizations(id, name))))')
-        .eq('parent_account_id', profile.id)
+      // Load children (supports primary + secondary parents)
+      const childIds = await loadMyChildren(profile.id, [], 'id')
+      let playerRecords = []
+      if (childIds.length > 0) {
+        const { data } = await supabase
+          .from('players')
+          .select('id, first_name, last_name, team_players(team_id, teams(name, season_id, seasons(id, name, start_date, end_date, status, organization_id, sports(id, name, icon), organizations(id, name))))')
+          .in('id', childIds.map(c => c.id))
+        playerRecords = data
+      }
 
       if (playerRecords) {
         for (const p of playerRecords) {

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useAuth } from './AuthContext'
 import { supabase } from '../lib/supabase'
+import { loadMyChildren } from '../lib/parent-utils'
 
 // ============================================
 // PARENT TUTORIAL CONFIGURATION
@@ -201,17 +202,22 @@ export function ParentTutorialProvider({ children, activeView }) {
       } 
       // Otherwise try to load from profile's children (scoped to active org)
       else if (profile?.id) {
-        let playerQuery = supabase
-          .from('players')
-          .select('*, team_players(team_id)')
-          .eq('parent_account_id', profile.id)
-          .limit(1)
+        // Load children (supports primary + secondary parents)
+        let orgSeasonIds = []
         if (organization?.id) {
           const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
-          const ids = orgSeasons?.map(s => s.id) || []
-          if (ids.length > 0) playerQuery = playerQuery.in('season_id', ids)
+          orgSeasonIds = orgSeasons?.map(s => s.id) || []
         }
-        const { data: players } = await playerQuery
+        const childIds = await loadMyChildren(profile.id, orgSeasonIds, 'id')
+        let players = []
+        if (childIds.length > 0) {
+          const { data } = await supabase
+            .from('players')
+            .select('*, team_players(team_id)')
+            .in('id', childIds.map(c => c.id))
+            .limit(1)
+          players = data || []
+        }
 
         if (players?.length > 0) {
           const player = players[0]
