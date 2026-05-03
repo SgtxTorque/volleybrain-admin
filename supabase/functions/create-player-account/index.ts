@@ -82,7 +82,8 @@ Deno.serve(async (req) => {
         full_name: playerName,
         account_type: 'player_child',
         player_id: playerId,
-        parent_id: parentUser.id,
+        parent_id: player.parent_account_id,
+        created_by: parentUser.id,
       }
     })
 
