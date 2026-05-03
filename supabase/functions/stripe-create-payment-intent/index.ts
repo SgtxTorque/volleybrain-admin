@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import Stripe from 'https://esm.sh/stripe@13.10.0?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { isAuthorizedParent } from '../_shared/parent-auth.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
   apiVersion: '2023-10-16',
@@ -91,14 +92,24 @@ serve(async (req) => {
 
     const resolvedOrgId = orgIds[0]
 
-    // Check if caller is parent of the referenced players
+    // Check if caller is parent of the referenced players (primary or secondary)
     const { data: authorizedPlayers } = await serviceClient
       .from('players')
       .select('id')
       .in('id', playerIds)
       .eq('parent_account_id', user.id)
 
-    const isParent = playerIds.length === 0 || authorizedPlayers?.length === playerIds.length
+    let isParent = playerIds.length === 0 || authorizedPlayers?.length === playerIds.length
+
+    // Fallback: check player_parents for any players not matched by primary parent_account_id
+    if (!isParent && playerIds.length > 0) {
+      const primaryIds = new Set((authorizedPlayers || []).map(p => p.id))
+      const unmatched = playerIds.filter(id => !primaryIds.has(id))
+      const secondaryChecks = await Promise.all(
+        unmatched.map(pid => isAuthorizedParent(serviceClient, user.id, pid))
+      )
+      isParent = secondaryChecks.every(Boolean)
+    }
 
     // Check if caller is admin of the specific org
     const { data: adminRoles } = await serviceClient
