@@ -10,6 +10,7 @@ import { parseLocalDate } from '../../lib/date-helpers'
 import { Edit, UserPlus } from 'lucide-react'
 import InviteCoParentModal from '../../components/modals/InviteCoParentModal'
 import { useAuth } from '../../contexts/AuthContext'
+import { getLinkedParents } from '../../lib/parent-utils'
 import { formatPhone } from '../../lib/formatters'
 
 // ============================================
@@ -125,6 +126,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
   const [saving, setSaving] = useState(false)
   const [siblings, setSiblings] = useState([])
   const [showCoParentInvite, setShowCoParentInvite] = useState(false)
+  const [linkedParents, setLinkedParents] = useState([])
 
   // Merge player columns with registration_data JSON
   const merged = {
@@ -191,6 +193,15 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
       setSiblings(data || [])
     }
     findSiblings()
+  }, [player.id])
+
+  useEffect(() => {
+    async function loadLinkedParents() {
+      if (!player.id) return
+      const parents = await getLinkedParents(player.id)
+      setLinkedParents(parents)
+    }
+    loadLinkedParents()
   }, [player.id])
 
   async function handleSave() {
@@ -399,6 +410,33 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                   </div>
                 </div>
               </div>
+
+              {/* Linked Parents & Guardians (from accounts) */}
+              {linkedParents.length > 0 && (
+                <div>
+                  <SectionTitle>Linked Parent Accounts</SectionTitle>
+                  <div className="flex flex-wrap gap-3">
+                    {linkedParents.map(p => (
+                      <div key={p.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? 'bg-lynx-midnight' : 'bg-slate-50'} border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${p.is_primary ? 'bg-lynx-sky/15 text-lynx-sky' : 'bg-emerald-500/15 text-emerald-500'}`}>
+                          {(p.full_name || 'U')[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {p.full_name || p.email || 'Unknown'}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{p.email || ''}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${p.is_primary ? 'bg-lynx-sky/15 text-lynx-sky' : 'bg-emerald-500/15 text-emerald-500'}`}>
+                              {p.is_primary ? 'Primary' : p.relationship ? p.relationship.charAt(0).toUpperCase() + p.relationship.slice(1) : 'Secondary'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* ROW 3: Medical + Waivers + Custom Answers */}
               <div className="grid grid-cols-3 gap-5">
