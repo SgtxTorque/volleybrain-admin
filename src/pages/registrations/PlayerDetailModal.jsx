@@ -207,12 +207,23 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
   async function handleSave() {
     setSaving(true)
     try {
+      // Sanitize integer fields — convert empty strings to null
+      const sanitizeInt = (v) => {
+        if (v === '' || v === undefined || v === null) return null
+        const n = parseInt(v, 10)
+        return isNaN(n) ? null : n
+      }
+
+      const payload = {
+        ...form,
+        jersey_number: sanitizeInt(form.jersey_number),
+        grade: form.grade === '' ? null : form.grade,
+        updated_at: new Date().toISOString(),
+      }
+
       const { error } = await supabase
         .from('players')
-        .update({
-          ...form,
-          updated_at: new Date().toISOString()
-        })
+        .update(payload)
         .eq('id', player.id)
 
       if (error) throw error
