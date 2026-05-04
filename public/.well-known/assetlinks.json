@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "<ANDROID_PACKAGE_NAME>",
+      "package_name": "com.thelynxapp.lynx",
       "sha256_cert_fingerprints": [
-        "<SHA256_FINGERPRINT>"
+        "A8:C9:67:B8:63:EF:5F:72:C4:89:68:FE:39:C8:0C:82:A6:04:08:D8:04:C1:90:BA:B0:A3:15:6D:4E:46:5C:A5"
       ]
     }
   }
