@@ -63,7 +63,33 @@ export function GettingStartedGuide({ onNavigate }) {
   const navigate = useNavigate()
   const journey = useJourney()
   const coachMarks = useCoachMarks()
+  const { allSeasons } = useSeason()
+  const { sports } = useSport()
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Admin'
+
+  // Live data counts for auto-detecting step completion
+  const [dataCounts, setDataCounts] = useState({ teams: 0, coaches: 0, events: 0, registrations: 0 })
+  useEffect(() => {
+    if (!organization?.id) return
+    ;(async () => {
+      try {
+        const seasonIds = (allSeasons || []).map(s => s.id)
+        if (seasonIds.length === 0) return
+        const [teamsRes, coachesRes, eventsRes, regsRes] = await Promise.all([
+          supabase.from('teams').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
+          supabase.from('coaches').select('id', { count: 'exact', head: true }).eq('organization_id', organization.id),
+          supabase.from('schedule_events').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
+          supabase.from('registrations').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
+        ])
+        setDataCounts({
+          teams: teamsRes.count || 0,
+          coaches: coachesRes.count || 0,
+          events: eventsRes.count || 0,
+          registrations: regsRes.count || 0,
+        })
+      } catch (_) { /* non-critical */ }
+    })()
+  }, [organization?.id, allSeasons?.length])
 
   // First-load coach-marks (admin day-zero) — fire once per profile.
   // Only fires when the foundation isn't done yet (the day-zero CTA is showing).
@@ -83,8 +109,10 @@ export function GettingStartedGuide({ onNavigate }) {
 
   // Tier 2: dedicated /setup flow tracks its own completion via setup_complete flag
   const setupFlowComplete = Boolean(organization?.settings?.setup_complete)
+  // Also consider org setup done if the org has essential fields populated
+  const orgHasEssentials = Boolean(organization?.name && organization?.contact_email && sports?.length > 0)
   // Resume banner: show if they started the org but never marked setup complete
-  const showResumeBanner = !setupFlowComplete && Boolean(organization?.name)
+  const showResumeBanner = !setupFlowComplete && !orgHasEssentials && Boolean(organization?.name)
 
   // Single source of truth: JourneyContext
   // Step → nav target mapping
@@ -100,6 +128,7 @@ export function GettingStartedGuide({ onNavigate }) {
 
   const journeyCompletedSteps = journey?.completedSteps || []
   // create_org is implicitly done if we're viewing the dashboard (org exists)
+  // Auto-detect completion from real data when journey steps weren't recorded
   const setupSteps = (JOURNEY_STEPS.org_director || []).map(step => ({
     id: step.id,
     label: step.title,
@@ -107,12 +136,23 @@ export function GettingStartedGuide({ onNavigate }) {
     done: step.id === 'create_org'
       ? Boolean(organization?.id)
       : step.id === 'org_setup'
-        ? setupFlowComplete || journeyCompletedSteps.includes('org_setup')
-        : journeyCompletedSteps.includes(step.id),
+        ? setupFlowComplete || orgHasEssentials || journeyCompletedSteps.includes('org_setup')
+        : step.id === 'create_season'
+          ? journeyCompletedSteps.includes('create_season') || (allSeasons || []).length > 0
+          : step.id === 'add_teams'
+            ? journeyCompletedSteps.includes('add_teams') || dataCounts.teams > 0
+            : step.id === 'add_coaches'
+              ? journeyCompletedSteps.includes('add_coaches') || dataCounts.coaches > 0
+              : step.id === 'create_schedule'
+                ? journeyCompletedSteps.includes('create_schedule') || dataCounts.events > 0
+                : step.id === 'open_registration'
+                  ? journeyCompletedSteps.includes('open_registration') || dataCounts.registrations > 0
+                  : journeyCompletedSteps.includes(step.id),
   }))
 
   // Foundation ready when org is set up (identity/contact/sports/payments/fees)
-  const foundationDone = setupFlowComplete || journeyCompletedSteps.includes('org_setup')
+  // Also auto-detect from actual data — if admin has seasons running, they're past setup
+  const foundationDone = setupFlowComplete || orgHasEssentials || journeyCompletedSteps.includes('org_setup')
 
   // Navigation helper honoring the step's nav target
   const goToStep = (step) => {
