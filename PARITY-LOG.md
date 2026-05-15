@@ -5,6 +5,13 @@ Shared Supabase project: uqpjvbiuokwpldjvxiby
 
 ---
 
+### May 15, 2026 (Login Rescue Flow Fix)
+- WEB: Login rescue flow disabled — automatic families/profiles lookup removed from login failure path. Parents now see "Incorrect email or password" + prominent "Reset My Password" button instead of broken "Set Up My Account" rescue card. Rescue code commented out, not deleted. | Mobile login should NOT implement the old rescue flow. If mobile has a similar pattern, disable it. Mobile should show password reset guidance on failed login, same as web.
+
+### May 4, 2026 (Admin Bug Fixes)
+- WEB: Integer field sanitization in registration detail save (PlayerDetailModal.jsx) — converts empty jersey_number/grade to null before Supabase update → Mobile: Check if mobile registration edit has the same empty-string-to-integer issue
+- WEB: Setup checklist completion detection fixed — auto-detects from real data (seasons, teams, coaches, events, registrations) instead of relying solely on journey step recordings → Mobile: N/A (no setup checklist on mobile)
+
 ### May 3, 2026 (Edge Function Secondary Parent Auth)
 - WEB: Edge Functions (create-player-account, update-player-password, stripe-create-checkout) now check player_parents for secondary parent authorization → Mobile: N/A (Edge Functions are server-side, shared across web and mobile)
 - WEB: Shared isAuthorizedParent() helper in supabase/functions/_shared/ → Mobile: Same helper used by both platforms
