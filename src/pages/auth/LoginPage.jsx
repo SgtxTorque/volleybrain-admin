@@ -53,7 +53,7 @@ export function LoginPage({ initialMode, onBack }) {
   useEffect(() => {
     const hash = window.location.hash
     if (hash.includes('error_code=otp_expired') || hash.includes('error=access_denied') || hash.includes('error_code=otp_disabled')) {
-      setError('This password reset link has expired. Please request a new one.')
+      showError('This password reset link has expired. Please request a new one.')
       window.history.replaceState(null, '', window.location.pathname)
     }
   }, [])
@@ -163,7 +163,7 @@ export function LoginPage({ initialMode, onBack }) {
         }
       }
 
-      setError(err.message)
+      showError(err.message)
     }
     setLoading(false)
   }
@@ -217,7 +217,7 @@ export function LoginPage({ initialMode, onBack }) {
           }
         }
 
-        setError('We found your registration but couldn\'t set up your account. Please contact your club administrator.')
+        showError('We found your registration but couldn\'t set up your account. Please contact your club administrator.')
 
       } else if (recoveryType === 'coach') {
         if (recoveryInviteCode) {
@@ -225,12 +225,12 @@ export function LoginPage({ initialMode, onBack }) {
         } else if (recoveryOrgId) {
           window.location.href = `/join/coach/${recoveryOrgId}`
         } else {
-          setError('We found your coaching record but couldn\'t locate your invitation. Please ask your club administrator to resend your invite.')
+          showError('We found your coaching record but couldn\'t locate your invitation. Please ask your club administrator to resend your invite.')
         }
       }
     } catch (err) {
       console.error('Recovery action error:', err)
-      setError('Something went wrong. Please try again or contact your club administrator.')
+      showError('Something went wrong. Please try again or contact your club administrator.')
     } finally {
       setRecoveryLoading(false)
     }
@@ -244,9 +244,15 @@ export function LoginPage({ initialMode, onBack }) {
     setRecoveryOrgId('')
   }
 
+  // Centralized error setter — clears recovery state to prevent dual-banner
+  function showError(message) {
+    clearRecovery()
+    setError(message)
+  }
+
   async function handleForgotPassword() {
     if (!email.trim()) {
-      setError('Please enter your email address first')
+      showError('Please enter your email address first')
       return
     }
     setResetSending(true)
@@ -259,7 +265,7 @@ export function LoginPage({ initialMode, onBack }) {
       if (resetError) throw resetError
       setMessage('Password reset link sent! Check your email.')
     } catch (err) {
-      setError(err.message)
+      showError(err.message)
     }
     setResetSending(false)
   }
@@ -270,7 +276,7 @@ export function LoginPage({ initialMode, onBack }) {
     try {
       await signInWithGoogle()
     } catch (err) {
-      setError(err.message)
+      showError(err.message)
       setOauthLoading('')
     }
   }
@@ -281,7 +287,7 @@ export function LoginPage({ initialMode, onBack }) {
     try {
       await signInWithApple()
     } catch (err) {
-      setError(err.message)
+      showError(err.message)
       setOauthLoading('')
     }
   }
