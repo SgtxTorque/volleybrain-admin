@@ -207,6 +207,36 @@ export function LoginPage({ initialMode, onBack }) {
               </button>
             </div>
           )}
+          {/* Contextual password reset — appears after failed login attempt */}
+          {error && error.includes('Incorrect email or password') && (
+            <div className="mt-[-8px] mb-6">
+              <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-xl text-center">
+                <p className="text-sm text-sky-300 font-medium">
+                  Forgot your password?
+                </p>
+                <p className="text-xs text-sky-400/80 mt-1">
+                  We'll send a reset link to your email.
+                </p>
+                <button
+                  onClick={handleForgotPassword}
+                  disabled={resetSending}
+                  className="mt-3 px-6 py-2 bg-[#4BB9EC] text-white text-sm font-semibold rounded-xl hover:bg-[#3a9fd4] transition-colors disabled:opacity-50"
+                >
+                  {resetSending ? 'Sending...' : 'Reset My Password'}
+                </button>
+              </div>
+              <div className="mt-2 text-center">
+                <button
+                  onClick={() => {
+                    showError('If you registered a child but never created a password, please contact your club administrator or re-register using your organization\'s registration link.')
+                  }}
+                  className="text-xs text-slate-500 underline hover:text-slate-300 transition-colors"
+                >
+                  Registered but never created a password?
+                </button>
+              </div>
+            </div>
+          )}
           {message && (
             <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-6 text-emerald-400 text-sm">
               {message}
